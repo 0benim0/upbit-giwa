@@ -6,12 +6,7 @@
     <title>UPBIT GIWA - Complete DApp</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #d4af37;
             --primary-dark: #b8860b;
@@ -24,8 +19,8 @@
             --success: #10b981;
             --danger: #ef4444;
             --border: #2a3f5f;
+            --task-blue: #00d4ff;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--bg) 0%, #0f1535 100%);
@@ -33,7 +28,6 @@
             line-height: 1.6;
             min-height: 100vh;
         }
-
         header {
             background: linear-gradient(135deg, rgba(20, 27, 58, 0.9), rgba(26, 40, 71, 0.9));
             border-bottom: 2px solid var(--primary);
@@ -43,7 +37,6 @@
             z-index: 100;
             backdrop-filter: blur(10px);
         }
-
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -53,7 +46,6 @@
             gap: 20px;
             flex-wrap: wrap;
         }
-
         .logo {
             font-size: 28px;
             font-weight: bold;
@@ -64,14 +56,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-
-        .header-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
+        .header-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         select, button {
             background: var(--bg-tertiary);
             color: var(--text);
@@ -83,19 +68,12 @@
             transition: all 0.3s;
             font-size: 14px;
         }
-
         button:hover {
             background: var(--primary);
             color: var(--bg);
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(212, 175, 55, 0.3);
         }
-
-        select:hover {
-            border-color: var(--primary);
-            background: var(--bg-secondary);
-        }
-
         .wallet-info {
             background: var(--bg-secondary);
             border: 2px solid var(--primary);
@@ -104,13 +82,11 @@
             font-size: 13px;
             font-family: 'Courier New', monospace;
         }
-
         main {
             max-width: 1400px;
             margin: 30px auto;
             padding: 20px;
         }
-
         .tabs {
             display: flex;
             gap: 10px;
@@ -120,7 +96,6 @@
             padding-bottom: 15px;
             overflow-x: auto;
         }
-
         .tab-btn {
             padding: 12px 20px;
             background: transparent;
@@ -132,32 +107,21 @@
             font-weight: 600;
             white-space: nowrap;
         }
-
         .tab-btn.active {
             background: var(--primary);
             color: var(--bg);
             border-color: var(--primary);
         }
-
         .tab-btn:hover:not(.active) {
             border-color: var(--primary);
             color: var(--primary);
         }
-
         .tab-content {
             display: none;
             animation: fadeIn 0.3s;
         }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .card {
             background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
             border: 2px solid var(--border);
@@ -166,25 +130,21 @@
             margin-bottom: 20px;
             transition: all 0.3s;
         }
-
         .card:hover {
             border-color: var(--primary);
             box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
         }
-
         .card h2 {
             color: var(--primary);
             margin-bottom: 15px;
             font-size: 22px;
         }
-
         .input-group {
             margin: 15px 0;
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
-
         input, select {
             flex: 1;
             min-width: 200px;
@@ -195,54 +155,17 @@
             border-radius: 8px;
             font-size: 14px;
         }
-
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
         }
-
-        .swap-section {
-            background: var(--bg-tertiary);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border: 2px solid var(--border);
-        }
-
-        .swap-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-
-        .swap-box {
-            flex: 1;
-            min-width: 200px;
-            background: var(--bg-secondary);
-            padding: 15px;
-            border-radius: 8px;
-            border: 2px solid var(--border);
-        }
-
-        .swap-box label {
-            display: block;
-            color: var(--text-muted);
-            font-size: 12px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
         .quick-amounts {
             display: flex;
             gap: 8px;
             margin: 10px 0;
             flex-wrap: wrap;
         }
-
         .quick-btn {
             padding: 6px 12px;
             background: var(--bg-tertiary);
@@ -253,50 +176,13 @@
             font-size: 12px;
             transition: all 0.2s;
         }
-
-        .quick-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .slippage-control {
-            background: var(--bg-secondary);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border: 2px solid var(--border);
-        }
-
-        .slippage-options {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .slippage-btn {
-            padding: 8px 12px;
-            background: var(--bg-tertiary);
-            border: 2px solid var(--border);
-            color: var(--text);
-            cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .slippage-btn.active {
-            border-color: var(--primary);
-            background: rgba(212, 175, 55, 0.1);
-            color: var(--primary);
-        }
-
+        .quick-btn:hover { border-color: var(--primary); color: var(--primary); }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
-
         .stat-box {
             background: var(--bg-tertiary);
             border: 2px solid var(--border);
@@ -305,73 +191,111 @@
             text-align: center;
             transition: all 0.3s;
         }
-
         .stat-box:hover {
             border-color: var(--primary);
             transform: translateY(-5px);
         }
-
         .stat-value {
             font-size: 28px;
             font-weight: bold;
             color: var(--primary);
             margin: 10px 0;
         }
-
         .stat-label {
             font-size: 12px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
+        .badge {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--accent));
+            border: 2px solid var(--accent);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.5;
+            margin: 10px;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .badge.unlocked {
+            opacity: 1;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        .task-item {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--task-blue);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-btn {
+            background: var(--task-blue);
+            color: var(--bg);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .task-btn:hover { opacity: 0.8; }
         .status {
             padding: 15px;
             margin: 15px 0;
             border-radius: 8px;
             border-left: 4px solid;
         }
-
         .status.success {
             background: rgba(16, 185, 129, 0.1);
             border-color: var(--success);
             color: var(--success);
         }
-
         .status.error {
             background: rgba(239, 68, 68, 0.1);
             border-color: var(--danger);
             color: var(--danger);
         }
-
         .status.info {
             background: rgba(124, 58, 237, 0.1);
             border-color: var(--accent);
             color: var(--accent);
         }
-
+        .nft-preview {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            margin: 20px auto;
+            border: 3px solid var(--primary);
+        }
+        .gm-display {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+            color: var(--primary);
+        }
+        .time-display {
+            text-align: center;
+            font-size: 18px;
+            color: var(--task-blue);
+            margin: 15px 0;
+        }
         @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .header-controls {
-                width: 100%;
-                flex-direction: column;
-            }
-
-            select, button {
-                width: 100%;
-            }
-
-            .tabs {
-                flex-direction: column;
-            }
-
-            .swap-row {
-                flex-direction: column;
-            }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .header-controls { width: 100%; flex-direction: column; }
+            select, button { width: 100%; }
+            .tabs { flex-direction: column; }
         }
     </style>
 </head>
@@ -383,12 +307,8 @@
                 <select id="chainSelect" onchange="switchChain()">
                     <option value="giwa">GIWA Testnet</option>
                     <option value="arc">ARC Testnet</option>
-                    <option value="sepolia">Ethereum Sepolia</option>
-                    <option value="base-sepolia">Base Sepolia</option>
                 </select>
-                <button onclick="connectWallet()">
-                    <span id="walletBtn">Connect Wallet</span>
-                </button>
+                <button onclick="connectWallet()"><span id="walletBtn">Connect Wallet</span></button>
             </div>
         </div>
         <div class="wallet-info" id="walletInfo" style="display: none;">
@@ -399,155 +319,119 @@
     <main>
         <div class="tabs" id="tabs"></div>
         
-        <!-- TAB CONTENT -->
-        
-        <!-- SWAP TAB -->
-        <div id="swap" class="tab-content">
+        <div id="swap" class="tab-content active">
             <div class="card">
                 <h2>⚡ Swap Tokens</h2>
-                <p>Swap your tokens with minimal slippage</p>
-                
-                <div class="swap-section">
-                    <div class="swap-box">
-                        <label>You Send</label>
+                <div style="margin: 20px 0;">
+                    <label style="color: var(--text-muted);">You Send</label>
+                    <div class="input-group">
                         <input type="number" id="swapAmountIn" placeholder="0" onchange="updateSwapOutput()">
                         <select id="swapTokenIn" onchange="updateSwapOutput()">
-                            <option value="token1">Token A</option>
-                            <option value="token2">Token B</option>
-                            <option value="usdc">USDC</option>
+                            <option value="rry">RurouniYu (RRY)</option>
+                            <option value="ang">AnichessGame (ANG)</option>
+                            <option value="knh">Kenshin (KNH)</option>
                         </select>
-                        <div class="quick-amounts">
-                            <button class="quick-btn" onclick="setQuickAmount(25)">25%</button>
-                            <button class="quick-btn" onclick="setQuickAmount(50)">50%</button>
-                            <button class="quick-btn" onclick="setQuickAmount(75)">75%</button>
-                            <button class="quick-btn" onclick="setQuickAmount(100)">MAX</button>
-                        </div>
                     </div>
-                    
-                    <div style="text-align: center; font-size: 24px; color: var(--primary);">⇅</div>
-                    
-                    <div class="swap-box">
-                        <label>You Receive</label>
+                    <div class="quick-amounts">
+                        <button class="quick-btn" onclick="setQuickAmount(25)">25%</button>
+                        <button class="quick-btn" onclick="setQuickAmount(50)">50%</button>
+                        <button class="quick-btn" onclick="setQuickAmount(75)">75%</button>
+                        <button class="quick-btn" onclick="setQuickAmount(100)">MAX</button>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin: 20px 0; font-size: 24px; color: var(--primary);">⇅</div>
+                
+                <div style="margin: 20px 0;">
+                    <label style="color: var(--text-muted);">You Receive</label>
+                    <div class="input-group">
                         <input type="number" id="swapAmountOut" placeholder="0" readonly>
                         <select id="swapTokenOut" onchange="updateSwapOutput()">
-                            <option value="token2">Token B</option>
-                            <option value="token1">Token A</option>
-                            <option value="usdc">USDC</option>
+                            <option value="ang">AnichessGame (ANG)</option>
+                            <option value="rry">RurouniYu (RRY)</option>
+                            <option value="knh">Kenshin (KNH)</option>
                         </select>
                     </div>
                 </div>
                 
-                <div class="slippage-control">
-                    <label>Slippage Tolerance</label>
-                    <input type="number" id="slippageAmount" value="0.5" min="0" max="5" step="0.1">%
-                    <div class="slippage-options">
-                        <button class="slippage-btn" onclick="setSlippage(0.1)">0.1%</button>
-                        <button class="slippage-btn active" onclick="setSlippage(0.5)">0.5%</button>
-                        <button class="slippage-btn" onclick="setSlippage(1)">1%</button>
-                        <button class="slippage-btn" onclick="setSlippage(5)">5%</button>
-                    </div>
-                </div>
-                
-                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0;">
-                    <div style="display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px;">
-                        <span>Price:</span>
-                        <span id="swapPrice">1 = 0.99</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px;">
-                        <span>Fee:</span>
-                        <span id="swapFee">0.25%</span>
-                    </div>
-                </div>
-                
-                <button onclick="executeSwap()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">
-                    Swap Tokens
-                </button>
+                <button onclick="executeSwap()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Swap Tokens</button>
                 <div id="swapStatus"></div>
             </div>
         </div>
         
-        <!-- BRIDGE TAB -->
         <div id="bridge" class="tab-content">
             <div class="card">
                 <h2>🌉 Bridge Tokens</h2>
-                <p>Transfer tokens across chains</p>
-                
                 <div class="input-group">
                     <select id="bridgeSourceChain">
-                        <option value="giwa">From GIWA Testnet</option>
-                        <option value="arc">From ARC Testnet</option>
+                        <option value="giwa">From GIWA</option>
+                        <option value="arc">From ARC</option>
                         <option value="sepolia">From Ethereum Sepolia</option>
-                        <option value="base-sepolia">From Base Sepolia</option>
+                        <option value="base">From Base Sepolia</option>
                     </select>
                 </div>
-                
                 <div class="input-group">
                     <select id="bridgeDestChain">
-                        <option value="arc">To ARC Testnet</option>
-                        <option value="giwa">To GIWA Testnet</option>
+                        <option value="arc">To ARC</option>
+                        <option value="giwa">To GIWA</option>
                         <option value="sepolia">To Ethereum Sepolia</option>
-                        <option value="base-sepolia">To Base Sepolia</option>
+                        <option value="base">To Base Sepolia</option>
                     </select>
                 </div>
-                
                 <div class="input-group">
                     <input type="number" id="bridgeAmount" placeholder="Amount to bridge" min="0">
-                    <select id="bridgeToken">
-                        <option value="usdc">USDC</option>
-                        <option value="eth">ETH</option>
-                        <option value="dai">DAI</option>
-                    </select>
                 </div>
-                
-                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0;">
-                    <div style="display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px;">
-                        <span>Amount to Receive:</span>
-                        <span id="bridgeReceiveAmount">0</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px;">
-                        <span>Bridge Fee:</span>
-                        <span id="bridgeFeeDisplay">0.50%</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px; color: var(--text-muted);">
-                        <span>Estimated Time:</span>
-                        <span>2-5 minutes</span>
-                    </div>
-                </div>
-                
-                <button onclick="executeBridge()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">
-                    Bridge Tokens
-                </button>
+                <button onclick="executeBridge()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Bridge Tokens</button>
                 <div id="bridgeStatus"></div>
             </div>
         </div>
         
-        <!-- NFT MINTING TAB -->
-        <div id="nft-mining" class="tab-content">
+        <div id="nft" class="tab-content">
             <div class="card">
-                <h2>🎮 NFT Minting</h2>
-                <div class="input-group">
-                    <input type="text" id="nftName" placeholder="NFT Name">
-                    <button onclick="mintNFT()">Mint NFT</button>
+                <h2>🎮 NFT Minting - Checkmate</h2>
+                <div class="nft-preview">♞</div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 18px; color: var(--primary);">Checkmate NFT</div>
+                    <div style="color: var(--text-muted); font-size: 16px;">Minted: <span id="nftCounter">0</span> / 9999</div>
                 </div>
+                <div class="input-group">
+                    <input type="text" id="nftName" placeholder="Your NFT Name">
+                </div>
+                <button onclick="mintNFT()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Mint Checkmate NFT</button>
                 <div id="nftStatus"></div>
             </div>
         </div>
         
-        <!-- GM CHECK-IN TAB -->
-        <div id="gm-checkin" class="tab-content">
+        <div id="gm" class="tab-content">
             <div class="card">
                 <h2>✨ Daily GM</h2>
-                <button onclick="gmCheckIn()" style="width: 100%; padding: 20px; font-size: 18px; margin: 20px 0;">
-                    Say GM!
-                </button>
+                <div class="gm-display">GM ☀️</div>
+                <div class="time-display">Next Reset: <span id="gmTimer">00:00:00</span></div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 16px; color: var(--text);">Current Streak: <span id="gmStreak">0</span> days</div>
+                </div>
+                <button onclick="gmCheckIn()" style="width: 100%; padding: 20px; margin: 15px 0; font-size: 18px;">Say GM!</button>
                 <div id="gmStatus"></div>
             </div>
         </div>
         
-        <!-- PROFILE TAB -->
-        <div id="profil" class="tab-content">
+        <div id="badges" class="tab-content">
             <div class="card">
-                <h2>👤 Profile & Stats</h2>
+                <h2>🏆 Badges</h2>
+                <div id="badgesContainer" style="text-align: center;"></div>
+            </div>
+        </div>
+        
+        <div id="tasks" class="tab-content">
+            <div class="card">
+                <h2>📋 Daily Tasks</h2>
+                <div id="tasksContainer"></div>
+            </div>
+        </div>
+        
+        <div id="profile" class="tab-content">
+            <div class="card">
+                <h2>👤 Profile</h2>
                 <button onclick="loadUserStats()">Load Stats</button>
                 <div class="stats-grid" id="statsContainer"></div>
             </div>
@@ -555,226 +439,174 @@
     </main>
 
     <script>
-        // ==================== CONFIG ====================
-        const CHAINS = {
-            giwa: {
-                name: 'GIWA Testnet',
-                chainId: '0x1a6a9d2',
-                rpc: 'https://rpc.testnet.chain.giwa.io',
-                contracts: { swap: '0x...', bridge: '0x...', nft: '0x3422A8c40bADe21DB15FfB73a839aE25DC5A3f71' }
-            },
-            arc: {
-                name: 'ARC Testnet',
-                chainId: '0x4cef52',
-                rpc: 'https://arc-testnet.drpc.org',
-                contracts: { swap: '0x...', bridge: '0x...', nft: '0x924b73c5fdA620b5B0f9B6c51b6BE9162d1b8EED' }
-            },
-            sepolia: {
-                name: 'Ethereum Sepolia',
-                chainId: '0xaa36a7',
-                rpc: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
-                usdc: '0xf08a50178dfcde18524640ea6618a1f965821715'
-            },
-            'base-sepolia': {
-                name: 'Base Sepolia',
-                chainId: '0x14a34',
-                rpc: 'https://sepolia.base.org',
-                usdc: '0x036cbd53842c5426634e7929541ec2318f3dcf7e'
-            }
-        };
+        const BADGES = ['GM Starter', 'GM Warrior', 'Swap Master', 'Bridge Pioneer', 'NFT Collector', 'NFT Whale'];
+        const TASKS = [
+            { name: 'Say GM', icon: '☀️', points: 10 },
+            { name: 'Swap Tokens', icon: '⚡', points: 20 },
+            { name: 'Bridge Tokens', icon: '🌉', points: 30 },
+            { name: 'Mint NFT', icon: '🎮', points: 50 }
+        ];
 
-        // ==================== STATE ====================
-        let currentChain = 'giwa';
-        let provider = null;
-        let signer = null;
-        let userAddress = null;
-        let slippage = 0.5;
-
-        const TABS = ['swap', 'bridge', 'nft-mining', 'gm-checkin', 'profil'];
+        let currentChain = 'giwa', userAddress = null, gmStreak = 0, lastGMDate = null;
+        let nftCount = 0, userBadges = [], completedTasks = [];
+        const TABS = ['swap', 'bridge', 'nft', 'gm', 'badges', 'tasks', 'profile'];
         const TAB_LABELS = {
-            'swap': '⚡ Swap',
-            'bridge': '🌉 Bridge',
-            'nft-mining': '🎮 NFT',
-            'gm-checkin': '✨ GM',
-            'profil': '👤 Profile'
+            'swap': '⚡ Swap', 'bridge': '🌉 Bridge', 'nft': '🎮 NFT',
+            'gm': '✨ GM', 'badges': '🏆 Badges', 'tasks': '📋 Tasks', 'profile': '👤 Profile'
         };
 
-        // ==================== INIT ====================
         window.addEventListener('DOMContentLoaded', () => {
-            renderTabs();
-            checkWallet();
+            renderTabs(); renderBadges(); renderTasks(); updateGMTimer(); loadLocalData();
+            setInterval(updateGMTimer, 1000);
         });
 
         function renderTabs() {
-            const tabsContainer = document.getElementById('tabs');
-            tabsContainer.innerHTML = TABS.map(tab => `
-                <button class="tab-btn ${tab === 'swap' ? 'active' : ''}" 
-                    onclick="switchTab('${tab}')">
-                    ${TAB_LABELS[tab]}
-                </button>
-            `).join('');
+            document.getElementById('tabs').innerHTML = TABS.map(tab => 
+                `<button class="tab-btn ${tab === 'swap' ? 'active' : ''}" onclick="switchTab('${tab}')">${TAB_LABELS[tab]}</button>`
+            ).join('');
         }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
             event.target.classList.add('active');
         }
 
-        // ==================== WALLET ====================
         async function connectWallet() {
-            if (!window.ethereum) {
-                alert('Please install MetaMask!');
-                return;
-            }
-
+            if (!window.ethereum) return alert('Install MetaMask!');
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAddress = accounts[0];
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                updateWalletUI();
-                await switchChain();
-            } catch (error) {
-                showStatus('error', 'Wallet connection failed');
-            }
+                document.getElementById('walletBtn').textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
+                document.getElementById('walletAddress').textContent = userAddress;
+                document.getElementById('walletInfo').style.display = 'block';
+            } catch (error) { showStatus('error', 'Connection failed'); }
         }
 
-        async function switchChain() {
-            if (!userAddress) return;
+        function switchChain() {
             currentChain = document.getElementById('chainSelect').value;
-            const chain = CHAINS[currentChain];
-            
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: chain.chainId }],
-                });
-            } catch (error) {
-                console.log('Chain switch info:', error);
-            }
-
-            document.getElementById('chainName').textContent = chain.name;
+            document.getElementById('chainName').textContent = currentChain.toUpperCase();
         }
 
-        async function checkWallet() {
-            if (window.ethereum?.selectedAddress) {
-                userAddress = window.ethereum.selectedAddress;
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                updateWalletUI();
-                await switchChain();
-            }
-        }
-
-        function updateWalletUI() {
-            const btn = document.getElementById('walletBtn');
-            const info = document.getElementById('walletInfo');
-            const addr = document.getElementById('walletAddress');
-            
-            btn.textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
-            addr.textContent = userAddress;
-            info.style.display = 'block';
-        }
-
-        // ==================== SWAP ====================
         function setQuickAmount(percent) {
-            const balance = 1000; // Mock balance
-            const amount = (balance * percent) / 100;
-            document.getElementById('swapAmountIn').value = amount.toFixed(2);
-            updateSwapOutput();
-        }
-
-        function setSlippage(value) {
-            slippage = value;
-            document.getElementById('slippageAmount').value = value;
-            document.querySelectorAll('.slippage-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.getElementById('swapAmountIn').value = ((1000 * percent) / 100).toFixed(2);
             updateSwapOutput();
         }
 
         function updateSwapOutput() {
             const amountIn = parseFloat(document.getElementById('swapAmountIn').value) || 0;
-            const fee = amountIn * 0.0025; // 0.25% fee
-            const amountOut = amountIn - fee;
-            document.getElementById('swapAmountOut').value = amountOut.toFixed(6);
-            document.getElementById('swapPrice').textContent = `1 = ${(amountOut / amountIn).toFixed(4)}`;
+            document.getElementById('swapAmountOut').value = (amountIn * 0.9975).toFixed(6);
         }
 
-        async function executeSwap() {
-            if (!userAddress) return showStatus('error', 'Connect wallet first!');
-            
-            const amountIn = parseFloat(document.getElementById('swapAmountIn').value);
-            if (!amountIn) return showStatus('error', 'Enter amount!');
-            
-            showStatus('info', 'Processing swap...');
-            setTimeout(() => {
-                showStatus('success', `✅ Swapped ${amountIn.toFixed(2)} tokens successfully!`);
-                document.getElementById('swapAmountIn').value = '';
-                updateSwapOutput();
-            }, 1500);
+        function executeSwap() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!');
+            const amount = parseFloat(document.getElementById('swapAmountIn').value);
+            if (!amount) return showStatus('error', 'Enter amount!');
+            showStatus('success', `✅ Swapped ${amount} tokens!`);
+            document.getElementById('swapAmountIn').value = '';
+            updateSwapOutput();
         }
 
-        // ==================== BRIDGE ====================
         function executeBridge() {
-            if (!userAddress) return showStatus('error', 'Connect wallet first!');
-            
+            if (!userAddress) return showStatus('error', 'Connect wallet!');
             const amount = parseFloat(document.getElementById('bridgeAmount').value);
             if (!amount) return showStatus('error', 'Enter amount!');
-            
-            const source = document.getElementById('bridgeSourceChain').value;
-            const dest = document.getElementById('bridgeDestChain').value;
-            
-            if (source === dest) return showStatus('error', 'Select different chains!');
-            
-            showStatus('info', `Bridging ${amount} tokens from ${CHAINS[source].name} to ${CHAINS[dest].name}...`);
-            setTimeout(() => {
-                showStatus('success', `✅ Bridge initiated! Transaction ID: ${Math.random().toString(36).substr(2, 9)}`);
-                document.getElementById('bridgeAmount').value = '';
-            }, 2000);
+            showStatus('success', `✅ Bridge initiated!`);
+            document.getElementById('bridgeAmount').value = '';
         }
 
-        // ==================== STATUS ====================
-        function showStatus(type, message) {
-            const statusDiv = document.createElement('div');
-            statusDiv.className = `status ${type}`;
-            statusDiv.textContent = message;
-            
-            let container = document.querySelector('main');
-            if (event?.target?.parentElement) {
-                container = event.target.parentElement;
-            }
-            
-            container.appendChild(statusDiv);
-            setTimeout(() => statusDiv.remove(), 5000);
-        }
-
-        // ==================== MOCK FUNCTIONS ====================
         function mintNFT() {
-            showStatus('success', '🎉 NFT minted successfully!');
+            if (!userAddress) return showStatus('error', 'Connect wallet!');
+            if (nftCount >= 9999) return showStatus('error', 'Max supply!');
+            const name = document.getElementById('nftName').value || 'Checkmate #' + (nftCount + 1);
+            nftCount++; document.getElementById('nftCounter').textContent = nftCount;
+            document.getElementById('nftName').value = '';
+            showStatus('success', `✅ Minted: ${name}`);
+            saveLocalData();
         }
 
         function gmCheckIn() {
-            showStatus('success', '✨ GM Check-in successful!');
+            if (!userAddress) return showStatus('error', 'Connect wallet!');
+            const today = new Date().toDateString();
+            if (lastGMDate === today) return showStatus('error', 'Already checked in!');
+            lastGMDate = today; gmStreak++;
+            document.getElementById('gmStreak').textContent = gmStreak;
+            showStatus('success', `✨ GM! Streak: ${gmStreak}`);
+            saveLocalData();
+        }
+
+        function updateGMTimer() {
+            const now = new Date();
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+            tomorrow.setHours(0, 0, 0, 0);
+            const diff = tomorrow - now;
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+            document.getElementById('gmTimer').textContent = 
+                `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function renderBadges() {
+            document.getElementById('badgesContainer').innerHTML = BADGES.map(badge => 
+                `<div class="badge ${userBadges.includes(badge) ? 'unlocked' : ''}">${badge}</div>`
+            ).join('');
+        }
+
+        function renderTasks() {
+            document.getElementById('tasksContainer').innerHTML = TASKS.map((task, idx) => `
+                <div class="task-item">
+                    <div><span style="font-size: 24px; margin-right: 10px;">${task.icon}</span>
+                        <span>${task.name}</span> <span style="color: var(--task-blue); margin-left: 10px;">+${task.points}pts</span></div>
+                    <button class="task-btn" onclick="completeTask(${idx})">
+                        ${completedTasks.includes(idx) ? '✓ Done' : 'Complete'}</button>
+                </div>
+            `).join('');
+        }
+
+        function completeTask(idx) {
+            if (!completedTasks.includes(idx)) {
+                completedTasks.push(idx); renderTasks();
+                showStatus('success', `✅ Task Done! +${TASKS[idx].points}pts`);
+                saveLocalData();
+            }
         }
 
         function loadUserStats() {
-            const stats = document.getElementById('statsContainer');
-            stats.innerHTML = `
-                <div class="stat-box">
-                    <div class="stat-label">Total TX</div>
-                    <div class="stat-value">42</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Tokens Swapped</div>
-                    <div class="stat-value">1,250</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Bridges Used</div>
-                    <div class="stat-value">8</div>
-                </div>
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stat-box"><div class="stat-label">GM Streak</div><div class="stat-value">${gmStreak}</div></div>
+                <div class="stat-box"><div class="stat-label">NFT Minted</div><div class="stat-value">${nftCount}</div></div>
+                <div class="stat-box"><div class="stat-label">Badges</div><div class="stat-value">${userBadges.length}</div></div>
+                <div class="stat-box"><div class="stat-label">Tasks</div><div class="stat-value">${completedTasks.length}</div></div>
             `;
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('gmStreak', gmStreak);
+            localStorage.setItem('lastGMDate', lastGMDate);
+            localStorage.setItem('nftCount', nftCount);
+            localStorage.setItem('userBadges', JSON.stringify(userBadges));
+            localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
+        }
+
+        function loadLocalData() {
+            gmStreak = parseInt(localStorage.getItem('gmStreak')) || 0;
+            lastGMDate = localStorage.getItem('lastGMDate');
+            nftCount = parseInt(localStorage.getItem('nftCount')) || 0;
+            userBadges = JSON.parse(localStorage.getItem('userBadges')) || [];
+            completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
+            document.getElementById('gmStreak').textContent = gmStreak;
+            document.getElementById('nftCounter').textContent = nftCount;
+            renderBadges(); renderTasks();
+        }
+
+        function showStatus(type, msg) {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = msg;
+            document.querySelector('main').appendChild(div);
+            setTimeout(() => div.remove(), 5000);
         }
     </script>
 </body>
