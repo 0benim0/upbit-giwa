@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPBIT GIWA - Complete DApp</title>
+    <title>UPBIT GIWA - Real DApp</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,11 +68,15 @@
             transition: all 0.3s;
             font-size: 14px;
         }
-        button:hover {
+        button:hover:not(:disabled) {
             background: var(--primary);
             color: var(--bg);
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(212, 175, 55, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .wallet-info {
             background: var(--bg-secondary);
@@ -112,10 +116,6 @@
             color: var(--bg);
             border-color: var(--primary);
         }
-        .tab-btn:hover:not(.active) {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
         .tab-content {
             display: none;
             animation: fadeIn 0.3s;
@@ -128,11 +128,6 @@
             border-radius: 12px;
             padding: 25px;
             margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-        .card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
         }
         .card h2 {
             color: var(--primary);
@@ -147,7 +142,7 @@
         }
         input, select {
             flex: 1;
-            min-width: 200px;
+            min-width: 150px;
             padding: 12px;
             background: var(--bg-tertiary);
             border: 2px solid var(--border);
@@ -160,71 +155,53 @@
             border-color: var(--primary);
             box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
         }
-        .quick-amounts {
-            display: flex;
-            gap: 8px;
-            margin: 10px 0;
-            flex-wrap: wrap;
-        }
-        .quick-btn {
-            padding: 6px 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text);
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .quick-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .stat-box {
-            background: var(--bg-tertiary);
-            border: 2px solid var(--border);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .stat-box:hover {
-            border-color: var(--primary);
-            transform: translateY(-5px);
-        }
-        .stat-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--primary);
-            margin: 10px 0;
-        }
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .badge {
-            background: linear-gradient(135deg, var(--bg-tertiary), var(--accent));
-            border: 2px solid var(--accent);
+        .status {
             padding: 15px;
-            border-radius: 10px;
-            text-align: center;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+            word-break: break-all;
             font-size: 12px;
-            font-weight: 600;
-            opacity: 0.5;
-            margin: 10px;
-            display: inline-block;
-            min-width: 100px;
         }
-        .badge.unlocked {
-            opacity: 1;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .status.info {
+            background: rgba(124, 58, 237, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .status.loading {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--task-blue);
+            color: var(--task-blue);
+        }
+        .tx-link {
+            color: var(--task-blue);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .tx-link:hover {
+            color: var(--primary);
+        }
+        .nft-preview {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 12px;
+            border: 3px solid var(--primary);
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: var(--bg-tertiary);
         }
         .task-item {
             background: var(--bg-tertiary);
@@ -246,65 +223,10 @@
             font-weight: 600;
         }
         .task-btn:hover { opacity: 0.8; }
-        .status {
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
-            border-left: 4px solid;
-        }
-        .status.success {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: var(--success);
-            color: var(--success);
-        }
-        .status.error {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: var(--danger);
-            color: var(--danger);
-        }
-        .status.info {
-            background: rgba(124, 58, 237, 0.1);
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-        .nft-preview {
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-            border-radius: 12px;
-            border: 3px solid var(--primary);
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: var(--bg-tertiary);
-        }
-        .gm-display {
-            font-size: 48px;
-            text-align: center;
-            margin: 20px 0;
-            color: var(--primary);
-        }
-        .time-display {
-            text-align: center;
-            font-size: 18px;
-            color: var(--task-blue);
-            margin: 15px 0;
-        }
-        .faucet-timer {
-            text-align: center;
-            font-size: 16px;
-            color: var(--task-blue);
-            margin: 20px 0;
-            padding: 15px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            border: 2px solid var(--border);
-        }
         @media (max-width: 768px) {
-            .header-content { flex-direction: column; align-items: flex-start; }
-            .header-controls { width: 100%; flex-direction: column; }
+            .header-content { flex-direction: column; }
             select, button { width: 100%; }
-            .tabs { flex-direction: column; }
+            input { min-width: 100%; }
         }
     </style>
 </head>
@@ -329,22 +251,20 @@
         <div class="tabs" id="tabs"></div>
         
         <!-- FAUCET TAB -->
-        <div id="faucet" class="tab-content">
+        <div id="faucet" class="tab-content active">
             <div class="card">
-                <h2>💧 Token Faucet</h2>
-                <p>Get 100 tokens per day - Limit: 1 claim per 24 hours</p>
-                <div class="faucet-timer">
-                    Next claim available in: <span id="faucetTimer">00:00:00</span>
+                <h2>💧 Token Faucets</h2>
+                <p>Claim 100 tokens per day (max 1 per user per 24h)</p>
+                <div class="input-group">
+                    <select id="faucetToken">
+                        <option value="rry">RurouniYu (RRY)</option>
+                        <option value="ang">AnichessGame (ANG)</option>
+                        <option value="knh">Kenshin (KNH)</option>
+                    </select>
                 </div>
                 <button onclick="claimTokens()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">
                     Claim 100 Tokens 💧
                 </button>
-                <div style="margin-top: 20px;">
-                    <div class="stat-box" style="display: inline-block; min-width: 200px;">
-                        <div class="stat-label">Total Claimed</div>
-                        <div class="stat-value" id="totalClaimed">0</div>
-                    </div>
-                </div>
                 <div id="faucetStatus"></div>
             </div>
         </div>
@@ -353,36 +273,23 @@
         <div id="swap" class="tab-content">
             <div class="card">
                 <h2>⚡ Swap Tokens</h2>
-                <div style="margin: 20px 0;">
-                    <label style="color: var(--text-muted);">You Send</label>
-                    <div class="input-group">
-                        <input type="number" id="swapAmountIn" placeholder="0" onchange="updateSwapOutput()">
-                        <select id="swapTokenIn" onchange="updateSwapOutput()">
-                            <option value="rry">RurouniYu (RRY)</option>
-                            <option value="ang">AnichessGame (ANG)</option>
-                            <option value="knh">Kenshin (KNH)</option>
-                        </select>
-                    </div>
-                    <div class="quick-amounts">
-                        <button class="quick-btn" onclick="setQuickAmount(25)">25%</button>
-                        <button class="quick-btn" onclick="setQuickAmount(50)">50%</button>
-                        <button class="quick-btn" onclick="setQuickAmount(75)">75%</button>
-                        <button class="quick-btn" onclick="setQuickAmount(100)">MAX</button>
-                    </div>
+                <div class="input-group">
+                    <input type="number" id="swapAmount" placeholder="Amount" min="0">
+                    <select id="swapTokenIn">
+                        <option value="rry">RRY</option>
+                        <option value="ang">ANG</option>
+                        <option value="knh">KNH</option>
+                    </select>
                 </div>
                 <div style="text-align: center; margin: 20px 0; font-size: 24px; color: var(--primary);">⇅</div>
-                <div style="margin: 20px 0;">
-                    <label style="color: var(--text-muted);">You Receive</label>
-                    <div class="input-group">
-                        <input type="number" id="swapAmountOut" placeholder="0" readonly>
-                        <select id="swapTokenOut" onchange="updateSwapOutput()">
-                            <option value="ang">AnichessGame (ANG)</option>
-                            <option value="rry">RurouniYu (RRY)</option>
-                            <option value="knh">Kenshin (KNH)</option>
-                        </select>
-                    </div>
+                <div class="input-group">
+                    <select id="swapTokenOut">
+                        <option value="ang">ANG</option>
+                        <option value="rry">RRY</option>
+                        <option value="knh">KNH</option>
+                    </select>
                 </div>
-                <button onclick="executeSwap()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Swap Tokens</button>
+                <button onclick="executeSwap()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Execute Swap</button>
                 <div id="swapStatus"></div>
             </div>
         </div>
@@ -392,25 +299,16 @@
             <div class="card">
                 <h2>🌉 Bridge Tokens</h2>
                 <div class="input-group">
-                    <select id="bridgeSourceChain">
-                        <option value="giwa">From GIWA</option>
-                        <option value="arc">From ARC</option>
-                        <option value="sepolia">From Ethereum Sepolia</option>
-                        <option value="base">From Base Sepolia</option>
-                    </select>
+                    <input type="number" id="bridgeAmount" placeholder="Amount" min="0">
                 </div>
                 <div class="input-group">
-                    <select id="bridgeDestChain">
-                        <option value="arc">To ARC</option>
-                        <option value="giwa">To GIWA</option>
-                        <option value="sepolia">To Ethereum Sepolia</option>
-                        <option value="base">To Base Sepolia</option>
+                    <select id="bridgeToken">
+                        <option value="rry">RRY</option>
+                        <option value="ang">ANG</option>
+                        <option value="knh">KNH</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <input type="number" id="bridgeAmount" placeholder="Amount to bridge" min="0">
-                </div>
-                <button onclick="executeBridge()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Bridge Tokens</button>
+                <button onclick="executeBridge()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Bridge Token</button>
                 <div id="bridgeStatus"></div>
             </div>
         </div>
@@ -418,16 +316,12 @@
         <!-- NFT TAB -->
         <div id="nft" class="tab-content">
             <div class="card">
-                <h2>🎮 NFT Minting - Checkmate</h2>
+                <h2>🎮 Mint Checkmate NFT</h2>
                 <div class="nft-preview" style="background-image: url('https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png');"></div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <div style="font-size: 18px; color: var(--primary);">Checkmate NFT</div>
-                    <div style="color: var(--text-muted); font-size: 16px;">Minted: <span id="nftCounter">0</span> / 9999</div>
-                </div>
                 <div class="input-group">
-                    <input type="text" id="nftName" placeholder="Your NFT Name">
+                    <input type="text" id="nftName" placeholder="NFT Name (optional)">
                 </div>
-                <button onclick="mintNFT()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Mint Checkmate NFT</button>
+                <button onclick="mintNFT()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Mint NFT</button>
                 <div id="nftStatus"></div>
             </div>
         </div>
@@ -436,21 +330,15 @@
         <div id="gm" class="tab-content">
             <div class="card">
                 <h2>✨ Daily GM</h2>
-                <div class="gm-display">GM ☀️</div>
-                <div class="time-display">Next Reset: <span id="gmTimer">00:00:00</span></div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <div style="font-size: 16px; color: var(--text);">Current Streak: <span id="gmStreak">0</span> days</div>
+                <div style="font-size: 48px; text-align: center; margin: 20px 0; color: var(--primary);">GM ☀️</div>
+                <div style="text-align: center; font-size: 18px; color: var(--task-blue); margin: 15px 0;">
+                    Next Reset: <span id="gmTimer">00:00:00</span>
                 </div>
-                <button onclick="gmCheckIn()" style="width: 100%; padding: 20px; margin: 15px 0; font-size: 18px;">Say GM!</button>
+                <div style="text-align: center; margin: 20px 0;">
+                    Streak: <span id="gmStreak" style="color: var(--primary); font-size: 24px;">0</span> days
+                </div>
+                <button onclick="gmCheckIn()" style="width: 100%; padding: 20px; margin: 15px 0; font-size: 18px;">Say GM! ☀️</button>
                 <div id="gmStatus"></div>
-            </div>
-        </div>
-        
-        <!-- BADGES TAB -->
-        <div id="badges" class="tab-content">
-            <div class="card">
-                <h2>🏆 Badges</h2>
-                <div id="badgesContainer" style="text-align: center;"></div>
             </div>
         </div>
         
@@ -461,38 +349,90 @@
                 <div id="tasksContainer"></div>
             </div>
         </div>
-        
-        <!-- PROFILE TAB -->
-        <div id="profile" class="tab-content">
-            <div class="card">
-                <h2>👤 Profile</h2>
-                <button onclick="loadUserStats()">Load Stats</button>
-                <div class="stats-grid" id="statsContainer"></div>
-            </div>
-        </div>
     </main>
 
     <script>
-        const BADGES = ['GM Starter', 'GM Warrior', 'Swap Master', 'Bridge Pioneer', 'NFT Collector', 'NFT Whale'];
-        const TASKS = [
+        // ==================== CONTRACTS CONFIG ====================
+        const CHAINS = {
+            giwa: {
+                id: '0x1a6a9d2',
+                name: 'GIWA',
+                rpc: 'https://rpc.testnet.chain.giwa.io'
+            },
+            arc: {
+                id: '0x4cef52',
+                name: 'ARC',
+                rpc: 'https://arc-testnet.drpc.org'
+            }
+        };
+
+        const CONTRACTS = {
+            giwa: {
+                faucetRry: '0x9ee860D517E1107ADfD5a4ba8ED4c44770F196F8',
+                faucetAng: '0x290d07b026fb39302Bf47d7bfACcFF3b2dAAf3eD',
+                faucetKnh: '0xA90f50c80B5899Fcb0A99595031bb4D2f08A65CB',
+                rry: '0x2Ab6E0364593C59018C49130602B4fBBEE77eEBd',
+                ang: '0x5d28Df1Fd08981347caF44C4f94C8B57458d1e85',
+                knh: '0xFb6dcAdd47176dab6E24bB93fc3B61bF3FFbfB00',
+                swap: '0x571B477afB798B9806EA1094b706210899E1665e',
+                nft: '0x3422A8c40bADe21DB15FfB73a839aE25DC5A3f71'
+            },
+            arc: {
+                faucetRry: '0xA3D3C681Cb511d05337cEAfB5934551746b7ec51',
+                faucetAng: '0x10b7049da0691f294D742a3A457Ea6F137dBABD1',
+                faucetKnh: '0xe097481fFC700a05B22d653E7aE4Bc022dFCe9ab',
+                rry: '0x998686e27444Ec1b4700299f2222A9Dd27eC9eeA',
+                ang: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
+                knh: '0x2121C6c9EEfEA700831b16Ba5791a145599fb54B',
+                swap: '0xFcfe1D1BF3083ACf627d04c2Ca0cE0B43335fC2e',
+                nft: '0x924b73c5fdA620b5B0f9B6c51b6BE9162d1b8EED'
+            }
+        };
+
+        const FAUCET_ABI = [
+            'function claimTokens() public',
+            'function timeUntilNextClaim(address user) public view returns (uint256)',
+            'function getUserStats(address user) public view returns (uint256 claimed, uint256 timeLeft)'
+        ];
+
+        const SWAP_ABI = [
+            'function swapTokens(address tokenIn, uint256 amountIn, address tokenOut) public returns (uint256)',
+            'function estimateSwapOutput(uint256 amountIn) public view returns (uint256)'
+        ];
+
+        // ==================== STATE ====================
+        let currentChain = 'giwa';
+        let userAddress = null;
+        let provider = null;
+        let signer = null;
+        let gmStreak = 0;
+        let lastGMDate = null;
+
+        const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks'];
+        const TAB_LABELS = {
+            'faucet': '💧 Faucet',
+            'swap': '⚡ Swap',
+            'bridge': '🌉 Bridge',
+            'nft': '🎮 NFT',
+            'gm': '✨ GM',
+            'tasks': '📋 Tasks'
+        };
+
+        const TASKS_LIST = [
             { name: 'Say GM', icon: '☀️', points: 10 },
-            { name: 'Swap Tokens', icon: '⚡', points: 20 },
-            { name: 'Bridge Tokens', icon: '🌉', points: 30 },
+            { name: 'Claim Tokens', icon: '💧', points: 20 },
+            { name: 'Swap Tokens', icon: '⚡', points: 30 },
+            { name: 'Bridge Tokens', icon: '🌉', points: 40 },
             { name: 'Mint NFT', icon: '🎮', points: 50 }
         ];
 
-        let currentChain = 'giwa', userAddress = null, gmStreak = 0, lastGMDate = null;
-        let nftCount = 0, userBadges = [], completedTasks = [], lastFaucetClaim = 0, totalTokensClaimed = 0;
-        const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'badges', 'tasks', 'profile'];
-        const TAB_LABELS = {
-            'faucet': '💧 Faucet', 'swap': '⚡ Swap', 'bridge': '🌉 Bridge', 'nft': '🎮 NFT',
-            'gm': '✨ GM', 'badges': '🏆 Badges', 'tasks': '📋 Tasks', 'profile': '👤 Profile'
-        };
-
+        // ==================== INIT ====================
         window.addEventListener('DOMContentLoaded', () => {
-            renderTabs(); renderBadges(); renderTasks(); updateGMTimer(); updateFaucetTimer(); loadLocalData();
+            renderTabs();
+            renderTasks();
+            updateGMTimer();
+            loadLocalData();
             setInterval(updateGMTimer, 1000);
-            setInterval(updateFaucetTimer, 1000);
         });
 
         function renderTabs() {
@@ -508,101 +448,162 @@
             event.target.classList.add('active');
         }
 
+        // ==================== WALLET ====================
         async function connectWallet() {
-            if (!window.ethereum) return alert('Install MetaMask!');
+            if (!window.ethereum) return showStatus('error', 'MetaMask not installed!', 'faucetStatus');
             try {
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAddress = accounts[0];
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                
                 document.getElementById('walletBtn').textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
                 document.getElementById('walletAddress').textContent = userAddress;
                 document.getElementById('walletInfo').style.display = 'block';
-            } catch (error) { showStatus('error', 'Connection failed'); }
+                
+                showStatus('success', '✅ Wallet connected!', 'faucetStatus');
+            } catch (error) {
+                showStatus('error', 'Connection failed: ' + error.message, 'faucetStatus');
+            }
         }
 
-        function switchChain() {
+        async function switchChain() {
             currentChain = document.getElementById('chainSelect').value;
-            document.getElementById('chainName').textContent = currentChain.toUpperCase();
+            document.getElementById('chainName').textContent = CHAINS[currentChain].name;
+            
+            if (userAddress && window.ethereum) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: CHAINS[currentChain].id }]
+                    });
+                    showStatus('info', `Switched to ${CHAINS[currentChain].name}`, 'faucetStatus');
+                } catch (error) {
+                    console.log('Chain switch error:', error);
+                }
+            }
         }
 
         // ==================== FAUCET ====================
-        function claimTokens() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!');
-            const now = Math.floor(Date.now() / 1000);
-            const nextClaimTime = lastFaucetClaim + 86400;
-            if (now < nextClaimTime) {
-                const timeLeft = nextClaimTime - now;
-                return showStatus('error', `Wait ${(timeLeft / 3600).toFixed(1)} hours`);
-            }
-            lastFaucetClaim = now;
-            totalTokensClaimed += 100;
-            document.getElementById('totalClaimed').textContent = totalTokensClaimed;
-            showStatus('success', '✅ Claimed 100 tokens!');
-            saveLocalData();
-        }
+        async function claimTokens() {
+            if (!userAddress) return showStatus('error', 'Connect wallet first!', 'faucetStatus');
+            if (!signer) return showStatus('error', 'Signer not ready!', 'faucetStatus');
 
-        function updateFaucetTimer() {
-            const now = Math.floor(Date.now() / 1000);
-            const nextClaimTime = lastFaucetClaim + 86400;
-            if (now >= nextClaimTime) {
-                document.getElementById('faucetTimer').textContent = 'Ready to claim!';
-                return;
+            const tokenType = document.getElementById('faucetToken').value;
+            const contracts = CONTRACTS[currentChain];
+            let faucetAddress;
+
+            if (tokenType === 'rry') faucetAddress = contracts.faucetRry;
+            else if (tokenType === 'ang') faucetAddress = contracts.faucetAng;
+            else faucetAddress = contracts.faucetKnh;
+
+            try {
+                showStatus('loading', '⏳ Processing claim...', 'faucetStatus');
+
+                const faucet = new ethers.Contract(faucetAddress, FAUCET_ABI, signer);
+                const tx = await faucet.claimTokens();
+                
+                showStatus('loading', '⏳ Waiting for confirmation...', 'faucetStatus');
+                const receipt = await tx.wait();
+
+                showStatus('success', `✅ Claimed 100 ${tokenType.toUpperCase()}! TX: <span class="tx-link" onclick="window.open('https://explorer.chain.giwa.io/tx/${tx.hash}')">${tx.hash.substring(0, 10)}...</span>`, 'faucetStatus');
+            } catch (error) {
+                showStatus('error', 'Claim failed: ' + error.message, 'faucetStatus');
             }
-            const diff = nextClaimTime - now;
-            const h = Math.floor(diff / 3600);
-            const m = Math.floor((diff % 3600) / 60);
-            const s = diff % 60;
-            document.getElementById('faucetTimer').textContent = 
-                `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
         // ==================== SWAP ====================
-        function setQuickAmount(percent) {
-            document.getElementById('swapAmountIn').value = ((1000 * percent) / 100).toFixed(2);
-            updateSwapOutput();
-        }
+        async function executeSwap() {
+            if (!userAddress) return showStatus('error', 'Connect wallet first!', 'swapStatus');
+            if (!signer) return showStatus('error', 'Signer not ready!', 'swapStatus');
 
-        function updateSwapOutput() {
-            const amountIn = parseFloat(document.getElementById('swapAmountIn').value) || 0;
-            document.getElementById('swapAmountOut').value = (amountIn * 0.9975).toFixed(6);
-        }
+            const amount = parseFloat(document.getElementById('swapAmount').value);
+            if (!amount || amount <= 0) return showStatus('error', 'Enter valid amount!', 'swapStatus');
 
-        function executeSwap() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!');
-            const amount = parseFloat(document.getElementById('swapAmountIn').value);
-            if (!amount) return showStatus('error', 'Enter amount!');
-            showStatus('success', `✅ Swapped ${amount} tokens!`);
-            document.getElementById('swapAmountIn').value = '';
-            updateSwapOutput();
+            try {
+                showStatus('loading', '⏳ Processing swap...', 'swapStatus');
+                const swapAddress = CONTRACTS[currentChain].swap;
+                const swap = new ethers.Contract(swapAddress, SWAP_ABI, signer);
+                
+                const amountWei = ethers.parseEther(amount.toString());
+                const tx = await swap.swapTokens(
+                    CONTRACTS[currentChain].rry,
+                    amountWei,
+                    CONTRACTS[currentChain].ang
+                );
+
+                showStatus('loading', '⏳ Waiting for confirmation...', 'swapStatus');
+                await tx.wait();
+
+                showStatus('success', `✅ Swapped ${amount} tokens! TX: <span class="tx-link" onclick="window.open('https://explorer.chain.giwa.io/tx/${tx.hash}')">${tx.hash.substring(0, 10)}...</span>`, 'swapStatus');
+                document.getElementById('swapAmount').value = '';
+            } catch (error) {
+                showStatus('error', 'Swap failed: ' + error.message, 'swapStatus');
+            }
         }
 
         // ==================== BRIDGE ====================
-        function executeBridge() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!');
+        async function executeBridge() {
+            if (!userAddress) return showStatus('error', 'Connect wallet first!', 'bridgeStatus');
+            if (!signer) return showStatus('error', 'Signer not ready!', 'bridgeStatus');
+
             const amount = parseFloat(document.getElementById('bridgeAmount').value);
-            if (!amount) return showStatus('error', 'Enter amount!');
-            showStatus('success', `✅ Bridge initiated!`);
-            document.getElementById('bridgeAmount').value = '';
+            if (!amount || amount <= 0) return showStatus('error', 'Enter valid amount!', 'bridgeStatus');
+
+            try {
+                showStatus('loading', '⏳ Initiating bridge...', 'bridgeStatus');
+                const swapAddress = CONTRACTS[currentChain].swap;
+                const swap = new ethers.Contract(swapAddress, SWAP_ABI, signer);
+                
+                const amountWei = ethers.parseEther(amount.toString());
+                const sourceChain = currentChain === 'giwa' ? 'GIWA' : 'ARC';
+                const destChain = currentChain === 'giwa' ? 'ARC' : 'GIWA';
+
+                const tx = await swap.startBridge(
+                    CONTRACTS[currentChain].rry,
+                    amountWei,
+                    sourceChain,
+                    destChain
+                );
+
+                showStatus('loading', '⏳ Waiting for confirmation...', 'bridgeStatus');
+                await tx.wait();
+
+                showStatus('success', `✅ Bridge initiated! TX: <span class="tx-link" onclick="window.open('https://explorer.chain.giwa.io/tx/${tx.hash}')">${tx.hash.substring(0, 10)}...</span>`, 'bridgeStatus');
+                document.getElementById('bridgeAmount').value = '';
+            } catch (error) {
+                showStatus('error', 'Bridge failed: ' + error.message, 'bridgeStatus');
+            }
         }
 
         // ==================== NFT ====================
-        function mintNFT() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!');
-            if (nftCount >= 9999) return showStatus('error', 'Max supply!');
-            const name = document.getElementById('nftName').value || 'Checkmate #' + (nftCount + 1);
-            nftCount++; document.getElementById('nftCounter').textContent = nftCount;
-            document.getElementById('nftName').value = '';
-            showStatus('success', `✅ Minted: ${name}`);
-            saveLocalData();
+        async function mintNFT() {
+            if (!userAddress) return showStatus('error', 'Connect wallet first!', 'nftStatus');
+            if (!signer) return showStatus('error', 'Signer not ready!', 'nftStatus');
+
+            try {
+                showStatus('loading', '⏳ Minting NFT...', 'nftStatus');
+                const nftName = document.getElementById('nftName').value || 'Checkmate #' + Math.floor(Math.random() * 9999);
+                
+                // Simulated NFT mint (echte Implementierung würde ERC721 Contract brauchen)
+                showStatus('success', `✅ NFT "${nftName}" minted! (Simulation - braucht ERC721 Integration)`, 'nftStatus');
+                document.getElementById('nftName').value = '';
+            } catch (error) {
+                showStatus('error', 'Mint failed: ' + error.message, 'nftStatus');
+            }
         }
 
         // ==================== GM ====================
         function gmCheckIn() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!');
             const today = new Date().toDateString();
-            if (lastGMDate === today) return showStatus('error', 'Already checked in!');
-            lastGMDate = today; gmStreak++;
+            if (lastGMDate === today) {
+                return showStatus('error', 'Already checked in today!', 'gmStatus');
+            }
+
+            lastGMDate = today;
+            gmStreak++;
             document.getElementById('gmStreak').textContent = gmStreak;
-            showStatus('success', `✨ GM! Streak: ${gmStreak}`);
+            showStatus('success', `✨ GM! Streak: ${gmStreak} days`, 'gmStatus');
             saveLocalData();
         }
 
@@ -610,82 +611,59 @@
             const now = new Date();
             const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
             tomorrow.setHours(0, 0, 0, 0);
+            
             const diff = tomorrow - now;
             const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const m = Math.floor((diff / (1000 * 60)) % 60);
             const s = Math.floor((diff / 1000) % 60);
+            
             document.getElementById('gmTimer').textContent = 
                 `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
-        // ==================== BADGES & TASKS ====================
-        function renderBadges() {
-            document.getElementById('badgesContainer').innerHTML = BADGES.map(badge => 
-                `<div class="badge ${userBadges.includes(badge) ? 'unlocked' : ''}">${badge}</div>`
-            ).join('');
-        }
-
+        // ==================== TASKS ====================
         function renderTasks() {
-            document.getElementById('tasksContainer').innerHTML = TASKS.map((task, idx) => `
+            document.getElementById('tasksContainer').innerHTML = TASKS_LIST.map((task, idx) => `
                 <div class="task-item">
-                    <div><span style="font-size: 24px; margin-right: 10px;">${task.icon}</span>
-                        <span>${task.name}</span> <span style="color: var(--task-blue); margin-left: 10px;">+${task.points}pts</span></div>
-                    <button class="task-btn" onclick="completeTask(${idx})">
-                        ${completedTasks.includes(idx) ? '✓ Done' : 'Complete'}</button>
+                    <div>
+                        <span style="font-size: 24px; margin-right: 10px;">${task.icon}</span>
+                        <span>${task.name}</span>
+                        <span style="color: var(--task-blue); margin-left: 10px;">+${task.points}pts</span>
+                    </div>
+                    <button class="task-btn" onclick="completeTask(${idx})">Complete</button>
                 </div>
             `).join('');
         }
 
         function completeTask(idx) {
-            if (!completedTasks.includes(idx)) {
-                completedTasks.push(idx); renderTasks();
-                showStatus('success', `✅ Task Done! +${TASKS[idx].points}pts`);
-                saveLocalData();
+            showStatus('success', `✅ Task completed! +${TASKS_LIST[idx].points}pts`, 'tasksContainer');
+        }
+
+        // ==================== UTILS ====================
+        function showStatus(type, message, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            container.innerHTML = '';
+            container.appendChild(div);
+
+            if (type !== 'loading') {
+                setTimeout(() => div.remove(), 8000);
             }
         }
 
-        // ==================== PROFILE ====================
-        function loadUserStats() {
-            document.getElementById('statsContainer').innerHTML = `
-                <div class="stat-box"><div class="stat-label">GM Streak</div><div class="stat-value">${gmStreak}</div></div>
-                <div class="stat-box"><div class="stat-label">NFT Minted</div><div class="stat-value">${nftCount}</div></div>
-                <div class="stat-box"><div class="stat-label">Badges</div><div class="stat-value">${userBadges.length}</div></div>
-                <div class="stat-box"><div class="stat-label">Tasks</div><div class="stat-value">${completedTasks.length}</div></div>
-                <div class="stat-box"><div class="stat-label">Tokens Claimed</div><div class="stat-value">${totalTokensClaimed}</div></div>
-            `;
-        }
-
-        // ==================== STORAGE ====================
         function saveLocalData() {
             localStorage.setItem('gmStreak', gmStreak);
             localStorage.setItem('lastGMDate', lastGMDate);
-            localStorage.setItem('nftCount', nftCount);
-            localStorage.setItem('userBadges', JSON.stringify(userBadges));
-            localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
-            localStorage.setItem('lastFaucetClaim', lastFaucetClaim);
-            localStorage.setItem('totalTokensClaimed', totalTokensClaimed);
         }
 
         function loadLocalData() {
             gmStreak = parseInt(localStorage.getItem('gmStreak')) || 0;
             lastGMDate = localStorage.getItem('lastGMDate');
-            nftCount = parseInt(localStorage.getItem('nftCount')) || 0;
-            userBadges = JSON.parse(localStorage.getItem('userBadges')) || [];
-            completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || [];
-            lastFaucetClaim = parseInt(localStorage.getItem('lastFaucetClaim')) || 0;
-            totalTokensClaimed = parseInt(localStorage.getItem('totalTokensClaimed')) || 0;
             document.getElementById('gmStreak').textContent = gmStreak;
-            document.getElementById('nftCounter').textContent = nftCount;
-            document.getElementById('totalClaimed').textContent = totalTokensClaimed;
-            renderBadges(); renderTasks();
-        }
-
-        function showStatus(type, msg) {
-            const div = document.createElement('div');
-            div.className = `status ${type}`;
-            div.textContent = msg;
-            document.querySelector('main').appendChild(div);
-            setTimeout(() => div.remove(), 5000);
         }
     </script>
 </body>
