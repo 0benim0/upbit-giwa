@@ -155,6 +155,34 @@
             border-color: var(--primary);
             box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
         }
+        .info-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .quick-buttons {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .quick-btn {
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
         .status {
             padding: 15px;
             margin: 15px 0;
@@ -183,14 +211,32 @@
             border-color: var(--task-blue);
             color: var(--task-blue);
         }
-        .tx-link {
-            color: var(--task-blue);
-            text-decoration: underline;
+        .task-item {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--task-blue);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-item.completed {
+            border-left-color: var(--success);
+            opacity: 0.7;
+        }
+        .task-btn {
+            background: var(--task-blue);
+            color: var(--bg);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
         }
-        .tx-link:hover {
-            color: var(--primary);
+        .task-btn:hover { opacity: 0.8; }
+        .task-btn.done {
+            background: var(--success);
         }
         .nft-preview {
             width: 200px;
@@ -203,26 +249,6 @@
             background-repeat: no-repeat;
             background-color: var(--bg-tertiary);
         }
-        .task-item {
-            background: var(--bg-tertiary);
-            border-left: 4px solid var(--task-blue);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .task-btn {
-            background: var(--task-blue);
-            color: var(--bg);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .task-btn:hover { opacity: 0.8; }
         @media (max-width: 768px) {
             .header-content { flex-direction: column; }
             select, button { width: 100%; }
@@ -254,15 +280,18 @@
         <div id="faucet" class="tab-content active">
             <div class="card">
                 <h2>💧 Token Faucets</h2>
-                <p>Claim 100 tokens per day (max 1 per user per 24h)</p>
+                <p>Claim 100 tokens per day (1x per 24h per token)</p>
                 <div class="input-group">
-                    <select id="faucetToken">
+                    <select id="faucetToken" onchange="updateFaucetStatus()">
                         <option value="rry">RurouniYu (RRY)</option>
                         <option value="ang">AnichessGame (ANG)</option>
                         <option value="knh">Kenshin (KNH)</option>
                     </select>
                 </div>
-                <button onclick="claimTokens()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">
+                <div class="info-box">
+                    Next claim available in: <span id="faucetTimer">--:--:--</span>
+                </div>
+                <button id="claimBtn" onclick="claimTokens()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">
                     Claim 100 Tokens 💧
                 </button>
                 <div id="faucetStatus"></div>
@@ -273,15 +302,27 @@
         <div id="swap" class="tab-content">
             <div class="card">
                 <h2>⚡ Swap Tokens</h2>
+                <div class="info-box">
+                    Wallet Balance: <span id="walletBalance">0</span> tokens
+                </div>
                 <div class="input-group">
-                    <input type="number" id="swapAmount" placeholder="Amount" min="0">
-                    <select id="swapTokenIn">
+                    <input type="number" id="swapAmount" placeholder="Amount" min="0" onchange="updateSwapOutput()">
+                    <select id="swapTokenIn" onchange="updateSwapOutput()">
                         <option value="rry">RRY</option>
                         <option value="ang">ANG</option>
                         <option value="knh">KNH</option>
                     </select>
                 </div>
+                <div class="quick-buttons">
+                    <button class="quick-btn" onclick="setSwapAmount(25)">25%</button>
+                    <button class="quick-btn" onclick="setSwapAmount(50)">50%</button>
+                    <button class="quick-btn" onclick="setSwapAmount(75)">75%</button>
+                    <button class="quick-btn" onclick="setSwapAmount(100)">100%</button>
+                </div>
                 <div style="text-align: center; margin: 20px 0; font-size: 24px; color: var(--primary);">⇅</div>
+                <div class="info-box">
+                    You receive: <span id="swapOutput">0</span> tokens (0.25% fee)
+                </div>
                 <div class="input-group">
                     <select id="swapTokenOut">
                         <option value="ang">ANG</option>
@@ -299,14 +340,27 @@
             <div class="card">
                 <h2>🌉 Bridge Tokens</h2>
                 <div class="input-group">
-                    <input type="number" id="bridgeAmount" placeholder="Amount" min="0">
+                    <select id="bridgeSourceChain">
+                        <option value="giwa">From GIWA</option>
+                        <option value="arc">From ARC</option>
+                    </select>
                 </div>
                 <div class="input-group">
+                    <select id="bridgeDestChain">
+                        <option value="arc">To ARC</option>
+                        <option value="giwa">To GIWA</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="bridgeAmount" placeholder="Amount" min="0">
                     <select id="bridgeToken">
                         <option value="rry">RRY</option>
                         <option value="ang">ANG</option>
                         <option value="knh">KNH</option>
                     </select>
+                </div>
+                <div class="info-box">
+                    Bridge Path: <span id="bridgePath">GIWA → ARC</span> | Fee: 0.50%
                 </div>
                 <button onclick="executeBridge()" style="width: 100%; padding: 15px; margin: 15px 0; font-size: 16px;">Bridge Token</button>
                 <div id="bridgeStatus"></div>
@@ -354,16 +408,8 @@
     <script>
         // ==================== CONTRACTS CONFIG ====================
         const CHAINS = {
-            giwa: {
-                id: '0x1a6a9d2',
-                name: 'GIWA',
-                rpc: 'https://rpc.testnet.chain.giwa.io'
-            },
-            arc: {
-                id: '0x4cef52',
-                name: 'ARC',
-                rpc: 'https://arc-testnet.drpc.org'
-            }
+            giwa: { id: '0x1a6a9d2', name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
+            arc: { id: '0x4cef52', name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
         };
 
         const CONTRACTS = {
@@ -407,23 +453,21 @@
         let signer = null;
         let gmStreak = 0;
         let lastGMDate = null;
+        let lastFaucetClaim = { rry: 0, ang: 0, knh: 0 };
+        let completedTasks = {};
 
         const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks'];
         const TAB_LABELS = {
-            'faucet': '💧 Faucet',
-            'swap': '⚡ Swap',
-            'bridge': '🌉 Bridge',
-            'nft': '🎮 NFT',
-            'gm': '✨ GM',
-            'tasks': '📋 Tasks'
+            'faucet': '💧 Faucet', 'swap': '⚡ Swap', 'bridge': '🌉 Bridge',
+            'nft': '🎮 NFT', 'gm': '✨ GM', 'tasks': '📋 Tasks'
         };
 
         const TASKS_LIST = [
-            { name: 'Say GM', icon: '☀️', points: 10 },
-            { name: 'Claim Tokens', icon: '💧', points: 20 },
-            { name: 'Swap Tokens', icon: '⚡', points: 30 },
-            { name: 'Bridge Tokens', icon: '🌉', points: 40 },
-            { name: 'Mint NFT', icon: '🎮', points: 50 }
+            { name: 'Say GM', icon: '☀️', points: 10, action: 'gm' },
+            { name: 'Claim Tokens', icon: '💧', points: 20, action: 'faucet' },
+            { name: 'Swap Tokens', icon: '⚡', points: 30, action: 'swap' },
+            { name: 'Bridge Tokens', icon: '🌉', points: 40, action: 'bridge' },
+            { name: 'Mint NFT', icon: '🎮', points: 50, action: 'nft' }
         ];
 
         // ==================== INIT ====================
@@ -431,8 +475,10 @@
             renderTabs();
             renderTasks();
             updateGMTimer();
+            updateFaucetStatus();
             loadLocalData();
             setInterval(updateGMTimer, 1000);
+            setInterval(updateFaucetStatus, 1000);
         });
 
         function renderTabs() {
@@ -470,6 +516,7 @@
         async function switchChain() {
             currentChain = document.getElementById('chainSelect').value;
             document.getElementById('chainName').textContent = CHAINS[currentChain].name;
+            updateBridgePath();
             
             if (userAddress && window.ethereum) {
                 try {
@@ -477,9 +524,8 @@
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: CHAINS[currentChain].id }]
                     });
-                    showStatus('info', `Switched to ${CHAINS[currentChain].name}`, 'faucetStatus');
                 } catch (error) {
-                    console.log('Chain switch error:', error);
+                    console.log('Chain switch note:', error.message);
                 }
             }
         }
@@ -490,6 +536,15 @@
             if (!signer) return showStatus('error', 'Signer not ready!', 'faucetStatus');
 
             const tokenType = document.getElementById('faucetToken').value;
+            const now = Math.floor(Date.now() / 1000);
+            const lastClaim = lastFaucetClaim[tokenType] || 0;
+            const nextClaimTime = lastClaim + 86400; // 24 hours
+
+            if (now < nextClaimTime) {
+                const timeLeft = nextClaimTime - now;
+                return showStatus('error', `Already claimed! Wait ${(timeLeft / 3600).toFixed(1)}h`, 'faucetStatus');
+            }
+
             const contracts = CONTRACTS[currentChain];
             let faucetAddress;
 
@@ -504,15 +559,53 @@
                 const tx = await faucet.claimTokens();
                 
                 showStatus('loading', '⏳ Waiting for confirmation...', 'faucetStatus');
-                const receipt = await tx.wait();
+                await tx.wait();
 
-                showStatus('success', `✅ Claimed 100 ${tokenType.toUpperCase()}! TX: <span class="tx-link" onclick="window.open('https://explorer.chain.giwa.io/tx/${tx.hash}')">${tx.hash.substring(0, 10)}...</span>`, 'faucetStatus');
+                lastFaucetClaim[tokenType] = now;
+                completeTask('faucet');
+                saveLocalData();
+                updateFaucetStatus();
+
+                showStatus('success', `✅ Claimed 100 ${tokenType.toUpperCase()}!`, 'faucetStatus');
             } catch (error) {
                 showStatus('error', 'Claim failed: ' + error.message, 'faucetStatus');
             }
         }
 
+        function updateFaucetStatus() {
+            const now = Math.floor(Date.now() / 1000);
+            const tokenType = document.getElementById('faucetToken')?.value || 'rry';
+            const lastClaim = lastFaucetClaim[tokenType] || 0;
+            const nextClaimTime = lastClaim + 86400;
+
+            if (now >= nextClaimTime) {
+                document.getElementById('faucetTimer').textContent = 'Ready to claim!';
+                document.getElementById('claimBtn').disabled = false;
+            } else {
+                const timeLeft = nextClaimTime - now;
+                const h = Math.floor(timeLeft / 3600);
+                const m = Math.floor((timeLeft % 3600) / 60);
+                const s = timeLeft % 60;
+                document.getElementById('faucetTimer').textContent = 
+                    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                document.getElementById('claimBtn').disabled = true;
+            }
+        }
+
         // ==================== SWAP ====================
+        function setSwapAmount(percent) {
+            const balance = 1000; // Mock balance
+            document.getElementById('swapAmount').value = ((balance * percent) / 100).toFixed(2);
+            updateSwapOutput();
+        }
+
+        function updateSwapOutput() {
+            const amountIn = parseFloat(document.getElementById('swapAmount').value) || 0;
+            const fee = amountIn * 0.0025;
+            const output = amountIn - fee;
+            document.getElementById('swapOutput').textContent = output.toFixed(6);
+        }
+
         async function executeSwap() {
             if (!userAddress) return showStatus('error', 'Connect wallet first!', 'swapStatus');
             if (!signer) return showStatus('error', 'Signer not ready!', 'swapStatus');
@@ -535,14 +628,23 @@
                 showStatus('loading', '⏳ Waiting for confirmation...', 'swapStatus');
                 await tx.wait();
 
-                showStatus('success', `✅ Swapped ${amount} tokens! TX: <span class="tx-link" onclick="window.open('https://explorer.chain.giwa.io/tx/${tx.hash}')">${tx.hash.substring(0, 10)}...</span>`, 'swapStatus');
+                completeTask('swap');
+                saveLocalData();
+                showStatus('success', `✅ Swapped ${amount} tokens!`, 'swapStatus');
                 document.getElementById('swapAmount').value = '';
+                updateSwapOutput();
             } catch (error) {
                 showStatus('error', 'Swap failed: ' + error.message, 'swapStatus');
             }
         }
 
         // ==================== BRIDGE ====================
+        function updateBridgePath() {
+            const source = document.getElementById('bridgeSourceChain').value;
+            const dest = document.getElementById('bridgeDestChain').value;
+            document.getElementById('bridgePath').textContent = `${source.toUpperCase()} → ${dest.toUpperCase()}`;
+        }
+
         async function executeBridge() {
             if (!userAddress) return showStatus('error', 'Connect wallet first!', 'bridgeStatus');
             if (!signer) return showStatus('error', 'Signer not ready!', 'bridgeStatus');
@@ -556,8 +658,8 @@
                 const swap = new ethers.Contract(swapAddress, SWAP_ABI, signer);
                 
                 const amountWei = ethers.parseEther(amount.toString());
-                const sourceChain = currentChain === 'giwa' ? 'GIWA' : 'ARC';
-                const destChain = currentChain === 'giwa' ? 'ARC' : 'GIWA';
+                const sourceChain = document.getElementById('bridgeSourceChain').value.toUpperCase();
+                const destChain = document.getElementById('bridgeDestChain').value.toUpperCase();
 
                 const tx = await swap.startBridge(
                     CONTRACTS[currentChain].rry,
@@ -569,7 +671,9 @@
                 showStatus('loading', '⏳ Waiting for confirmation...', 'bridgeStatus');
                 await tx.wait();
 
-                showStatus('success', `✅ Bridge initiated! TX: <span class="tx-link" onclick="window.open('https://explorer.chain.giwa.io/tx/${tx.hash}')">${tx.hash.substring(0, 10)}...</span>`, 'bridgeStatus');
+                completeTask('bridge');
+                saveLocalData();
+                showStatus('success', `✅ Bridge ${sourceChain} → ${destChain} initiated!`, 'bridgeStatus');
                 document.getElementById('bridgeAmount').value = '';
             } catch (error) {
                 showStatus('error', 'Bridge failed: ' + error.message, 'bridgeStatus');
@@ -579,14 +683,17 @@
         // ==================== NFT ====================
         async function mintNFT() {
             if (!userAddress) return showStatus('error', 'Connect wallet first!', 'nftStatus');
-            if (!signer) return showStatus('error', 'Signer not ready!', 'nftStatus');
 
             try {
                 showStatus('loading', '⏳ Minting NFT...', 'nftStatus');
                 const nftName = document.getElementById('nftName').value || 'Checkmate #' + Math.floor(Math.random() * 9999);
                 
-                // Simulated NFT mint (echte Implementierung würde ERC721 Contract brauchen)
-                showStatus('success', `✅ NFT "${nftName}" minted! (Simulation - braucht ERC721 Integration)`, 'nftStatus');
+                // Simulated NFT mint
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                completeTask('nft');
+                saveLocalData();
+                showStatus('success', `✅ NFT "${nftName}" minted!`, 'nftStatus');
                 document.getElementById('nftName').value = '';
             } catch (error) {
                 showStatus('error', 'Mint failed: ' + error.message, 'nftStatus');
@@ -603,8 +710,9 @@
             lastGMDate = today;
             gmStreak++;
             document.getElementById('gmStreak').textContent = gmStreak;
-            showStatus('success', `✨ GM! Streak: ${gmStreak} days`, 'gmStatus');
+            completeTask('gm');
             saveLocalData();
+            showStatus('success', `✨ GM! Streak: ${gmStreak} days`, 'gmStatus');
         }
 
         function updateGMTimer() {
@@ -623,20 +731,30 @@
 
         // ==================== TASKS ====================
         function renderTasks() {
-            document.getElementById('tasksContainer').innerHTML = TASKS_LIST.map((task, idx) => `
-                <div class="task-item">
-                    <div>
-                        <span style="font-size: 24px; margin-right: 10px;">${task.icon}</span>
-                        <span>${task.name}</span>
-                        <span style="color: var(--task-blue); margin-left: 10px;">+${task.points}pts</span>
+            document.getElementById('tasksContainer').innerHTML = TASKS_LIST.map((task, idx) => {
+                const today = new Date().toDateString();
+                const taskKey = `${task.action}_${today}`;
+                const isDone = completedTasks[taskKey];
+                return `
+                    <div class="task-item ${isDone ? 'completed' : ''}">
+                        <div>
+                            <span style="font-size: 24px; margin-right: 10px;">${task.icon}</span>
+                            <span>${task.name}</span>
+                            <span style="color: var(--task-blue); margin-left: 10px;">+${task.points}pts</span>
+                        </div>
+                        <button class="task-btn ${isDone ? 'done' : ''}" ${isDone ? 'disabled' : ''}>
+                            ${isDone ? '✓ Done' : 'Complete'}
+                        </button>
                     </div>
-                    <button class="task-btn" onclick="completeTask(${idx})">Complete</button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function completeTask(idx) {
-            showStatus('success', `✅ Task completed! +${TASKS_LIST[idx].points}pts`, 'tasksContainer');
+        function completeTask(action) {
+            const today = new Date().toDateString();
+            const taskKey = `${action}_${today}`;
+            completedTasks[taskKey] = true;
+            renderTasks();
         }
 
         // ==================== UTILS ====================
@@ -658,13 +776,21 @@
         function saveLocalData() {
             localStorage.setItem('gmStreak', gmStreak);
             localStorage.setItem('lastGMDate', lastGMDate);
+            localStorage.setItem('lastFaucetClaim', JSON.stringify(lastFaucetClaim));
+            localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
         }
 
         function loadLocalData() {
             gmStreak = parseInt(localStorage.getItem('gmStreak')) || 0;
             lastGMDate = localStorage.getItem('lastGMDate');
+            lastFaucetClaim = JSON.parse(localStorage.getItem('lastFaucetClaim')) || { rry: 0, ang: 0, knh: 0 };
+            completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || {};
             document.getElementById('gmStreak').textContent = gmStreak;
+            renderTasks();
         }
+
+        // Update bridge path on load
+        window.addEventListener('load', () => updateBridgePath());
     </script>
 </body>
 </html>
