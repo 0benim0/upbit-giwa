@@ -3,28 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPBIT GIWA - Real DApp</title>
+    <title>UPBIT GIWA - DApp</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #d4af37;
-            --bg: #0a0e27;
-            --bg-secondary: #141b3a;
-            --bg-tertiary: #1a2847;
-            --text: #e8e8e8;
-            --text-muted: #a0a0a0;
-            --accent: #7c3aed;
-            --success: #10b981;
-            --danger: #ef4444;
-            --border: #2a3f5f;
-            --task-blue: #00d4ff;
+            --primary: #d4af37; --bg: #0a0e27; --bg-secondary: #141b3a;
+            --bg-tertiary: #1a2847; --text: #e8e8e8; --text-muted: #a0a0a0;
+            --accent: #7c3aed; --success: #10b981; --danger: #ef4444;
+            --border: #2a3f5f; --task-blue: #00d4ff;
         }
         body {
             font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, var(--bg) 0%, #0f1535 100%);
-            color: var(--text);
-            min-height: 100vh;
+            color: var(--text); min-height: 100vh;
         }
         header {
             background: linear-gradient(135deg, rgba(20, 27, 58, 0.9), rgba(26, 40, 71, 0.9));
@@ -50,7 +42,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-transform: uppercase;
         }
         .header-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
         select, button {
@@ -66,10 +57,7 @@
             background: var(--primary);
             color: var(--bg);
         }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .wallet-info {
             background: var(--bg-secondary);
             border: 2px solid var(--primary);
@@ -155,10 +143,7 @@
             border-radius: 6px;
             font-size: 12px;
         }
-        .quick-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
+        .quick-btn:hover { border-color: var(--primary); color: var(--primary); }
         .reverse-btn {
             padding: 8px 12px;
             background: var(--accent);
@@ -242,13 +227,13 @@
                 <h2>💧 Faucets</h2>
                 <div class="input-group">
                     <select id="faucetToken" onchange="updateFaucetUI()">
-                        <option value="rry">RRY</option>
-                        <option value="ang">ANG</option>
-                        <option value="knh">KNH</option>
+                        <option value="rry">RRY - 100 tokens</option>
+                        <option value="ang">ANG - 100 tokens</option>
+                        <option value="knh">KNH - 100 tokens</option>
                     </select>
                 </div>
                 <div class="info-box">Next claim: <span id="faucetTimer">--:--:--</span></div>
-                <button id="claimBtn" onclick="claimTokens()" style="width:100%; padding:15px; margin:15px 0;">Claim 100 Tokens</button>
+                <button id="claimBtn" onclick="claimTokens()" style="width:100%; padding:15px; margin:15px 0;">Claim Tokens</button>
                 <div id="faucetStatus"></div>
             </div>
         </div>
@@ -257,7 +242,7 @@
         <div id="swap" class="tab-content">
             <div class="card">
                 <h2>⚡ Swap</h2>
-                <div class="info-box">Balance: <span id="swapBalance">0</span> tokens</div>
+                <div class="info-box">Balance: <span id="swapBalance">0</span> RRY</div>
                 <div class="input-group">
                     <input type="number" id="swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput()">
                     <select id="swapTokenIn" onchange="calcSwapOutput()">
@@ -265,7 +250,7 @@
                         <option value="ang">ANG</option>
                         <option value="knh">KNH</option>
                     </select>
-                    <button class="reverse-btn" onclick="reverseSwapTokens()">⇅ Reverse</button>
+                    <button class="reverse-btn" onclick="reverseSwapTokens()">⇅</button>
                 </div>
                 <div class="quick-buttons">
                     <button class="quick-btn" onclick="setSwapPercent(25)">25%</button>
@@ -299,7 +284,7 @@
                         <option value="arc">To ARC</option>
                         <option value="giwa">To GIWA</option>
                     </select>
-                    <button class="reverse-btn" onclick="reverseBridgeChains()">⇅ Reverse</button>
+                    <button class="reverse-btn" onclick="reverseBridgeChains()">⇅</button>
                 </div>
                 <div class="info-box">Path: <span id="bridgePath">GIWA → ARC</span> | Fee: 0.50%</div>
                 <div class="input-group">
@@ -371,7 +356,7 @@
                 ang: '0x5d28Df1Fd08981347caF44C4f94C8B57458d1e85',
                 knh: '0xFb6dcAdd47176dab6E24bB93fc3B61bF3FFbfB00',
                 swap: '0x571B477afB798B9806EA1094b706210899E1665e',
-                nft: '0x3422A8c40bADe21DB15FfB73a839aE25DC5A3f71'
+                nft: '0x4034195d2A198394b664c1d256805f0Dd20c2571'
             },
             arc: {
                 faucetRry: '0xA3D3C681Cb511d05337cEAfB5934551746b7ec51',
@@ -381,13 +366,13 @@
                 ang: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
                 knh: '0x2121C6c9EEfEA700831b16Ba5791a145599fb54B',
                 swap: '0xFcfe1D1BF3083ACf627d04c2Ca0cE0B43335fC2e',
-                nft: '0x924b73c5fdA620b5B0f9B6c51b6BE9162d1b8EED'
+                nft: '0x4766EC9193a4F89F9d417AcEcBaf9aaC7dB93A70'
             }
         };
 
         const FAUCET_ABI = ['function claimTokens() public', 'function timeUntilNextClaim(address user) public view returns (uint256)'];
-        const ERC20_ABI = ['function balanceOf(address) public view returns (uint256)', 'function approve(address spender, uint256 amount) public returns (bool)', 'function transfer(address to, uint256 amount) public returns (bool)'];
-        const ERC721_ABI = ['function mint(address to, string name) public', 'function totalSupply() public view returns (uint256)'];
+        const ERC20_ABI = ['function balanceOf(address) public view returns (uint256)'];
+        const NFT_ABI = ['function mint(address to, string nftName) public', 'function totalSupply() public view returns (uint256)'];
 
         let currentChain = 'giwa';
         let userAddress = null;
@@ -441,6 +426,7 @@
                 document.getElementById('walletAddress').textContent = userAddress;
                 document.getElementById('walletInfo').style.display = 'block';
                 updateSwapBalance();
+                getNFTSupply();
             } catch (error) { alert('Connection failed'); }
         }
 
@@ -488,10 +474,11 @@
                 completeTask('faucet');
                 saveLocalData();
                 updateFaucetUI();
+                updateSwapBalance();
 
                 showStatus('success', `✅ Claimed 100 ${token.toUpperCase()}!`, 'faucetStatus');
             } catch (error) {
-                showStatus('error', 'Claim failed: ' + error.message, 'faucetStatus');
+                showStatus('error', 'Claim failed: ' + (error.reason || error.message), 'faucetStatus');
             }
         }
 
@@ -502,13 +489,13 @@
                 const tokenAddr = CONTRACTS[currentChain].rry;
                 const token = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
                 const balance = await token.balanceOf(userAddress);
-                document.getElementById('swapBalance').textContent = (parseInt(balance) / 1e18).toFixed(2);
-            } catch (error) { console.log('Balance error'); }
+                document.getElementById('swapBalance').textContent = (parseInt(balance) / 1e18).toFixed(4);
+            } catch (error) { console.log('Balance fetch failed'); }
         }
 
         function setSwapPercent(percent) {
             const balance = parseFloat(document.getElementById('swapBalance').textContent) || 0;
-            document.getElementById('swapAmount').value = (balance * percent / 100).toFixed(2);
+            document.getElementById('swapAmount').value = (balance * percent / 100).toFixed(4);
             calcSwapOutput();
         }
 
@@ -546,7 +533,7 @@
                 document.getElementById('swapAmount').value = '';
                 calcSwapOutput();
             } catch (error) {
-                showStatus('error', 'Swap failed', 'swapStatus');
+                showStatus('error', 'Swap failed: ' + (error.reason || 'Error'), 'swapStatus');
             }
         }
 
@@ -567,7 +554,7 @@
 
         function setBridgePercent(percent) {
             const balance = parseFloat(document.getElementById('swapBalance').textContent) || 100;
-            document.getElementById('bridgeAmount').value = (balance * percent / 100).toFixed(2);
+            document.getElementById('bridgeAmount').value = (balance * percent / 100).toFixed(4);
         }
 
         async function executeBridge() {
@@ -595,27 +582,35 @@
         }
 
         // ===== NFT =====
+        async function getNFTSupply() {
+            if (!signer) return;
+            try {
+                const contracts = CONTRACTS[currentChain];
+                const nft = new ethers.Contract(contracts.nft, NFT_ABI, signer);
+                const supply = await nft.totalSupply();
+                document.getElementById('nftSupply').textContent = parseInt(supply);
+            } catch (error) { console.log('Supply fetch failed'); }
+        }
+
         async function mintNFT() {
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'nftStatus');
 
             try {
                 showStatus('loading', 'Minting NFT...', 'nftStatus');
                 const contracts = CONTRACTS[currentChain];
-                const nft = new ethers.Contract(contracts.nft, ['function mint(address to, string name) public', 'function totalSupply() public view returns (uint256)'], signer);
+                const nft = new ethers.Contract(contracts.nft, NFT_ABI, signer);
                 
                 const name = document.getElementById('nftName').value || 'Checkmate #' + Math.floor(Math.random() * 9999);
                 const tx = await nft.mint(userAddress, name);
                 await tx.wait();
 
-                const supply = await nft.totalSupply();
-                document.getElementById('nftSupply').textContent = parseInt(supply);
-
+                await getNFTSupply();
                 completeTask('nft');
                 saveLocalData();
                 showStatus('success', `✅ Minted "${name}"!`, 'nftStatus');
                 document.getElementById('nftName').value = '';
             } catch (error) {
-                showStatus('error', 'Mint failed: ' + (error.message || 'Check contract'), 'nftStatus');
+                showStatus('error', 'Mint failed: ' + (error.reason || error.message.substring(0, 50)), 'nftStatus');
             }
         }
 
