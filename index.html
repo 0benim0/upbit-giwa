@@ -250,6 +250,8 @@
         <div class="header-content">
             <div class="logo">🚀 UPBIT GIWA</div>
             <div class="header-controls">
+                <button onclick="addGiwaNetwork()" style="background:#7c3aed; border-color:#7c3aed; color:white;">+ Add GIWA</button>
+                <button onclick="addArcNetwork()" style="background:#7c3aed; border-color:#7c3aed; color:white;">+ Add ARC</button>
                 <select id="chainSelect" onchange="switchChainManual()">
                     <option value="giwa">GIWA</option>
                     <option value="arc">ARC</option>
@@ -476,6 +478,40 @@
         }
 
         // ==================== WALLET + CHAIN ====================
+        async function addGiwaNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x1a6a9d2',
+                        chainName: 'GIWA Testnet',
+                        rpcUrls: ['https://rpc.testnet.chain.giwa.io'],
+                        blockExplorerUrls: ['https://explorer.testnet.chain.giwa.io']
+                    }]
+                });
+                alert('✅ GIWA added to MetaMask!');
+            } catch (error) {
+                alert('Error adding GIWA: ' + error.message);
+            }
+        }
+
+        async function addArcNetwork() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x4cef52',
+                        chainName: 'ARC Testnet',
+                        rpcUrls: ['https://arc-testnet.drpc.org'],
+                        blockExplorerUrls: ['https://explorer.arc.io']
+                    }]
+                });
+                alert('✅ ARC added to MetaMask!');
+            } catch (error) {
+                alert('Error adding ARC: ' + error.message);
+            }
+        }
+
         async function connectWallet() {
             if (!window.ethereum) return alert('Install MetaMask!');
             try {
@@ -508,61 +544,26 @@
         }
 
         async function switchChainManual() {
-            console.log('=== CHAIN SWITCH START ===');
-            console.log('switchChainManual() aufgerufen!');
-            
             const selected = document.getElementById('chainSelect').value;
-            console.log('Selected chain:', selected);
-            
             const targetChainId = CHAINS[selected].chainId;
-            console.log('Target chainId:', targetChainId, 'Hex:', '0x' + targetChainId.toString(16));
             
             try {
-                console.log('Requesting MetaMask switch...');
-                
-                // 1. Request MetaMask to switch chain
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: '0x' + targetChainId.toString(16) }]
                 });
                 
-                console.log('✅ MetaMask switch successful!');
-                
-                // 2. CRITICAL: Re-initialize provider after switch!
-                console.log('Re-initializing provider...');
+                // Update immediately
+                currentChain = selected;
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
-                console.log('✅ Provider re-initialized!');
                 
-                // 3. Update currentChain variable
-                currentChain = selected;
-                console.log('✅ currentChain updated to:', currentChain);
-                
-                // 4. Update UI immediately
-                document.getElementById('chainSelect').value = selected;
                 document.getElementById('chainName').textContent = CHAINS[selected].name;
-                console.log('✅ UI updated!');
+                updateAllBalances();
                 
-                // 5. Refresh all balances
-                console.log('Updating balances...');
-                await updateAllBalances();
-                console.log('✅ Balances updated!');
-                
-                console.log('=== CHAIN SWITCH SUCCESS ===');
                 showStatus('success', `✅ Switched to ${selected.toUpperCase()}!`, 'faucetStatus');
-            } catch (switchError) {
-                console.error('❌ ERROR:', switchError);
-                console.error('Error code:', switchError.code);
-                console.error('Error message:', switchError.message);
-                
-                if (switchError.code === 4902) {
-                    console.log('Chain not added in MetaMask');
-                    alert('Please add ' + selected.toUpperCase() + ' network to MetaMask');
-                } else {
-                    console.log('Other error occurred');
-                }
+            } catch (error) {
                 document.getElementById('chainSelect').value = currentChain;
-                console.log('=== CHAIN SWITCH FAILED ===');
             }
         }
 
