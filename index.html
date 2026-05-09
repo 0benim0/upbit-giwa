@@ -250,8 +250,6 @@
         <div class="header-content">
             <div class="logo">🚀 UPBIT GIWA</div>
             <div class="header-controls">
-                <button onclick="addGiwaNetwork()" style="background:#7c3aed; border-color:#7c3aed; color:white;">+ Add GIWA</button>
-                <button onclick="addArcNetwork()" style="background:#7c3aed; border-color:#7c3aed; color:white;">+ Add ARC</button>
                 <select id="chainSelect" onchange="switchChainManual()">
                     <option value="giwa">GIWA</option>
                     <option value="arc">ARC</option>
@@ -459,7 +457,7 @@
             loadLocalData();
             updateAllTimers();
             setInterval(updateAllTimers, 1000);
-            window.ethereum?.on('chainChanged', () => detectChain());
+            window.ethereum?.on('chainChanged', () => location.reload());
             window.ethereum?.on('accountsChanged', () => location.reload());
         });
 
@@ -478,40 +476,6 @@
         }
 
         // ==================== WALLET + CHAIN ====================
-        async function addGiwaNetwork() {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                        chainId: '0x1a6a9d2',
-                        chainName: 'GIWA Testnet',
-                        rpcUrls: ['https://rpc.testnet.chain.giwa.io'],
-                        blockExplorerUrls: ['https://explorer.testnet.chain.giwa.io']
-                    }]
-                });
-                alert('✅ GIWA added to MetaMask!');
-            } catch (error) {
-                alert('Error adding GIWA: ' + error.message);
-            }
-        }
-
-        async function addArcNetwork() {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                        chainId: '0x4cef52',
-                        chainName: 'ARC Testnet',
-                        rpcUrls: ['https://arc-testnet.drpc.org'],
-                        blockExplorerUrls: ['https://explorer.arc.io']
-                    }]
-                });
-                alert('✅ ARC added to MetaMask!');
-            } catch (error) {
-                alert('Error adding ARC: ' + error.message);
-            }
-        }
-
         async function connectWallet() {
             if (!window.ethereum) return alert('Install MetaMask!');
             try {
