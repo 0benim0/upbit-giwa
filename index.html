@@ -281,10 +281,7 @@
                     <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
                     <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
                 </div>
-                <div class="info-box">
-                    Receive: <span id="swapOutput">0</span> <span id="swapOutToken">ANG</span> (0.25% fee)
-                    <br>Daily Limit - Next reset: <span id="swapTimer" class="timer-red">--:--:--</span>
-                </div>
+                <div class="info-box">Receive: <span id="swapOutput">0</span> <span id="swapOutToken">ANG</span> (0.25% fee)</div>
                 <div class="input-group">
                     <select id="swapTokenOut">
                         <option value="ang">ANG</option>
@@ -292,7 +289,7 @@
                         <option value="knh">KNH</option>
                     </select>
                 </div>
-                <button onclick="executeSwap()" id="swapBtn" style="width:100%; padding:15px; margin:15px 0;">Swap</button>
+                <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0;">Swap</button>
                 <div id="swapStatus"></div>
             </div>
         </div>
@@ -402,7 +399,7 @@
         };
 
         const FAUCET_ABI = ['function claimTokens() public', 'function timeUntilNextClaim(address user) public view returns (uint256)'];
-        const ERC20_ABI = ['function balanceOf(address) public view returns (uint256)', 'function approve(address spender, uint256 amount) public returns (bool)', 'function transfer(address to, uint256 amount) public returns (bool)'];
+        const ERC20_ABI = ['function balanceOf(address) public view returns (uint256)', 'function approve(address spender, uint256 amount) public returns (bool)'];
         const NFT_ABI = ['function mint(address to, string nftName) public', 'function totalSupply() public view returns (uint256)'];
         const SWAP_ABI = ['function swapTokens(address tokenIn, uint256 amountIn, address tokenOut) public returns (uint256)'];
         const BRIDGE_ABI = ['function startBridge(address token, uint256 amount, string sourceChain, string destinationChain) public returns (uint256)'];
@@ -415,7 +412,8 @@
         let signer = null;
         let gmStreak = 0;
         let lastGMDate = null;
-        let dailyLimits = {}; // { "giwa_faucet_rry": timestamp, "giwa_swap": timestamp, "giwa_nft": timestamp }
+        let claimedToday = {}; // { "giwa_rry": true, "arc_ang": false, ... }
+        let nftMintedToday = {}; // { "giwa": true, "arc": false }
         let completedTasks = {};
 
         const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks'];
@@ -432,11 +430,8 @@
             renderTabs();
             renderTasks();
             loadLocalData();
-            updateGMTimer();
-            setInterval(updateGMTimer, 1000);
-            setInterval(updateFaucetUI, 1000);
-            setInterval(updateSwapTimer, 1000);
-            setInterval(updateNFTTimer, 1000);
+            updateAllTimers();
+            setInterval(updateAllTimers, 1000);
             window.ethereum?.on('chainChanged', () => location.reload());
             window.ethereum?.on('accountsChanged', () => location.reload());
         });
@@ -455,7 +450,7 @@
             updateAllBalances();
         }
 
-        // ==================== WALLET + CHAIN SWITCH ====================
+        // ==================== WALLET + CHAIN ====================
         async function connectWallet() {
             if (!window.ethereum) return alert('Install MetaMask!');
             try {
@@ -465,10 +460,11 @@
                 signer = await provider.getSigner();
                 
                 const network = await provider.getNetwork();
-                currentChainId = '0x' + network.chainId.toString(16);
+                const chainId = '0x' + network.chainId.toString(16);
                 
+                currentChainId = chainId;
                 for (const [chain, config] of Object.entries(CHAINS)) {
-                    if (config.id === currentChainId) {
+                    if (config.id === chainId) {
                         currentChain = chain;
                         break;
                     }
@@ -480,47 +476,32 @@
                 document.getElementById('walletInfo').style.display = 'block';
                 document.getElementById('chainSelect').value = currentChain;
 
-                checkChainWarning();
                 updateAllBalances();
             } catch (error) { 
-                showStatus('error', 'Connection failed', 'faucetStatus');
+                alert('Connection error');
             }
         }
 
         async function switchChain() {
-            const selectedChain = document.getElementById('chainSelect').value;
-            const chainId = CHAINS[selectedChain].chainId;
+            const selected = document.getElementById('chainSelect').value;
+            const targetChainId = parseInt(CHAINS[selected].id, 16);
             
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: chainId }]
+                    params: [{ chainId: '0x' + targetChainId.toString(16) }]
                 });
-                currentChain = selectedChain;
-                currentChainId = CHAINS[selectedChain].id;
-                document.getElementById('chainName').textContent = CHAINS[selectedChain].name;
+                currentChain = selected;
                 updateAllBalances();
-            } catch (error) {
-                if (error.code === 4902) {
-                    showStatus('error', 'Chain not added to MetaMask', 'faucetStatus');
-                } else {
-                    showStatus('error', 'Failed to switch chain', 'faucetStatus');
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    alert('Please add ' + selected.toUpperCase() + ' network to MetaMask first');
                 }
                 document.getElementById('chainSelect').value = currentChain;
             }
         }
 
-        function checkChainWarning() {
-            const warning = document.getElementById('chainWarning');
-            const validChains = ['0x1a6a9d2', '0x4cef52'];
-            if (!validChains.includes(currentChainId)) {
-                warning.innerHTML = '⚠️ Wrong chain! Switch to GIWA or ARC in MetaMask';
-            } else {
-                warning.innerHTML = '';
-            }
-        }
-
-        // ==================== BALANCE FETCHING ====================
+        // ==================== BALANCES ====================
         async function updateAllBalances() {
             if (!signer) return;
 
@@ -535,12 +516,12 @@
             document.getElementById('swapBalances').innerHTML = balanceHtml;
 
             const balanceHtmlBridge = `
-                <div style="margin-bottom: 10px;"><strong>${CHAINS.giwa.name}:</strong>
+                <div style="margin-bottom: 10px;"><strong>GIWA:</strong>
                     <div class="token-row"><span>RRY:</span> <strong id="balGiwaRry">...</strong></div>
                     <div class="token-row"><span>ANG:</span> <strong id="balGiwaAng">...</strong></div>
                     <div class="token-row"><span>KNH:</span> <strong id="balGiwaKnh">...</strong></div>
                 </div>
-                <div><strong>${CHAINS.arc.name}:</strong>
+                <div><strong>ARC:</strong>
                     <div class="token-row"><span>RRY:</span> <strong id="balArcRry">...</strong></div>
                     <div class="token-row"><span>ANG:</span> <strong id="balArcAng">...</strong></div>
                     <div class="token-row"><span>KNH:</span> <strong id="balArcKnh">...</strong></div>
@@ -592,28 +573,49 @@
                 document.getElementById('balArcKnh').textContent = fmt(arcKnh);
 
             } catch (error) {
-                console.log('Balance fetch error:', error.message);
+                console.log('Balance error:', error.message);
             }
         }
 
-        // ==================== FAUCET ====================
-        function updateFaucetUI() {
-            const token = document.getElementById('faucetToken')?.value || 'rry';
-            const key = `${currentChain}_faucet_${token}`;
-            const lastClaim = dailyLimits[key] || 0;
-            const now = Math.floor(Date.now() / 1000);
-            const nextClaim = lastClaim + 86400;
+        // ==================== TIMERS (CORRECT 00:00 RESET) ====================
+        function updateAllTimers() {
+            updateFaucetTimer();
+            updateNFTTimer();
+            updateGMTimer();
+        }
 
-            if (now >= nextClaim) {
+        function getTodayDateString() {
+            return new Date().toDateString();
+        }
+
+        function getTimeUntilMidnight() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            return tomorrow - now;
+        }
+
+        function formatTime(ms) {
+            const h = Math.floor(ms / 3600000);
+            const m = Math.floor((ms % 3600000) / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        // ==================== FAUCET ====================
+        function updateFaucetTimer() {
+            const token = document.getElementById('faucetToken')?.value || 'rry';
+            const key = `${currentChain}_${token}`;
+            const today = getTodayDateString();
+            const claimed = claimedToday[key] === today;
+
+            if (claimed) {
+                document.getElementById('faucetTimer').textContent = formatTime(getTimeUntilMidnight());
+                document.getElementById('claimBtn').disabled = true;
+            } else {
                 document.getElementById('faucetTimer').textContent = 'Ready!';
                 document.getElementById('claimBtn').disabled = false;
-            } else {
-                const left = nextClaim - now;
-                const h = Math.floor(left / 3600);
-                const m = Math.floor((left % 3600) / 60);
-                const s = left % 60;
-                document.getElementById('faucetTimer').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                document.getElementById('claimBtn').disabled = true;
             }
         }
 
@@ -621,6 +623,13 @@
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'faucetStatus');
 
             const token = document.getElementById('faucetToken').value;
+            const key = `${currentChain}_${token}`;
+            const today = getTodayDateString();
+
+            if (claimedToday[key] === today) {
+                return showStatus('error', 'Already claimed today!', 'faucetStatus');
+            }
+
             const contracts = CONTRACTS[currentChain];
             const faucetAddr = token === 'rry' ? contracts.faucetRry : token === 'ang' ? contracts.faucetAng : contracts.faucetKnh;
 
@@ -628,41 +637,21 @@
                 showStatus('loading', 'Claiming...', 'faucetStatus');
                 const faucet = new ethers.Contract(faucetAddr, FAUCET_ABI, signer);
                 const tx = await faucet.claimTokens();
-                const receipt = await tx.wait();
+                await tx.wait();
 
-                const key = `${currentChain}_faucet_${token}`;
-                dailyLimits[key] = Math.floor(Date.now() / 1000);
+                claimedToday[key] = today;
                 completeTask('faucet');
                 saveLocalData();
-                updateFaucetUI();
+                updateFaucetTimer();
                 updateAllBalances();
 
                 showStatus('success', `✅ Claimed 100 ${token.toUpperCase()}!`, 'faucetStatus');
             } catch (error) {
-                showStatus('error', 'Claim failed: ' + (error.reason || error.message.substring(0, 100)), 'faucetStatus');
+                showStatus('error', 'Claim failed: ' + error.message.substring(0, 80), 'faucetStatus');
             }
         }
 
-        // ==================== SWAP ====================
-        function updateSwapTimer() {
-            const key = `${currentChain}_swap`;
-            const lastSwap = dailyLimits[key] || 0;
-            const now = Math.floor(Date.now() / 1000);
-            const nextSwap = lastSwap + 86400;
-
-            if (now >= nextSwap) {
-                document.getElementById('swapTimer').textContent = 'Ready!';
-                document.getElementById('swapBtn').disabled = false;
-            } else {
-                const left = nextSwap - now;
-                const h = Math.floor(left / 3600);
-                const m = Math.floor((left % 3600) / 60);
-                const s = left % 60;
-                document.getElementById('swapTimer').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                document.getElementById('swapBtn').disabled = true;
-            }
-        }
-
+        // ==================== SWAP (NO DAILY LIMIT) ====================
         function setSwapPercent(percent) {
             const balance = parseFloat(document.getElementById('balRry').textContent) || 0;
             document.getElementById('swapAmount').value = (balance * percent / 100).toFixed(2);
@@ -687,13 +676,6 @@
         async function executeSwap() {
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'swapStatus');
             
-            const key = `${currentChain}_swap`;
-            const lastSwap = dailyLimits[key] || 0;
-            const now = Math.floor(Date.now() / 1000);
-            if (now < lastSwap + 86400) {
-                return showStatus('error', 'Already swapped today! Wait 24h', 'swapStatus');
-            }
-
             const amount = parseFloat(document.getElementById('swapAmount').value);
             if (!amount) return showStatus('error', 'Enter amount!', 'swapStatus');
 
@@ -716,21 +698,19 @@
                 const tx = await swap.swapTokens(tokenInAddr, amountWei, tokenOutAddr);
                 await tx.wait();
 
-                dailyLimits[key] = now;
                 completeTask('swap');
                 saveLocalData();
                 updateAllBalances();
-                updateSwapTimer();
 
                 showStatus('success', `✅ Swapped ${amount} ${tokenIn.toUpperCase()}!`, 'swapStatus');
                 document.getElementById('swapAmount').value = '';
                 calcSwapOutput();
             } catch (error) {
-                showStatus('error', 'Swap failed: ' + (error.reason || error.message.substring(0, 100)), 'swapStatus');
+                showStatus('error', 'Swap failed: ' + error.message.substring(0, 80), 'swapStatus');
             }
         }
 
-        // ==================== BRIDGE ====================
+        // ==================== BRIDGE (NO DAILY LIMIT) ====================
         function updateBridgePath() {
             const source = document.getElementById('bridgeSourceChain').value;
             const dest = document.getElementById('bridgeDestChain').value;
@@ -746,7 +726,9 @@
         }
 
         function setBridgePercent(percent) {
-            const balId = `bal${currentChain.charAt(0).toUpperCase() + currentChain.slice(1)}${document.getElementById('bridgeToken').value.toUpperCase()}`;
+            const chain = document.getElementById('bridgeSourceChain').value;
+            const token = document.getElementById('bridgeToken').value;
+            const balId = `bal${chain.charAt(0).toUpperCase() + chain.slice(1)}${token.toUpperCase()}`;
             const balance = parseFloat(document.getElementById(balId)?.textContent) || 0;
             document.getElementById('bridgeAmount').value = (balance * percent / 100).toFixed(2);
         }
@@ -783,38 +765,45 @@
                 showStatus('success', `✅ Bridged ${amount} ${token.toUpperCase()}!`, 'bridgeStatus');
                 document.getElementById('bridgeAmount').value = '';
             } catch (error) {
-                showStatus('error', 'Bridge failed: ' + (error.reason || error.message.substring(0, 100)), 'bridgeStatus');
+                showStatus('error', 'Bridge failed: ' + error.message.substring(0, 80), 'bridgeStatus');
             }
         }
 
         // ==================== NFT ====================
         function updateNFTTimer() {
-            const key = `${currentChain}_nft`;
-            const lastMint = dailyLimits[key] || 0;
-            const now = Math.floor(Date.now() / 1000);
-            const nextMint = lastMint + 86400;
+            const key = currentChain;
+            const today = getTodayDateString();
+            const minted = nftMintedToday[key] === today;
 
-            if (now >= nextMint) {
+            if (minted) {
+                document.getElementById('nftTimer').textContent = formatTime(getTimeUntilMidnight());
+                document.getElementById('nftBtn').disabled = true;
+            } else {
                 document.getElementById('nftTimer').textContent = 'Ready!';
                 document.getElementById('nftBtn').disabled = false;
-            } else {
-                const left = nextMint - now;
-                const h = Math.floor(left / 3600);
-                const m = Math.floor((left % 3600) / 60);
-                const s = left % 60;
-                document.getElementById('nftTimer').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                document.getElementById('nftBtn').disabled = true;
+            }
+        }
+
+        async function getNFTSupply() {
+            if (!signer) return;
+            try {
+                const contracts = CONTRACTS[currentChain];
+                const nft = new ethers.Contract(contracts.nft, NFT_ABI, signer);
+                const supply = await nft.totalSupply();
+                document.getElementById('nftSupply').textContent = parseInt(supply);
+            } catch (error) {
+                console.log('Supply fetch error');
             }
         }
 
         async function mintNFT() {
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'nftStatus');
 
-            const key = `${currentChain}_nft`;
-            const lastMint = dailyLimits[key] || 0;
-            const now = Math.floor(Date.now() / 1000);
-            if (now < lastMint + 86400) {
-                return showStatus('error', 'Already minted today! Wait 24h', 'nftStatus');
+            const key = currentChain;
+            const today = getTodayDateString();
+
+            if (nftMintedToday[key] === today) {
+                return showStatus('error', 'Already minted today!', 'nftStatus');
             }
 
             try {
@@ -826,21 +815,28 @@
                 const tx = await nft.mint(userAddress, name);
                 await tx.wait();
 
-                dailyLimits[key] = now;
+                nftMintedToday[key] = today;
                 completeTask('nft');
                 saveLocalData();
                 updateNFTTimer();
+                getNFTSupply();
 
                 showStatus('success', `✅ Minted "${name}"!`, 'nftStatus');
                 document.getElementById('nftName').value = '';
             } catch (error) {
-                showStatus('error', 'Mint failed: ' + (error.reason || error.message.substring(0, 100)), 'nftStatus');
+                showStatus('error', 'Mint failed: ' + error.message.substring(0, 80), 'nftStatus');
             }
         }
 
         // ==================== GM ====================
+        function updateGMTimer() {
+            const today = getTodayDateString();
+            const diff = getTimeUntilMidnight();
+            document.getElementById('gmTimer').textContent = formatTime(diff);
+        }
+
         function gmCheckIn() {
-            const today = new Date().toDateString();
+            const today = getTodayDateString();
             if (lastGMDate === today) return showStatus('error', 'Already checked in!', 'gmStatus');
 
             lastGMDate = today;
@@ -851,21 +847,10 @@
             showStatus('success', `✨ GM! Streak: ${gmStreak}`, 'gmStatus');
         }
 
-        function updateGMTimer() {
-            const now = new Date();
-            const tomorrow = new Date(now.getTime() + 86400000);
-            tomorrow.setHours(0, 0, 0, 0);
-            const diff = tomorrow - now;
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            document.getElementById('gmTimer').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
         // ==================== TASKS ====================
         function renderTasks() {
             document.getElementById('tasksContainer').innerHTML = TASKS_LIST.map(task => {
-                const today = new Date().toDateString();
+                const today = getTodayDateString();
                 const key = `${task.action}_${today}`;
                 const done = completedTasks[key];
                 return `
@@ -878,7 +863,7 @@
         }
 
         function completeTask(action) {
-            const today = new Date().toDateString();
+            const today = getTodayDateString();
             completedTasks[`${action}_${today}`] = true;
             renderTasks();
         }
@@ -896,17 +881,20 @@
         function saveLocalData() {
             localStorage.setItem('gmStreak', gmStreak);
             localStorage.setItem('lastGMDate', lastGMDate);
-            localStorage.setItem('dailyLimits', JSON.stringify(dailyLimits));
+            localStorage.setItem('claimedToday', JSON.stringify(claimedToday));
+            localStorage.setItem('nftMintedToday', JSON.stringify(nftMintedToday));
             localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
         }
 
         function loadLocalData() {
             gmStreak = parseInt(localStorage.getItem('gmStreak')) || 0;
             lastGMDate = localStorage.getItem('lastGMDate');
-            dailyLimits = JSON.parse(localStorage.getItem('dailyLimits')) || {};
+            claimedToday = JSON.parse(localStorage.getItem('claimedToday')) || {};
+            nftMintedToday = JSON.parse(localStorage.getItem('nftMintedToday')) || {};
             completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || {};
             document.getElementById('gmStreak').textContent = gmStreak;
             renderTasks();
+            getNFTSupply();
         }
     </script>
 </body>
