@@ -512,11 +512,27 @@
             const targetChainId = CHAINS[selected].chainId;
             
             try {
+                // 1. Request MetaMask to switch chain
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: '0x' + targetChainId.toString(16) }]
                 });
-                await detectChain();
+                
+                // 2. CRITICAL: Re-initialize provider after switch!
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                
+                // 3. Update currentChain variable
+                currentChain = selected;
+                
+                // 4. Update UI immediately
+                document.getElementById('chainSelect').value = selected;
+                document.getElementById('chainName').textContent = CHAINS[selected].name;
+                
+                // 5. Refresh all balances
+                await updateAllBalances();
+                
+                showStatus('success', `✅ Switched to ${selected.toUpperCase()}!`, 'faucetStatus');
             } catch (switchError) {
                 if (switchError.code === 4902) {
                     alert('Please add ' + selected.toUpperCase() + ' network to MetaMask');
