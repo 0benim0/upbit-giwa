@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UPBIT GIWA - DApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -144,6 +144,11 @@
             margin: 10px 0;
             font-size: 14px;
         }
+        .timer-red {
+            color: var(--danger);
+            font-weight: bold;
+            font-size: 16px;
+        }
         .quick-buttons {
             display: flex;
             gap: 8px;
@@ -222,6 +227,10 @@
         <div class="header-content">
             <div class="logo">🚀 UPBIT GIWA</div>
             <div class="header-controls">
+                <select id="chainSelect" onchange="switchChain()">
+                    <option value="giwa">GIWA</option>
+                    <option value="arc">ARC</option>
+                </select>
                 <button onclick="connectWallet()"><span id="walletBtn">Connect Wallet</span></button>
             </div>
         </div>
@@ -246,8 +255,8 @@
                         <option value="knh">KNH - 100 tokens</option>
                     </select>
                 </div>
-                <div class="info-box">Next claim: <span id="faucetTimer">--:--:--</span></div>
-                <button id="claimBtn" onclick="claimTokens()" style="width:100%; padding:15px; margin:15px 0;">Claim Tokens (Real TX)</button>
+                <div class="info-box">Next claim: <span id="faucetTimer" class="timer-red">--:--:--</span></div>
+                <button id="claimBtn" onclick="claimTokens()" style="width:100%; padding:15px; margin:15px 0;">Claim Tokens</button>
                 <div id="faucetStatus"></div>
             </div>
         </div>
@@ -272,7 +281,10 @@
                     <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
                     <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
                 </div>
-                <div class="info-box">Receive: <span id="swapOutput">0</span> <span id="swapOutToken">ANG</span> (0.25% fee)</div>
+                <div class="info-box">
+                    Receive: <span id="swapOutput">0</span> <span id="swapOutToken">ANG</span> (0.25% fee)
+                    <br>Daily Limit - Next reset: <span id="swapTimer" class="timer-red">--:--:--</span>
+                </div>
                 <div class="input-group">
                     <select id="swapTokenOut">
                         <option value="ang">ANG</option>
@@ -280,7 +292,7 @@
                         <option value="knh">KNH</option>
                     </select>
                 </div>
-                <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0;">Swap (Real TX)</button>
+                <button onclick="executeSwap()" id="swapBtn" style="width:100%; padding:15px; margin:15px 0;">Swap</button>
                 <div id="swapStatus"></div>
             </div>
         </div>
@@ -316,7 +328,7 @@
                     <button class="quick-btn" onclick="setBridgePercent(75)">75%</button>
                     <button class="quick-btn" onclick="setBridgePercent(100)">100%</button>
                 </div>
-                <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0;">Bridge (Real TX)</button>
+                <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0;">Bridge</button>
                 <div id="bridgeStatus"></div>
             </div>
         </div>
@@ -326,11 +338,14 @@
             <div class="card">
                 <h2>🎮 Checkmate NFT</h2>
                 <div class="nft-preview" style="background-image: url('https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png');"></div>
-                <div class="info-box">Minted: <span id="nftSupply">0</span> / 9999</div>
+                <div class="info-box">
+                    Minted: <span id="nftSupply">0</span> / 9999
+                    <br>Daily Limit - Next mint: <span id="nftTimer" class="timer-red">--:--:--</span>
+                </div>
                 <div class="input-group">
                     <input type="text" id="nftName" placeholder="NFT Name (optional)">
                 </div>
-                <button onclick="mintNFT()" style="width:100%; padding:15px; margin:15px 0;">Mint NFT (Real TX)</button>
+                <button id="nftBtn" onclick="mintNFT()" style="width:100%; padding:15px; margin:15px 0;">Mint NFT</button>
                 <div id="nftStatus"></div>
             </div>
         </div>
@@ -340,7 +355,7 @@
             <div class="card">
                 <h2>✨ GM</h2>
                 <div style="font-size:48px; text-align:center; margin:20px 0; color:var(--primary);">GM ☀️</div>
-                <div style="text-align:center; font-size:18px; color:var(--task-blue);">Reset: <span id="gmTimer">00:00:00</span></div>
+                <div style="text-align:center; font-size:18px; color:var(--task-blue);">Reset: <span id="gmTimer" class="timer-red">00:00:00</span></div>
                 <div style="text-align:center; margin:20px 0;">Streak: <span id="gmStreak" style="color:var(--primary); font-size:24px;">0</span> days</div>
                 <button onclick="gmCheckIn()" style="width:100%; padding:20px; margin:15px 0; font-size:18px;">Say GM! ☀️</button>
                 <div id="gmStatus"></div>
@@ -359,8 +374,8 @@
     <script>
         // ==================== CONFIG ====================
         const CHAINS = {
-            giwa: { id: '0x1a6a9d2', name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
-            arc: { id: '0x4cef52', name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
+            giwa: { id: '0x1a6a9d2', chainId: 0x1a6a9d2, name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
+            arc: { id: '0x4cef52', chainId: 0x4cef52, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
         };
 
         const CONTRACTS = {
@@ -400,7 +415,7 @@
         let signer = null;
         let gmStreak = 0;
         let lastGMDate = null;
-        let faucetClaims = {};
+        let dailyLimits = {}; // { "giwa_faucet_rry": timestamp, "giwa_swap": timestamp, "giwa_nft": timestamp }
         let completedTasks = {};
 
         const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks'];
@@ -420,6 +435,8 @@
             updateGMTimer();
             setInterval(updateGMTimer, 1000);
             setInterval(updateFaucetUI, 1000);
+            setInterval(updateSwapTimer, 1000);
+            setInterval(updateNFTTimer, 1000);
             window.ethereum?.on('chainChanged', () => location.reload());
             window.ethereum?.on('accountsChanged', () => location.reload());
         });
@@ -438,7 +455,7 @@
             updateAllBalances();
         }
 
-        // ==================== WALLET ====================
+        // ==================== WALLET + CHAIN SWITCH ====================
         async function connectWallet() {
             if (!window.ethereum) return alert('Install MetaMask!');
             try {
@@ -450,7 +467,6 @@
                 const network = await provider.getNetwork();
                 currentChainId = '0x' + network.chainId.toString(16);
                 
-                // Detect chain
                 for (const [chain, config] of Object.entries(CHAINS)) {
                     if (config.id === currentChainId) {
                         currentChain = chain;
@@ -462,11 +478,35 @@
                 document.getElementById('walletAddress').textContent = userAddress;
                 document.getElementById('chainName').textContent = CHAINS[currentChain].name;
                 document.getElementById('walletInfo').style.display = 'block';
+                document.getElementById('chainSelect').value = currentChain;
 
                 checkChainWarning();
                 updateAllBalances();
             } catch (error) { 
                 showStatus('error', 'Connection failed', 'faucetStatus');
+            }
+        }
+
+        async function switchChain() {
+            const selectedChain = document.getElementById('chainSelect').value;
+            const chainId = CHAINS[selectedChain].chainId;
+            
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: chainId }]
+                });
+                currentChain = selectedChain;
+                currentChainId = CHAINS[selectedChain].id;
+                document.getElementById('chainName').textContent = CHAINS[selectedChain].name;
+                updateAllBalances();
+            } catch (error) {
+                if (error.code === 4902) {
+                    showStatus('error', 'Chain not added to MetaMask', 'faucetStatus');
+                } else {
+                    showStatus('error', 'Failed to switch chain', 'faucetStatus');
+                }
+                document.getElementById('chainSelect').value = currentChain;
             }
         }
 
@@ -494,7 +534,6 @@
             document.getElementById('faucetBalances').innerHTML = balanceHtml;
             document.getElementById('swapBalances').innerHTML = balanceHtml;
 
-            // Bridge shows both chains
             const balanceHtmlBridge = `
                 <div style="margin-bottom: 10px;"><strong>${CHAINS.giwa.name}:</strong>
                     <div class="token-row"><span>RRY:</span> <strong id="balGiwaRry">...</strong></div>
@@ -509,7 +548,6 @@
             `;
             document.getElementById('bridgeBalances').innerHTML = balanceHtmlBridge;
 
-            // Fetch balances
             try {
                 const rry = new ethers.Contract(contracts.rry, ERC20_ABI, signer);
                 const ang = new ethers.Contract(contracts.ang, ERC20_ABI, signer);
@@ -526,7 +564,6 @@
                 document.getElementById('balAng').textContent = fmt(angBal);
                 document.getElementById('balKnh').textContent = fmt(knhBal);
 
-                // Bridge - fetch both chains
                 const providerGiwa = new ethers.JsonRpcProvider(CHAINS.giwa.rpc);
                 const providerArc = new ethers.JsonRpcProvider(CHAINS.arc.rpc);
 
@@ -562,8 +599,8 @@
         // ==================== FAUCET ====================
         function updateFaucetUI() {
             const token = document.getElementById('faucetToken')?.value || 'rry';
-            const key = `faucet_${token}_${currentChain}`;
-            const lastClaim = faucetClaims[key] || 0;
+            const key = `${currentChain}_faucet_${token}`;
+            const lastClaim = dailyLimits[key] || 0;
             const now = Math.floor(Date.now() / 1000);
             const nextClaim = lastClaim + 86400;
 
@@ -588,25 +625,44 @@
             const faucetAddr = token === 'rry' ? contracts.faucetRry : token === 'ang' ? contracts.faucetAng : contracts.faucetKnh;
 
             try {
-                showStatus('loading', 'Claiming... (waiting for TX)', 'faucetStatus');
+                showStatus('loading', 'Claiming...', 'faucetStatus');
                 const faucet = new ethers.Contract(faucetAddr, FAUCET_ABI, signer);
                 const tx = await faucet.claimTokens();
                 const receipt = await tx.wait();
 
-                const key = `faucet_${token}_${currentChain}`;
-                faucetClaims[key] = Math.floor(Date.now() / 1000);
+                const key = `${currentChain}_faucet_${token}`;
+                dailyLimits[key] = Math.floor(Date.now() / 1000);
                 completeTask('faucet');
                 saveLocalData();
                 updateFaucetUI();
                 updateAllBalances();
 
-                showStatus('success', `✅ Claimed 100 ${token.toUpperCase()}!\nTX: ${receipt.hash}`, 'faucetStatus');
+                showStatus('success', `✅ Claimed 100 ${token.toUpperCase()}!`, 'faucetStatus');
             } catch (error) {
                 showStatus('error', 'Claim failed: ' + (error.reason || error.message.substring(0, 100)), 'faucetStatus');
             }
         }
 
         // ==================== SWAP ====================
+        function updateSwapTimer() {
+            const key = `${currentChain}_swap`;
+            const lastSwap = dailyLimits[key] || 0;
+            const now = Math.floor(Date.now() / 1000);
+            const nextSwap = lastSwap + 86400;
+
+            if (now >= nextSwap) {
+                document.getElementById('swapTimer').textContent = 'Ready!';
+                document.getElementById('swapBtn').disabled = false;
+            } else {
+                const left = nextSwap - now;
+                const h = Math.floor(left / 3600);
+                const m = Math.floor((left % 3600) / 60);
+                const s = left % 60;
+                document.getElementById('swapTimer').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                document.getElementById('swapBtn').disabled = true;
+            }
+        }
+
         function setSwapPercent(percent) {
             const balance = parseFloat(document.getElementById('balRry').textContent) || 0;
             document.getElementById('swapAmount').value = (balance * percent / 100).toFixed(2);
@@ -631,6 +687,13 @@
         async function executeSwap() {
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'swapStatus');
             
+            const key = `${currentChain}_swap`;
+            const lastSwap = dailyLimits[key] || 0;
+            const now = Math.floor(Date.now() / 1000);
+            if (now < lastSwap + 86400) {
+                return showStatus('error', 'Already swapped today! Wait 24h', 'swapStatus');
+            }
+
             const amount = parseFloat(document.getElementById('swapAmount').value);
             if (!amount) return showStatus('error', 'Enter amount!', 'swapStatus');
 
@@ -639,9 +702,8 @@
             const contracts = CONTRACTS[currentChain];
 
             try {
-                showStatus('loading', 'Swapping... (waiting for TX)', 'swapStatus');
+                showStatus('loading', 'Swapping...', 'swapStatus');
 
-                // Approve + Swap
                 const tokenInAddr = tokenIn === 'rry' ? contracts.rry : tokenIn === 'ang' ? contracts.ang : contracts.knh;
                 const tokenOutAddr = tokenOut === 'rry' ? contracts.rry : tokenOut === 'ang' ? contracts.ang : contracts.knh;
                 const amountWei = ethers.parseEther(amount.toString());
@@ -652,13 +714,15 @@
 
                 const swap = new ethers.Contract(contracts.swap, SWAP_ABI, signer);
                 const tx = await swap.swapTokens(tokenInAddr, amountWei, tokenOutAddr);
-                const receipt = await tx.wait();
+                await tx.wait();
 
+                dailyLimits[key] = now;
                 completeTask('swap');
                 saveLocalData();
                 updateAllBalances();
+                updateSwapTimer();
 
-                showStatus('success', `✅ Swapped ${amount} ${tokenIn.toUpperCase()}!\nTX: ${receipt.hash}`, 'swapStatus');
+                showStatus('success', `✅ Swapped ${amount} ${tokenIn.toUpperCase()}!`, 'swapStatus');
                 document.getElementById('swapAmount').value = '';
                 calcSwapOutput();
             } catch (error) {
@@ -699,25 +763,24 @@
             const contracts = CONTRACTS[sourceChain];
 
             try {
-                showStatus('loading', 'Bridging... (waiting for TX)', 'bridgeStatus');
+                showStatus('loading', 'Bridging...', 'bridgeStatus');
 
                 const tokenAddr = token === 'rry' ? contracts.rry : token === 'ang' ? contracts.ang : contracts.knh;
                 const amountWei = ethers.parseEther(amount.toString());
 
-                // Approve + Bridge
                 const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
                 const approveTx = await tokenContract.approve(contracts.swap, amountWei);
                 await approveTx.wait();
 
                 const bridge = new ethers.Contract(contracts.swap, BRIDGE_ABI, signer);
                 const tx = await bridge.startBridge(tokenAddr, amountWei, sourceChain.toUpperCase(), destChain.toUpperCase());
-                const receipt = await tx.wait();
+                await tx.wait();
 
                 completeTask('bridge');
                 saveLocalData();
                 updateAllBalances();
 
-                showStatus('success', `✅ Bridged ${amount} ${token.toUpperCase()} ${sourceChain.toUpperCase()} → ${destChain.toUpperCase()}!\nTX: ${receipt.hash}`, 'bridgeStatus');
+                showStatus('success', `✅ Bridged ${amount} ${token.toUpperCase()}!`, 'bridgeStatus');
                 document.getElementById('bridgeAmount').value = '';
             } catch (error) {
                 showStatus('error', 'Bridge failed: ' + (error.reason || error.message.substring(0, 100)), 'bridgeStatus');
@@ -725,22 +788,50 @@
         }
 
         // ==================== NFT ====================
+        function updateNFTTimer() {
+            const key = `${currentChain}_nft`;
+            const lastMint = dailyLimits[key] || 0;
+            const now = Math.floor(Date.now() / 1000);
+            const nextMint = lastMint + 86400;
+
+            if (now >= nextMint) {
+                document.getElementById('nftTimer').textContent = 'Ready!';
+                document.getElementById('nftBtn').disabled = false;
+            } else {
+                const left = nextMint - now;
+                const h = Math.floor(left / 3600);
+                const m = Math.floor((left % 3600) / 60);
+                const s = left % 60;
+                document.getElementById('nftTimer').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                document.getElementById('nftBtn').disabled = true;
+            }
+        }
+
         async function mintNFT() {
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'nftStatus');
 
+            const key = `${currentChain}_nft`;
+            const lastMint = dailyLimits[key] || 0;
+            const now = Math.floor(Date.now() / 1000);
+            if (now < lastMint + 86400) {
+                return showStatus('error', 'Already minted today! Wait 24h', 'nftStatus');
+            }
+
             try {
-                showStatus('loading', 'Minting NFT... (waiting for TX)', 'nftStatus');
+                showStatus('loading', 'Minting NFT...', 'nftStatus');
                 const contracts = CONTRACTS[currentChain];
                 const nft = new ethers.Contract(contracts.nft, NFT_ABI, signer);
                 
                 const name = document.getElementById('nftName').value || 'Checkmate #' + Math.floor(Math.random() * 9999);
                 const tx = await nft.mint(userAddress, name);
-                const receipt = await tx.wait();
+                await tx.wait();
 
+                dailyLimits[key] = now;
                 completeTask('nft');
                 saveLocalData();
+                updateNFTTimer();
 
-                showStatus('success', `✅ Minted "${name}"!\nTX: ${receipt.hash}`, 'nftStatus');
+                showStatus('success', `✅ Minted "${name}"!`, 'nftStatus');
                 document.getElementById('nftName').value = '';
             } catch (error) {
                 showStatus('error', 'Mint failed: ' + (error.reason || error.message.substring(0, 100)), 'nftStatus');
@@ -805,14 +896,14 @@
         function saveLocalData() {
             localStorage.setItem('gmStreak', gmStreak);
             localStorage.setItem('lastGMDate', lastGMDate);
-            localStorage.setItem('faucetClaims', JSON.stringify(faucetClaims));
+            localStorage.setItem('dailyLimits', JSON.stringify(dailyLimits));
             localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
         }
 
         function loadLocalData() {
             gmStreak = parseInt(localStorage.getItem('gmStreak')) || 0;
             lastGMDate = localStorage.getItem('lastGMDate');
-            faucetClaims = JSON.parse(localStorage.getItem('faucetClaims')) || {};
+            dailyLimits = JSON.parse(localStorage.getItem('dailyLimits')) || {};
             completedTasks = JSON.parse(localStorage.getItem('completedTasks')) || {};
             document.getElementById('gmStreak').textContent = gmStreak;
             renderTasks();
