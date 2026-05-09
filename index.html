@@ -44,7 +44,16 @@
             background-clip: text;
         }
         .header-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-        select, button {
+        select {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button {
             background: var(--bg-tertiary);
             color: var(--text);
             border: 2px solid var(--primary);
@@ -58,6 +67,15 @@
             color: var(--bg);
         }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .wallet-btn {
+            background: var(--success);
+            border: 2px solid var(--success);
+            color: white;
+        }
+        .wallet-btn:hover {
+            background: rgba(16, 185, 129, 0.8);
+            border-color: var(--success);
+        }
         .wallet-info {
             background: var(--bg-secondary);
             border: 2px solid var(--primary);
@@ -149,6 +167,11 @@
             font-weight: bold;
             font-size: 16px;
         }
+        .timer-green {
+            color: var(--success);
+            font-weight: bold;
+            font-size: 16px;
+        }
         .quick-buttons {
             display: flex;
             gap: 8px;
@@ -227,16 +250,15 @@
         <div class="header-content">
             <div class="logo">🚀 UPBIT GIWA</div>
             <div class="header-controls">
-                <select id="chainSelect" onchange="switchChain()">
+                <select id="chainSelect" onchange="switchChainManual()">
                     <option value="giwa">GIWA</option>
                     <option value="arc">ARC</option>
                 </select>
-                <button onclick="connectWallet()"><span id="walletBtn">Connect Wallet</span></button>
+                <button id="walletConnectBtn" class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
             </div>
         </div>
         <div class="wallet-info" id="walletInfo" style="display: none;">
             <div>📍 <span id="chainName">--</span> | <span id="walletAddress"></span></div>
-            <div id="chainWarning" style="color: var(--danger); margin-top: 5px;"></div>
         </div>
     </header>
 
@@ -255,7 +277,10 @@
                         <option value="knh">KNH - 100 tokens</option>
                     </select>
                 </div>
-                <div class="info-box">Next claim: <span id="faucetTimer" class="timer-red">--:--:--</span></div>
+                <div class="info-box">
+                    Next claim: <span id="faucetTimer" class="timer-red">--:--:--</span>
+                    <span id="faucetReady" class="timer-green" style="display:none; margin-left:20px;">✅ READY!</span>
+                </div>
                 <button id="claimBtn" onclick="claimTokens()" style="width:100%; padding:15px; margin:15px 0;">Claim Tokens</button>
                 <div id="faucetStatus"></div>
             </div>
@@ -338,6 +363,7 @@
                 <div class="info-box">
                     Minted: <span id="nftSupply">0</span> / 9999
                     <br>Daily Limit - Next mint: <span id="nftTimer" class="timer-red">--:--:--</span>
+                    <span id="nftReady" class="timer-green" style="display:none; margin-left:20px;">✅ READY!</span>
                 </div>
                 <div class="input-group">
                     <input type="text" id="nftName" placeholder="NFT Name (optional)">
@@ -371,8 +397,8 @@
     <script>
         // ==================== CONFIG ====================
         const CHAINS = {
-            giwa: { id: '0x1a6a9d2', chainId: 0x1a6a9d2, name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
-            arc: { id: '0x4cef52', chainId: 0x4cef52, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
+            giwa: { chainId: 27369170, name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
+            arc: { chainId: 5046066, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
         };
 
         const CONTRACTS = {
@@ -406,14 +432,13 @@
 
         // ==================== STATE ====================
         let currentChain = 'giwa';
-        let currentChainId = CHAINS.giwa.id;
         let userAddress = null;
         let provider = null;
         let signer = null;
         let gmStreak = 0;
         let lastGMDate = null;
-        let claimedToday = {}; // { "giwa_rry": true, "arc_ang": false, ... }
-        let nftMintedToday = {}; // { "giwa": true, "arc": false }
+        let claimedToday = {};
+        let nftMintedToday = {};
         let completedTasks = {};
 
         const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks'];
@@ -432,7 +457,7 @@
             loadLocalData();
             updateAllTimers();
             setInterval(updateAllTimers, 1000);
-            window.ethereum?.on('chainChanged', () => location.reload());
+            window.ethereum?.on('chainChanged', () => detectChain());
             window.ethereum?.on('accountsChanged', () => location.reload());
         });
 
@@ -459,45 +484,53 @@
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
                 
-                const network = await provider.getNetwork();
-                const chainId = '0x' + network.chainId.toString(16);
-                
-                currentChainId = chainId;
-                for (const [chain, config] of Object.entries(CHAINS)) {
-                    if (config.id === chainId) {
-                        currentChain = chain;
-                        break;
-                    }
-                }
-
-                document.getElementById('walletBtn').textContent = 'Connected ✓';
-                document.getElementById('walletAddress').textContent = userAddress;
-                document.getElementById('chainName').textContent = CHAINS[currentChain].name;
-                document.getElementById('walletInfo').style.display = 'block';
-                document.getElementById('chainSelect').value = currentChain;
-
+                detectChain();
+                updateWalletDisplay();
                 updateAllBalances();
             } catch (error) { 
                 alert('Connection error');
             }
         }
 
-        async function switchChain() {
+        async function detectChain() {
+            const network = await provider.getNetwork();
+            const chainId = Number(network.chainId);
+            
+            for (const [chain, config] of Object.entries(CHAINS)) {
+                if (config.chainId === chainId) {
+                    currentChain = chain;
+                    document.getElementById('chainSelect').value = chain;
+                    updateWalletDisplay();
+                    updateAllBalances();
+                    break;
+                }
+            }
+        }
+
+        async function switchChainManual() {
             const selected = document.getElementById('chainSelect').value;
-            const targetChainId = parseInt(CHAINS[selected].id, 16);
+            const targetChainId = CHAINS[selected].chainId;
             
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: '0x' + targetChainId.toString(16) }]
                 });
-                currentChain = selected;
-                updateAllBalances();
+                await detectChain();
             } catch (switchError) {
                 if (switchError.code === 4902) {
-                    alert('Please add ' + selected.toUpperCase() + ' network to MetaMask first');
+                    alert('Please add ' + selected.toUpperCase() + ' network to MetaMask');
                 }
                 document.getElementById('chainSelect').value = currentChain;
+            }
+        }
+
+        function updateWalletDisplay() {
+            if (userAddress) {
+                document.getElementById('walletConnectBtn').textContent = '✅ Connected';
+                document.getElementById('walletAddress').textContent = userAddress;
+                document.getElementById('chainName').textContent = CHAINS[currentChain].name;
+                document.getElementById('walletInfo').style.display = 'block';
             }
         }
 
@@ -577,7 +610,7 @@
             }
         }
 
-        // ==================== TIMERS (CORRECT 00:00 RESET) ====================
+        // ==================== TIMERS ====================
         function updateAllTimers() {
             updateFaucetTimer();
             updateNFTTimer();
@@ -612,9 +645,11 @@
 
             if (claimed) {
                 document.getElementById('faucetTimer').textContent = formatTime(getTimeUntilMidnight());
+                document.getElementById('faucetReady').style.display = 'none';
                 document.getElementById('claimBtn').disabled = true;
             } else {
-                document.getElementById('faucetTimer').textContent = 'Ready!';
+                document.getElementById('faucetTimer').textContent = '';
+                document.getElementById('faucetReady').style.display = 'inline';
                 document.getElementById('claimBtn').disabled = false;
             }
         }
@@ -651,7 +686,7 @@
             }
         }
 
-        // ==================== SWAP (NO DAILY LIMIT) ====================
+        // ==================== SWAP ====================
         function setSwapPercent(percent) {
             const balance = parseFloat(document.getElementById('balRry').textContent) || 0;
             document.getElementById('swapAmount').value = (balance * percent / 100).toFixed(2);
@@ -710,7 +745,7 @@
             }
         }
 
-        // ==================== BRIDGE (NO DAILY LIMIT) ====================
+        // ==================== BRIDGE ====================
         function updateBridgePath() {
             const source = document.getElementById('bridgeSourceChain').value;
             const dest = document.getElementById('bridgeDestChain').value;
@@ -777,9 +812,11 @@
 
             if (minted) {
                 document.getElementById('nftTimer').textContent = formatTime(getTimeUntilMidnight());
+                document.getElementById('nftReady').style.display = 'none';
                 document.getElementById('nftBtn').disabled = true;
             } else {
-                document.getElementById('nftTimer').textContent = 'Ready!';
+                document.getElementById('nftTimer').textContent = '';
+                document.getElementById('nftReady').style.display = 'inline';
                 document.getElementById('nftBtn').disabled = false;
             }
         }
