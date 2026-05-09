@@ -398,7 +398,7 @@
         // ==================== CONFIG ====================
         const CHAINS = {
             giwa: { chainId: 27369170, name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
-            arc: { chainId: 5046066, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
+            arc: { chainId: 5042002, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
         };
 
         const CONTRACTS = {
@@ -520,6 +520,7 @@
             try {
                 console.log('Requesting MetaMask switch...');
                 
+                // 1. Request MetaMask to switch chain
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: '0x' + targetChainId.toString(16) }]
@@ -527,18 +528,22 @@
                 
                 console.log('✅ MetaMask switch successful!');
                 
+                // 2. CRITICAL: Re-initialize provider after switch!
                 console.log('Re-initializing provider...');
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
                 console.log('✅ Provider re-initialized!');
                 
+                // 3. Update currentChain variable
                 currentChain = selected;
                 console.log('✅ currentChain updated to:', currentChain);
                 
+                // 4. Update UI immediately
                 document.getElementById('chainSelect').value = selected;
                 document.getElementById('chainName').textContent = CHAINS[selected].name;
                 console.log('✅ UI updated!');
                 
+                // 5. Refresh all balances
                 console.log('Updating balances...');
                 await updateAllBalances();
                 console.log('✅ Balances updated!');
