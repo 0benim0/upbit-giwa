@@ -459,6 +459,22 @@
             setInterval(updateAllTimers, 1000);
             window.ethereum?.on('chainChanged', () => location.reload());
             window.ethereum?.on('accountsChanged', () => location.reload());
+            
+            // Auto-detect chain changes every 2 seconds
+            setInterval(async () => {
+                if (!provider) return;
+                try {
+                    const network = await provider.getNetwork();
+                    const newChainId = Number(network.chainId);
+                    const currentChainId = CHAINS[currentChain].chainId;
+                    
+                    if (newChainId !== currentChainId) {
+                        await detectChain();
+                    }
+                } catch (error) {
+                    // Silent fail
+                }
+            }, 2000);
         });
 
         function renderTabs() {
