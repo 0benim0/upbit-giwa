@@ -337,7 +337,7 @@
                     <option value="giwa">GIWA</option>
                     <option value="arc">ARC</option>
                 </select>
-                <button class="btn-connect" onclick="connectWallet()">Connect Wallet</button>
+                <button class="btn-connect" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
             </div>
         </div>
         <div class="wallet-info" id="walletInfo" style="display:none;">
@@ -612,11 +612,18 @@
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
                 
-                console.log('🔄 Switching chain...');
-                await switchChain();
-                
+                // Update display IMMEDIATELY
                 updateDisplay();
-                updateBalances();
+                
+                // Then try to switch chain (non-blocking)
+                console.log('🔄 Switching chain...');
+                switchChain().catch(e => {
+                    console.warn('Chain switch failed, but that\'s OK:', e.message);
+                    showStatus('warning', 'Chain switch failed, but wallet connected!', 'faucetStatus');
+                });
+                
+                // Load balances
+                setTimeout(() => updateBalances(), 1000);
                 
                 showStatus('success', `✅ Connected!\n${addr.slice(0, 6)}...${addr.slice(-4)}`, 'faucetStatus');
                 console.log('✅ All done!');
@@ -658,9 +665,18 @@
             }
             
             try {
+                // Update wallet info
                 document.getElementById('walletInfo').style.display = 'block';
                 document.getElementById('chainDisplay').textContent = CHAINS[currentChain].name;
                 document.getElementById('walletDisplay').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+                
+                // Update button
+                const btn = document.getElementById('connectBtn');
+                if (btn) {
+                    btn.textContent = '✅ Connected: ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+                    btn.disabled = true;
+                }
+                
                 console.log('✅ Display updated');
             } catch (e) {
                 console.error('Display update error:', e);
