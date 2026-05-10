@@ -424,7 +424,14 @@
             }
         };
 
-        const FAUCET_ABI = ['function claimTokens() public', 'function timeUntilNextClaim(address user) public view returns (uint256)'];
+        // ✅ CORRECTED FAUCET ABI - matches your TokenFaucet contract
+        const FAUCET_ABI = [
+            'function claimTokens() public',
+            'function timeUntilNextClaim(address user) public view returns (uint256)',
+            'function getUserStats(address user) public view returns (uint256 claimed, uint256 timeLeft)',
+            'function getBalance() public view returns (uint256)'
+        ];
+        
         const ERC20_ABI = ['function balanceOf(address) public view returns (uint256)', 'function approve(address spender, uint256 amount) public returns (bool)'];
         const NFT_ABI = ['function mint(address to, string nftName) public', 'function totalSupply() public view returns (uint256)'];
         const SWAP_ABI = ['function swapTokens(address tokenIn, uint256 amountIn, address tokenOut) public returns (uint256)'];
@@ -459,22 +466,6 @@
             setInterval(updateAllTimers, 1000);
             window.ethereum?.on('chainChanged', () => location.reload());
             window.ethereum?.on('accountsChanged', () => location.reload());
-            
-            // Auto-detect chain changes every 2 seconds
-            setInterval(async () => {
-                if (!provider) return;
-                try {
-                    const network = await provider.getNetwork();
-                    const newChainId = Number(network.chainId);
-                    const currentChainId = CHAINS[currentChain].chainId;
-                    
-                    if (newChainId !== currentChainId) {
-                        await detectChain();
-                    }
-                } catch (error) {
-                    // Silent fail
-                }
-            }, 2000);
         });
 
         function renderTabs() {
@@ -500,51 +491,69 @@
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
                 
-                detectChain();
+                await detectAndSwitchChain();
                 updateWalletDisplay();
                 updateAllBalances();
             } catch (error) { 
-                alert('Connection error');
+                alert('Connection error: ' + error.message);
             }
         }
 
-        async function detectChain() {
-            const network = await provider.getNetwork();
-            const chainId = Number(network.chainId);
-            
-            for (const [chain, config] of Object.entries(CHAINS)) {
-                if (config.chainId === chainId) {
-                    currentChain = chain;
-                    document.getElementById('chainSelect').value = chain;
-                    updateWalletDisplay();
-                    updateAllBalances();
-                    break;
+        async function detectAndSwitchChain() {
+            try {
+                const network = await provider.getNetwork();
+                const chainId = Number(network.chainId);
+                
+                // Check if on correct chain
+                for (const [chain, config] of Object.entries(CHAINS)) {
+                    if (config.chainId === chainId) {
+                        currentChain = chain;
+                        document.getElementById('chainSelect').value = chain;
+                        updateWalletDisplay();
+                        return;
+                    }
                 }
+                
+                // If not on correct chain, switch to GIWA
+                await switchToChain('giwa');
+            } catch (error) {
+                console.error('Chain detection error:', error);
+            }
+        }
+
+        async function switchToChain(chainName) {
+            if (!window.ethereum) return;
+            
+            const chainConfig = CHAINS[chainName];
+            const chainId = '0x' + chainConfig.chainId.toString(16);
+            
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId }]
+                });
+                
+                currentChain = chainName;
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                
+                updateWalletDisplay();
+                updateAllBalances();
+                
+                showStatus('success', `✅ Switched to ${chainConfig.name}!`, 'faucetStatus');
+            } catch (error) {
+                if (error.code === 4902) {
+                    showStatus('error', 'Chain not found in wallet', 'faucetStatus');
+                } else {
+                    showStatus('error', 'Switch failed: ' + error.message.substring(0, 60), 'faucetStatus');
+                }
+                document.getElementById('chainSelect').value = currentChain;
             }
         }
 
         async function switchChainManual() {
             const selected = document.getElementById('chainSelect').value;
-            const targetChainId = CHAINS[selected].chainId;
-            
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x' + targetChainId.toString(16) }]
-                });
-                
-                // Update immediately
-                currentChain = selected;
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                
-                document.getElementById('chainName').textContent = CHAINS[selected].name;
-                updateAllBalances();
-                
-                showStatus('success', `✅ Switched to ${selected.toUpperCase()}!`, 'faucetStatus');
-            } catch (error) {
-                document.getElementById('chainSelect').value = currentChain;
-            }
+            await switchToChain(selected);
         }
 
         function updateWalletDisplay() {
@@ -629,6 +638,7 @@
 
             } catch (error) {
                 console.log('Balance error:', error.message);
+                showStatus('error', 'Failed to load balances', 'faucetStatus');
             }
         }
 
@@ -659,20 +669,29 @@
         }
 
         // ==================== FAUCET ====================
-        function updateFaucetTimer() {
+        async function updateFaucetTimer() {
+            if (!signer) return;
+            
             const token = document.getElementById('faucetToken')?.value || 'rry';
-            const key = `${currentChain}_${token}`;
-            const today = getTodayDateString();
-            const claimed = claimedToday[key] === today;
+            const contracts = CONTRACTS[currentChain];
+            const faucetAddr = token === 'rry' ? contracts.faucetRry : token === 'ang' ? contracts.faucetAng : contracts.faucetKnh;
 
-            if (claimed) {
-                document.getElementById('faucetTimer').textContent = formatTime(getTimeUntilMidnight());
-                document.getElementById('faucetReady').style.display = 'none';
-                document.getElementById('claimBtn').disabled = true;
-            } else {
-                document.getElementById('faucetTimer').textContent = '';
-                document.getElementById('faucetReady').style.display = 'inline';
-                document.getElementById('claimBtn').disabled = false;
+            try {
+                const faucet = new ethers.Contract(faucetAddr, FAUCET_ABI, signer);
+                const timeLeft = await faucet.timeUntilNextClaim(userAddress);
+                const timeLeftMs = parseInt(timeLeft) * 1000;
+
+                if (timeLeftMs > 0) {
+                    document.getElementById('faucetTimer').textContent = formatTime(timeLeftMs);
+                    document.getElementById('faucetReady').style.display = 'none';
+                    document.getElementById('claimBtn').disabled = true;
+                } else {
+                    document.getElementById('faucetTimer').textContent = '';
+                    document.getElementById('faucetReady').style.display = 'inline';
+                    document.getElementById('claimBtn').disabled = false;
+                }
+            } catch (error) {
+                console.log('Timer update error:', error.message);
             }
         }
 
@@ -680,13 +699,6 @@
             if (!userAddress || !signer) return showStatus('error', 'Connect wallet!', 'faucetStatus');
 
             const token = document.getElementById('faucetToken').value;
-            const key = `${currentChain}_${token}`;
-            const today = getTodayDateString();
-
-            if (claimedToday[key] === today) {
-                return showStatus('error', 'Already claimed today!', 'faucetStatus');
-            }
-
             const contracts = CONTRACTS[currentChain];
             const faucetAddr = token === 'rry' ? contracts.faucetRry : token === 'ang' ? contracts.faucetAng : contracts.faucetKnh;
 
@@ -696,7 +708,6 @@
                 const tx = await faucet.claimTokens();
                 await tx.wait();
 
-                claimedToday[key] = today;
                 completeTask('faucet');
                 saveLocalData();
                 updateFaucetTimer();
