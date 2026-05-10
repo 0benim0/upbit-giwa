@@ -589,59 +589,129 @@
 
         // ==================== WALLET ====================
         async function connectWallet() {
-            if (!window.ethereum) return alert('Install MetaMask!');
+            console.log('🔗 Connect Wallet clicked');
+            console.log('window.ethereum:', window.ethereum ? '✅ Available' : '❌ NOT FOUND');
+            
+            if (!window.ethereum) {
+                alert('❌ MetaMask not installed!\n\nPlease install MetaMask extension first:\nhttps://metamask.io');
+                return;
+            }
+            
             try {
-                const [addr] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                console.log('📱 Requesting accounts...');
+                showStatus('loading', 'Connecting MetaMask...', 'faucetStatus');
+                
+                const [addr] = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+                
+                console.log('✅ Account connected:', addr);
                 userAddress = addr;
+                
+                console.log('📡 Creating provider...');
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
+                
+                console.log('🔄 Switching chain...');
                 await switchChain();
+                
                 updateDisplay();
                 updateBalances();
+                
+                showStatus('success', `✅ Connected!\n${addr.slice(0, 6)}...${addr.slice(-4)}`, 'faucetStatus');
+                console.log('✅ All done!');
+                
             } catch (e) {
-                showStatus('error', e.message, 'faucetStatus');
+                console.error('❌ Error:', e);
+                showStatus('error', `Connection failed:\n${e.message}`, 'faucetStatus');
             }
         }
 
         async function switchChain() {
-            const chain = document.getElementById('chainSelect').value;
-            const chainId = '0x' + CHAINS[chain].id.toString(16);
+            console.log('🔄 Switching to chain:', currentChain);
+            const chainId = '0x' + CHAINS[currentChain].id.toString(16);
+            console.log('Chain ID:', chainId);
+            
             try {
-                await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
-                currentChain = chain;
+                await window.ethereum.request({ 
+                    method: 'wallet_switchEthereumChain', 
+                    params: [{ chainId }] 
+                });
+                console.log('✅ Chain switched');
                 updateDisplay();
             } catch (e) {
-                showStatus('error', 'Chain switch failed', 'faucetStatus');
+                console.error('Chain switch error:', e);
+                if (e.code === 4902) {
+                    showStatus('error', 'Chain not in MetaMask. Add it manually.', 'faucetStatus');
+                }
             }
         }
 
         function updateDisplay() {
-            if (!userAddress) return;
-            document.getElementById('walletInfo').style.display = 'block';
-            document.getElementById('chainDisplay').textContent = CHAINS[currentChain].name;
-            document.getElementById('walletDisplay').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+            console.log('📊 Updating display...');
+            console.log('userAddress:', userAddress);
+            console.log('currentChain:', currentChain);
+            
+            if (!userAddress) {
+                console.log('⚠️ No user address, hiding wallet info');
+                return;
+            }
+            
+            try {
+                document.getElementById('walletInfo').style.display = 'block';
+                document.getElementById('chainDisplay').textContent = CHAINS[currentChain].name;
+                document.getElementById('walletDisplay').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+                console.log('✅ Display updated');
+            } catch (e) {
+                console.error('Display update error:', e);
+            }
         }
 
         // ==================== BALANCES ====================
         async function updateBalances() {
-            if (!signer) return;
-            const html = '<div class="balance-row"><span>RRY:</span> <strong id="b-rry">0</strong></div><div class="balance-row"><span>ANG:</span> <strong id="b-ang">0</strong></div><div class="balance-row"><span>KNH:</span> <strong id="b-knh">0</strong></div>';
-            ['faucetBalance', 'swapBalance'].forEach(id => document.getElementById(id).innerHTML = html);
+            console.log('💰 Updating balances for chain:', currentChain);
+            
+            if (!signer || !userAddress) {
+                console.log('⚠️ No signer or address');
+                return;
+            }
+            
+            const html = '<div class="balance-row"><span>RRY:</span> <strong id="b-rry">Loading...</strong></div><div class="balance-row"><span>ANG:</span> <strong id="b-ang">Loading...</strong></div><div class="balance-row"><span>KNH:</span> <strong id="b-knh">Loading...</strong></div>';
+            ['faucetBalance', 'swapBalance'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = html;
+            });
             
             try {
+                console.log('📍 Getting token addresses for:', currentChain);
                 const tokens = TOKENS[currentChain];
+                console.log('Tokens:', tokens);
+                
                 const rry = new ethers.Contract(tokens.rry, ERC20_ABI, signer);
                 const ang = new ethers.Contract(tokens.ang, ERC20_ABI, signer);
                 const knh = new ethers.Contract(tokens.knh, ERC20_ABI, signer);
                 
-                const [r, a, k] = await Promise.all([rry.balanceOf(userAddress), ang.balanceOf(userAddress), knh.balanceOf(userAddress)]);
-                const fmt = v => (parseInt(v) / 1e18).toFixed(2);
+                console.log('🔄 Fetching balances...');
+                const [r, a, k] = await Promise.all([
+                    rry.balanceOf(userAddress), 
+                    ang.balanceOf(userAddress), 
+                    knh.balanceOf(userAddress)
+                ]);
                 
-                document.querySelectorAll('#b-rry').forEach(e => e.textContent = fmt(r));
-                document.querySelectorAll('#b-ang').forEach(e => e.textContent = fmt(a));
-                document.querySelectorAll('#b-knh').forEach(e => e.textContent = fmt(k));
+                const fmt = v => (parseInt(v) / 1e18).toFixed(2);
+                const rFmt = fmt(r);
+                const aFmt = fmt(a);
+                const kFmt = fmt(k);
+                
+                console.log('✅ Balances:', { RRY: rFmt, ANG: aFmt, KNH: kFmt });
+                
+                document.querySelectorAll('#b-rry').forEach(e => e.textContent = rFmt);
+                document.querySelectorAll('#b-ang').forEach(e => e.textContent = aFmt);
+                document.querySelectorAll('#b-knh').forEach(e => e.textContent = kFmt);
+                
             } catch (e) {
-                console.log(e);
+                console.error('❌ Balance error:', e);
+                showStatus('error', `Balance load failed: ${e.message}`, 'faucetStatus');
             }
         }
 
