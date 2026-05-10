@@ -255,6 +255,7 @@
                     <option value="arc">ARC</option>
                 </select>
                 <button id="walletConnectBtn" class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+                <button onclick="testChainSwitch()" style="background:#7c3aed; border-color:#7c3aed;" title="Debug Chain Switch">🧪 Test</button>
             </div>
         </div>
         <div class="wallet-info" id="walletInfo" style="display: none;">
@@ -397,8 +398,20 @@
     <script>
         // ==================== CONFIG ====================
         const CHAINS = {
-            giwa: { chainId: 27699666, name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
-            arc: { chainId: 5042002, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
+            giwa: { 
+                chainId: 27699666, 
+                name: 'GIWA', 
+                rpc: 'https://rpc.testnet.chain.giwa.io',
+                blockExplorer: 'https://testnet.giwascan.io',
+                nativeCurrency: { name: 'GIWA', symbol: 'GIWA', decimals: 18 }
+            },
+            arc: { 
+                chainId: 5042002, 
+                name: 'ARC', 
+                rpc: 'https://arc-testnet.drpc.org',
+                blockExplorer: 'https://testnet.arcscan.io',
+                nativeCurrency: { name: 'ARC', symbol: 'ARC', decimals: 18 }
+            }
         };
 
         const CONTRACTS = {
@@ -484,18 +497,24 @@
 
         // ==================== WALLET + CHAIN ====================
         async function connectWallet() {
-            if (!window.ethereum) return alert('Install MetaMask!');
+            if (!window.ethereum) return alert('❌ Install MetaMask!');
             try {
+                showStatus('loading', 'Connecting...', 'faucetStatus');
+                
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAddress = accounts[0];
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
                 
+                showStatus('loading', 'Detecting chain...', 'faucetStatus');
                 await detectAndSwitchChain();
+                
                 updateWalletDisplay();
                 updateAllBalances();
+                
+                showStatus('success', '✅ Connected!', 'faucetStatus');
             } catch (error) { 
-                alert('Connection error: ' + error.message);
+                showStatus('error', 'Connection error: ' + error.message.substring(0, 80), 'faucetStatus');
             }
         }
 
@@ -504,9 +523,12 @@
                 const network = await provider.getNetwork();
                 const chainId = Number(network.chainId);
                 
+                console.log('🔍 Detected Chain ID:', chainId);
+                
                 // Check if on correct chain
                 for (const [chain, config] of Object.entries(CHAINS)) {
                     if (config.chainId === chainId) {
+                        console.log('✅ Already on:', chain.toUpperCase());
                         currentChain = chain;
                         document.getElementById('chainSelect').value = chain;
                         updateWalletDisplay();
@@ -515,45 +537,108 @@
                 }
                 
                 // If not on correct chain, switch to GIWA
+                console.log('❌ Not on GIWA, switching...');
                 await switchToChain('giwa');
             } catch (error) {
                 console.error('Chain detection error:', error);
-            }
-        }
-
-        async function switchToChain(chainName) {
-            if (!window.ethereum) return;
-            
-            const chainConfig = CHAINS[chainName];
-            const chainId = '0x' + chainConfig.chainId.toString(16);
-            
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId }]
-                });
-                
-                currentChain = chainName;
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                
-                updateWalletDisplay();
-                updateAllBalances();
-                
-                showStatus('success', `✅ Switched to ${chainConfig.name}!`, 'faucetStatus');
-            } catch (error) {
-                if (error.code === 4902) {
-                    showStatus('error', 'Chain not found in wallet', 'faucetStatus');
-                } else {
-                    showStatus('error', 'Switch failed: ' + error.message.substring(0, 60), 'faucetStatus');
-                }
-                document.getElementById('chainSelect').value = currentChain;
+                showStatus('error', 'Chain detection failed: ' + error.message.substring(0, 60), 'faucetStatus');
             }
         }
 
         async function switchChainManual() {
             const selected = document.getElementById('chainSelect').value;
+            console.log('🔄 Switching to:', selected);
+            
+            if (selected === currentChain) {
+                console.log('ℹ️ Already on', selected);
+                return;
+            }
+            
             await switchToChain(selected);
+        }
+
+        async function switchToChain(chainName) {
+            if (!window.ethereum) {
+                showStatus('error', 'MetaMask not installed!', 'faucetStatus');
+                return;
+            }
+            
+            const chainConfig = CHAINS[chainName];
+            const chainId = '0x' + chainConfig.chainId.toString(16);
+            
+            console.log('📡 Switching to chain:', chainName, 'ID:', chainId);
+            
+            try {
+                showStatus('loading', `Switching to ${chainConfig.name}...`, 'faucetStatus');
+                
+                // Try to switch
+                const result = await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId }]
+                });
+                
+                console.log('✅ Switch successful');
+                
+                // Small delay for chain to update
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                currentChain = chainName;
+                document.getElementById('chainSelect').value = chainName;
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                
+                updateWalletDisplay();
+                await updateAllBalances();
+                
+                showStatus('success', `✅ Switched to ${chainConfig.name}!`, 'faucetStatus');
+                
+            } catch (error) {
+                console.error('❌ Switch error:', error);
+                
+                // If chain not found, add it
+                if (error.code === 4902) {
+                    console.log('Chain not in wallet, adding...');
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId,
+                                chainName: chainConfig.name,
+                                rpcUrls: [chainConfig.rpc],
+                                blockExplorerUrls: [chainConfig.blockExplorer],
+                                nativeCurrency: chainConfig.nativeCurrency
+                            }]
+                        });
+                        
+                        console.log('✅ Chain added, switching now...');
+                        
+                        // Now switch
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId }]
+                        });
+                        
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        currentChain = chainName;
+                        document.getElementById('chainSelect').value = chainName;
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        signer = await provider.getSigner();
+                        
+                        updateWalletDisplay();
+                        await updateAllBalances();
+                        
+                        showStatus('success', `✅ Added & Switched to ${chainConfig.name}!`, 'faucetStatus');
+                    } catch (addError) {
+                        console.error('❌ Add chain error:', addError);
+                        showStatus('error', 'Failed to add chain: ' + addError.message.substring(0, 60), 'faucetStatus');
+                        document.getElementById('chainSelect').value = currentChain;
+                    }
+                } else {
+                    showStatus('error', '❌ Switch failed: ' + error.message.substring(0, 80), 'faucetStatus');
+                    document.getElementById('chainSelect').value = currentChain;
+                }
+            }
         }
 
         function updateWalletDisplay() {
@@ -567,13 +652,21 @@
 
         // ==================== BALANCES ====================
         async function updateAllBalances() {
-            if (!signer) return;
+            if (!signer) {
+                showStatus('error', 'Wallet not connected!', 'faucetStatus');
+                return;
+            }
+
+            if (!userAddress) {
+                showStatus('error', 'No user address!', 'faucetStatus');
+                return;
+            }
 
             const contracts = CONTRACTS[currentChain];
             const balanceHtml = `
-                <div class="token-row"><span>RRY:</span> <strong id="balRry">...</strong></div>
-                <div class="token-row"><span>ANG:</span> <strong id="balAng">...</strong></div>
-                <div class="token-row"><span>KNH:</span> <strong id="balKnh">...</strong></div>
+                <div class="token-row"><span>RRY:</span> <strong id="balRry">Loading...</strong></div>
+                <div class="token-row"><span>ANG:</span> <strong id="balAng">Loading...</strong></div>
+                <div class="token-row"><span>KNH:</span> <strong id="balKnh">Loading...</strong></div>
             `;
 
             document.getElementById('faucetBalances').innerHTML = balanceHtml;
@@ -581,19 +674,20 @@
 
             const balanceHtmlBridge = `
                 <div style="margin-bottom: 10px;"><strong>GIWA:</strong>
-                    <div class="token-row"><span>RRY:</span> <strong id="balGiwaRry">...</strong></div>
-                    <div class="token-row"><span>ANG:</span> <strong id="balGiwaAng">...</strong></div>
-                    <div class="token-row"><span>KNH:</span> <strong id="balGiwaKnh">...</strong></div>
+                    <div class="token-row"><span>RRY:</span> <strong id="balGiwaRry">Loading...</strong></div>
+                    <div class="token-row"><span>ANG:</span> <strong id="balGiwaAng">Loading...</strong></div>
+                    <div class="token-row"><span>KNH:</span> <strong id="balGiwaKnh">Loading...</strong></div>
                 </div>
                 <div><strong>ARC:</strong>
-                    <div class="token-row"><span>RRY:</span> <strong id="balArcRry">...</strong></div>
-                    <div class="token-row"><span>ANG:</span> <strong id="balArcAng">...</strong></div>
-                    <div class="token-row"><span>KNH:</span> <strong id="balArcKnh">...</strong></div>
+                    <div class="token-row"><span>RRY:</span> <strong id="balArcRry">Loading...</strong></div>
+                    <div class="token-row"><span>ANG:</span> <strong id="balArcAng">Loading...</strong></div>
+                    <div class="token-row"><span>KNH:</span> <strong id="balArcKnh">Loading...</strong></div>
                 </div>
             `;
             document.getElementById('bridgeBalances').innerHTML = balanceHtmlBridge;
 
             try {
+                // Current chain balances
                 const rry = new ethers.Contract(contracts.rry, ERC20_ABI, signer);
                 const ang = new ethers.Contract(contracts.ang, ERC20_ABI, signer);
                 const knh = new ethers.Contract(contracts.knh, ERC20_ABI, signer);
@@ -609,6 +703,7 @@
                 document.getElementById('balAng').textContent = fmt(angBal);
                 document.getElementById('balKnh').textContent = fmt(knhBal);
 
+                // Both chain balances via RPC
                 const providerGiwa = new ethers.JsonRpcProvider(CHAINS.giwa.rpc);
                 const providerArc = new ethers.JsonRpcProvider(CHAINS.arc.rpc);
 
@@ -637,8 +732,14 @@
                 document.getElementById('balArcKnh').textContent = fmt(arcKnh);
 
             } catch (error) {
-                console.log('Balance error:', error.message);
-                showStatus('error', 'Failed to load balances', 'faucetStatus');
+                console.error('Balance error:', error);
+                showStatus('error', '❌ Balance Load Failed: ' + error.message.substring(0, 80), 'faucetStatus');
+                
+                // Set all to 0 on error
+                ['balRry', 'balAng', 'balKnh', 'balGiwaRry', 'balGiwaAng', 'balGiwaKnh', 'balArcRry', 'balArcAng', 'balArcKnh'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '0.00';
+                });
             }
         }
 
@@ -965,6 +1066,24 @@
             document.getElementById('gmStreak').textContent = gmStreak;
             renderTasks();
             getNFTSupply();
+        }
+
+        // ==================== DEBUG FUNCTIONS ====================
+        async function testChainSwitch() {
+            console.log('🧪 TEST: Current Chain:', currentChain);
+            console.log('🧪 TEST: User Address:', userAddress);
+            console.log('🧪 TEST: Provider:', provider ? '✅' : '❌');
+            console.log('🧪 TEST: Signer:', signer ? '✅' : '❌');
+            
+            if (!userAddress) {
+                alert('❌ Wallet not connected! Click "Connect Wallet" first!');
+                return;
+            }
+            
+            const nextChain = currentChain === 'giwa' ? 'arc' : 'giwa';
+            console.log('🧪 TEST: Switching from', currentChain, 'to', nextChain);
+            
+            await switchToChain(nextChain);
         }
     </script>
 </body>
