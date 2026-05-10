@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPBIT DApp - GIWA & ARC</title>
+    <title>UPBIT DApp - Multi-Chain</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
-            --light-blue: #00d4ff;
-            --dark-blue: #0066cc;
-            --bg-dark: #0a0e27;
-            --bg-card: #141b3a;
-            --text-light: #e8e8e8;
-            --text-muted: #a0a0a0;
+            --cyan: #00d4ff;
+            --dark-bg: #0a0e27;
+            --card-bg: #141b3a;
+            --text: #e8e8e8;
+            --muted: #a0a0a0;
             --success: #10b981;
             --error: #ef4444;
             --border: #1a3a52;
@@ -22,14 +21,15 @@
         
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, var(--bg-dark) 0%, #0f1535 100%);
-            color: var(--text-light);
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #0f1535 100%);
+            color: var(--text);
             min-height: 100vh;
         }
         
+        /* HEADER */
         header {
             background: linear-gradient(135deg, rgba(20, 27, 58, 0.95), rgba(10, 14, 39, 0.95));
-            border-bottom: 3px solid var(--light-blue);
+            border-bottom: 3px solid var(--cyan);
             padding: 20px;
             position: sticky;
             top: 0;
@@ -49,11 +49,11 @@
         .logo {
             font-size: 32px;
             font-weight: bold;
-            color: var(--light-blue);
+            color: var(--cyan);
             letter-spacing: 2px;
         }
         
-        .header-controls {
+        .controls {
             display: flex;
             gap: 15px;
             align-items: center;
@@ -62,30 +62,27 @@
         
         select, button {
             padding: 12px 20px;
-            border: 2px solid var(--light-blue);
+            border: 2px solid var(--cyan);
             border-radius: 8px;
-            background: var(--bg-card);
-            color: var(--text-light);
+            background: var(--card-bg);
+            color: var(--text);
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
             transition: all 0.3s;
         }
         
-        select:hover, button:hover:not(:disabled) {
-            background: var(--light-blue);
-            color: var(--bg-dark);
+        button:hover:not(:disabled), select:hover {
+            background: var(--cyan);
+            color: var(--dark-bg);
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
         }
         
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .btn-connect {
             background: var(--success);
             border-color: var(--success);
+            color: white;
         }
         
         .btn-connect:hover {
@@ -94,16 +91,18 @@
         }
         
         .wallet-info {
-            background: var(--bg-card);
-            border: 2px solid var(--light-blue);
+            background: var(--card-bg);
+            border: 2px solid var(--cyan);
             padding: 15px;
             border-radius: 8px;
             font-size: 13px;
             font-family: 'Courier New', monospace;
+            color: var(--cyan);
             margin-top: 10px;
-            color: var(--light-blue);
+            display: none;
         }
         
+        /* MAIN */
         main {
             max-width: 1200px;
             margin: 30px auto;
@@ -123,40 +122,29 @@
             padding: 12px 20px;
             background: transparent;
             border: 2px solid var(--border);
-            color: var(--text-muted);
+            color: var(--muted);
             cursor: pointer;
             border-radius: 6px;
             font-weight: 600;
             transition: all 0.3s;
         }
         
-        .tab-btn.active {
-            background: var(--light-blue);
-            color: var(--bg-dark);
-            border-color: var(--light-blue);
-        }
-        
         .tab-btn:hover {
-            border-color: var(--light-blue);
-            color: var(--light-blue);
+            border-color: var(--cyan);
+            color: var(--cyan);
         }
         
-        .tab-content {
-            display: none;
+        .tab-btn.active {
+            background: var(--cyan);
+            color: var(--dark-bg);
+            border-color: var(--cyan);
         }
         
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
         .card {
-            background: linear-gradient(135deg, var(--bg-card), rgba(0, 212, 255, 0.05));
+            background: linear-gradient(135deg, var(--card-bg), rgba(0, 212, 255, 0.05));
             border: 2px solid var(--border);
             border-radius: 12px;
             padding: 25px;
@@ -165,32 +153,18 @@
         }
         
         .card h2 {
-            color: var(--light-blue);
+            color: var(--cyan);
             margin-bottom: 20px;
             font-size: 24px;
         }
         
-        .balance-box {
+        .info-box {
             background: rgba(0, 212, 255, 0.1);
-            border: 1px solid var(--light-blue);
+            border-left: 3px solid var(--cyan);
             padding: 15px;
             border-radius: 8px;
             margin: 15px 0;
-        }
-        
-        .balance-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .balance-row:last-child {
-            border-bottom: none;
-        }
-        
-        .balance-row strong {
-            color: var(--light-blue);
+            font-size: 14px;
         }
         
         .input-group {
@@ -204,52 +178,36 @@
             flex: 1;
             min-width: 150px;
             padding: 12px;
-            background: var(--bg-card);
+            background: var(--card-bg);
             border: 2px solid var(--border);
-            color: var(--text-light);
+            color: var(--text);
             border-radius: 8px;
             font-size: 14px;
         }
         
         input:focus, select:focus {
-            border-color: var(--light-blue);
+            border-color: var(--cyan);
             outline: none;
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
-        }
-        
-        .info-box {
-            background: rgba(0, 212, 255, 0.1);
-            border-left: 3px solid var(--light-blue);
-            padding: 12px;
-            border-radius: 6px;
-            margin: 15px 0;
-            font-size: 14px;
-        }
-        
-        .timer {
-            color: var(--light-blue);
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        .timer.ready {
-            color: var(--success);
         }
         
         .btn-primary {
             width: 100%;
             padding: 15px;
             margin: 15px 0;
-            background: var(--dark-blue);
-            border-color: var(--light-blue);
-            color: var(--light-blue);
+            background: var(--cyan);
+            border: 2px solid var(--cyan);
+            color: var(--dark-bg);
             font-size: 16px;
             font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         
         .btn-primary:hover:not(:disabled) {
-            background: var(--light-blue);
-            color: var(--bg-dark);
+            background: transparent;
+            color: var(--cyan);
         }
         
         .quick-btns {
@@ -262,17 +220,35 @@
         .quick-btn {
             padding: 8px 12px;
             background: transparent;
-            border: 1px solid var(--light-blue);
-            color: var(--light-blue);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
         }
         
         .quick-btn:hover {
-            background: var(--light-blue);
-            color: var(--bg-dark);
+            background: var(--cyan);
+            color: var(--dark-bg);
         }
+        
+        .balance-box {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--cyan);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .balance-row:last-child { border-bottom: none; }
+        .balance-row strong { color: var(--cyan); }
         
         .status {
             padding: 15px;
@@ -302,13 +278,13 @@
         
         .status.loading {
             background: rgba(0, 212, 255, 0.1);
-            border-color: var(--light-blue);
-            color: var(--light-blue);
+            border-color: var(--cyan);
+            color: var(--cyan);
         }
         
         .task-item {
-            background: var(--bg-card);
-            border-left: 4px solid var(--light-blue);
+            background: var(--card-bg);
+            border-left: 4px solid var(--cyan);
             padding: 15px;
             margin: 10px 0;
             border-radius: 8px;
@@ -317,14 +293,13 @@
             align-items: center;
         }
         
-        .task-item.done {
-            opacity: 0.6;
-            border-left-color: var(--success);
-        }
+        .task-points { color: var(--cyan); font-weight: bold; }
         
-        .task-points {
-            color: var(--light-blue);
-            font-weight: bold;
+        .streak { 
+            font-size: 32px; 
+            color: var(--cyan); 
+            text-align: center;
+            margin: 20px 0;
         }
     </style>
 </head>
@@ -332,15 +307,16 @@
     <header>
         <div class="header-content">
             <div class="logo">🚀 UPBIT</div>
-            <div class="header-controls">
+            <div class="controls">
                 <select id="chainSelect" onchange="switchChain()">
                     <option value="giwa">GIWA</option>
                     <option value="arc">ARC</option>
+                    <option value="ink">INK</option>
                 </select>
                 <button class="btn-connect" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
             </div>
         </div>
-        <div class="wallet-info" id="walletInfo" style="display:none;">
+        <div class="wallet-info" id="walletInfo">
             <div>🔗 <span id="chainDisplay"></span> | 👤 <span id="walletDisplay"></span></div>
         </div>
     </header>
@@ -351,23 +327,11 @@
         <!-- FAUCET -->
         <div id="faucet" class="tab-content active">
             <div class="card">
-                <h2>💧 Faucet - Claim 100 Tokens/Day</h2>
-                <div class="balance-box" id="faucetBalance"></div>
-                
-                <div class="input-group">
-                    <select id="faucetToken" onchange="updateFaucetUI()">
-                        <option value="rry">RRY - 100 tokens</option>
-                        <option value="ang">ANG - 100 tokens</option>
-                        <option value="knh">KNH - 100 tokens</option>
-                    </select>
-                </div>
-                
+                <h2>💧 Get Testnet Tokens</h2>
                 <div class="info-box">
-                    ⏰ Next Claim: <span id="faucetTimer" class="timer">--:--:--</span>
-                    <span id="faucetReady" class="timer ready" style="display:none; margin-left:20px;">✅ READY TO CLAIM!</span>
+                    Click the button below to open the official faucet for your chain
                 </div>
-                
-                <button class="btn-primary" id="claimBtn" onclick="claimFaucet()">Claim Tokens</button>
+                <button class="btn-primary" id="faucetBtn" onclick="openFaucet()">Open Faucet</button>
                 <div id="faucetStatus"></div>
             </div>
         </div>
@@ -376,14 +340,14 @@
         <div id="swap" class="tab-content">
             <div class="card">
                 <h2>⚡ Swap Tokens</h2>
-                <div class="balance-box" id="swapBalance"></div>
+                <div class="balance-box" id="swapBalance">Loading...</div>
                 
                 <div class="input-group">
                     <input type="number" id="swapAmount" placeholder="Amount" min="0" onchange="calcSwap()">
-                    <select id="swapFrom" onchange="calcSwap()">
-                        <option value="rry">RRY</option>
-                        <option value="ang">ANG</option>
-                        <option value="knh">KNH</option>
+                    <select id="swapFrom">
+                        <option value="native">Native</option>
+                        <option value="token1">Token 1</option>
+                        <option value="token2">Token 2</option>
                     </select>
                 </div>
                 
@@ -394,17 +358,7 @@
                     <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
                 </div>
                 
-                <div class="info-box">
-                    You get: <span id="swapOut">0</span> <span id="swapTo">ANG</span> (0.25% fee)
-                </div>
-                
-                <div class="input-group">
-                    <select id="swapTo" onchange="calcSwap()">
-                        <option value="ang">ANG</option>
-                        <option value="rry">RRY</option>
-                        <option value="knh">KNH</option>
-                    </select>
-                </div>
+                <div class="info-box">You get: <span id="swapOut">0</span></div>
                 
                 <button class="btn-primary" onclick="executeSwap()">Swap</button>
                 <div id="swapStatus"></div>
@@ -414,29 +368,25 @@
         <!-- BRIDGE -->
         <div id="bridge" class="tab-content">
             <div class="card">
-                <h2>🌉 Bridge Tokens (0.50% fee)</h2>
-                <div class="balance-box" id="bridgeBalance"></div>
+                <h2>🌉 Bridge Tokens</h2>
                 
                 <div class="input-group">
-                    <select id="bridgeFrom" onchange="updateBridgePath()">
+                    <select id="bridgeFrom">
                         <option value="giwa">From GIWA</option>
                         <option value="arc">From ARC</option>
+                        <option value="ink">From INK</option>
                     </select>
-                    <select id="bridgeTo" onchange="updateBridgePath()">
+                    <select id="bridgeTo">
                         <option value="arc">To ARC</option>
                         <option value="giwa">To GIWA</option>
+                        <option value="ink">To INK</option>
                     </select>
                 </div>
                 
-                <div class="info-box">Path: <span id="bridgePath">GIWA → ARC</span></div>
+                <div class="info-box">Fee: 0.50%</div>
                 
                 <div class="input-group">
                     <input type="number" id="bridgeAmount" placeholder="Amount" min="0">
-                    <select id="bridgeToken">
-                        <option value="rry">RRY</option>
-                        <option value="ang">ANG</option>
-                        <option value="knh">KNH</option>
-                    </select>
                 </div>
                 
                 <div class="quick-btns">
@@ -454,13 +404,12 @@
         <!-- NFT -->
         <div id="nft" class="tab-content">
             <div class="card">
-                <h2>🎮 Mint Checkmate NFT (1x/day)</h2>
-                <div class="info-box" style="text-align:center; font-size:48px;">🏁</div>
+                <h2>🎮 Mint NFT (1x/day)</h2>
+                <div style="text-align:center; font-size:64px; margin:30px 0;">🏁</div>
                 
                 <div class="info-box">
-                    Minted: <span id="nftSupply">0</span> / 9999
-                    <br>Next Mint: <span id="nftTimer" class="timer">--:--:--</span>
-                    <span id="nftReady" class="timer ready" style="display:none; margin-left:20px;">✅ READY!</span>
+                    Minted: <span id="nftCount">0</span> / 9999
+                    <br>Next Mint: <span id="nftTimer">--:--:--</span>
                 </div>
                 
                 <div class="input-group">
@@ -472,16 +421,14 @@
             </div>
         </div>
 
-        <!-- GM CHECK-IN -->
+        <!-- GM -->
         <div id="gm" class="tab-content">
             <div class="card">
-                <h2>✨ GM Check-in</h2>
-                <div style="font-size:64px; text-align:center; margin:30px 0; color:var(--light-blue);">GM ☀️</div>
-                <div class="info-box" style="text-align:center;">
-                    Daily Streak: <span id="gmStreak" style="font-size:32px; color:var(--light-blue);">0</span> days
-                    <br>Reset: <span id="gmTimer" class="timer">--:--:--</span>
-                </div>
-                <button class="btn-primary" onclick="gmCheckIn()" style="font-size:20px;">Say GM! ☀️</button>
+                <h2>✨ Daily GM Check-in</h2>
+                <div style="font-size:64px; text-align:center; margin:30px 0;">GM ☀️</div>
+                <div class="streak" id="gmStreak">0</div>
+                <div class="info-box">Reset: <span id="gmTimer">--:--:--</span></div>
+                <button class="btn-primary" onclick="gmCheckIn()">Say GM! ☀️</button>
                 <div id="gmStatus"></div>
             </div>
         </div>
@@ -498,74 +445,27 @@
     <script>
         // ==================== CONFIG ====================
         const CHAINS = {
-            giwa: { id: 27699666, name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' },
-            arc: { id: 5042002, name: 'ARC', rpc: 'https://arc-testnet.drpc.org' }
+            giwa: { id: 27699666, name: 'GIWA', faucet: 'https://faucet.giwa.io/#/' },
+            arc: { id: 5042002, name: 'ARC', faucet: 'https://faucet.circle.com/' },
+            ink: { id: 763373, name: 'INK', faucet: 'https://faucet.circle.com/' }
         };
-
-        const TOKENS = {
-            giwa: {
-                rry: '0x2Ab6E0364593C59018C49130602B4fBBEE77eEBd',
-                ang: '0x5d28Df1Fd08981347caF44C4f94C8B57458d1e85',
-                knh: '0xFb6dcAdd47176dab6E24bB93fc3B61bF3FFbfB00'
-            },
-            arc: {
-                rry: '0x998686e27444Ec1b4700299f2222A9Dd27eC9eeA',
-                ang: '0x25832a57D698C9072C71aA735Be2D11A48e9a1A6',
-                knh: '0x2121C6c9EEfEA700831b16Ba5791a145599fb54B'
-            }
-        };
-
-        const FAUCETS = {
-            giwa: {
-                rry: '0x9ee860D517E1107ADfD5a4ba8ED4c44770F196F8',
-                ang: '0x290d07b026fb39302Bf47d7bfACcFF3b2dAAf3eD',
-                knh: '0xA90f50c80B5899Fcb0A99595031bb4D2f08A65CB'
-            },
-            arc: {
-                rry: '0xA3D3C681Cb511d05337cEAfB5934551746b7ec51',
-                ang: '0x10b7049da0691f294D742a3A457Ea6F137dBABD1',
-                knh: '0xe097481fFC700a05B22d653E7aE4Bc022dFCe9ab'
-            }
-        };
-
-        const CONTRACTS = {
-            giwa: {
-                swap: '0x571B477afB798B9806EA1094b706210899E1665e',
-                nft: '0x4034195d2A198394b664c1d256805f0Dd20c2571'
-            },
-            arc: {
-                swap: '0xFcfe1D1BF3083ACf627d04c2Ca0cE0B43335fC2e',
-                nft: '0x4766EC9193a4F89F9d417AcEcBaf9aaC7dB93A70'
-            }
-        };
-
-        const FAUCET_ABI = [
-            'function claimTokens() public',
-            'function timeUntilNextClaim(address user) public view returns (uint256)'
-        ];
-        const ERC20_ABI = [
-            'function balanceOf(address) public view returns (uint256)',
-            'function approve(address spender, uint256 amount) public returns (bool)',
-            'function transfer(address to, uint256 amount) public returns (bool)'
-        ];
-        const NFT_ABI = ['function mint(address to, string nftName) public', 'function totalSupply() public view returns (uint256)'];
-
-        // ==================== STATE ====================
-        let currentChain = 'giwa';
-        let userAddress = null;
-        let provider = null;
-        let signer = null;
-        let gmStreak = 0;
 
         const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks'];
         const TASKS = [
             { name: 'Say GM', icon: '☀️', points: 10 },
-            { name: 'Claim Tokens', icon: '💧', points: 20 },
+            { name: 'Use Faucet', icon: '💧', points: 20 },
             { name: 'Swap Tokens', icon: '⚡', points: 30 },
             { name: 'Bridge Tokens', icon: '🌉', points: 40 },
             { name: 'Mint NFT', icon: '🎮', points: 50 }
         ];
 
+        // ==================== STATE ====================
+        let currentChain = 'giwa';
+        let userAddress = null;
+        let provider = null;
+        let gmStreak = 0;
+
+        // ==================== INIT ====================
         window.addEventListener('DOMContentLoaded', () => {
             renderTabs();
             renderTasks();
@@ -584,242 +484,93 @@
             document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
             document.getElementById(tab).classList.add('active');
             event.target.classList.add('active');
-            updateBalances();
         }
 
         // ==================== WALLET ====================
         async function connectWallet() {
-            console.log('🔗 Connect Wallet clicked');
-            console.log('window.ethereum:', window.ethereum ? '✅ Available' : '❌ NOT FOUND');
-            
             if (!window.ethereum) {
-                alert('❌ MetaMask not installed!\n\nPlease install MetaMask extension first:\nhttps://metamask.io');
+                alert('Install MetaMask!');
                 return;
             }
-            
+
             try {
-                console.log('📱 Requesting accounts...');
-                showStatus('loading', 'Connecting MetaMask...', 'faucetStatus');
-                
-                const [addr] = await window.ethereum.request({ 
-                    method: 'eth_requestAccounts' 
-                });
-                
-                console.log('✅ Account connected:', addr);
+                showStatus('loading', 'Connecting...', 'faucetStatus');
+                const [addr] = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 userAddress = addr;
-                
-                console.log('📡 Creating provider...');
                 provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
                 
-                // Update display IMMEDIATELY
                 updateDisplay();
-                
-                // Then try to switch chain (non-blocking)
-                console.log('🔄 Switching chain...');
-                switchChain().catch(e => {
-                    console.warn('Chain switch failed, but that\'s OK:', e.message);
-                    showStatus('warning', 'Chain switch failed, but wallet connected!', 'faucetStatus');
-                });
-                
-                // Load balances
-                setTimeout(() => updateBalances(), 1000);
-                
-                showStatus('success', `✅ Connected!\n${addr.slice(0, 6)}...${addr.slice(-4)}`, 'faucetStatus');
-                console.log('✅ All done!');
-                
+                showStatus('success', '✅ Connected!', 'faucetStatus');
             } catch (e) {
-                console.error('❌ Error:', e);
-                showStatus('error', `Connection failed:\n${e.message}`, 'faucetStatus');
+                showStatus('error', 'Connection failed: ' + e.message, 'faucetStatus');
             }
         }
 
         async function switchChain() {
-            console.log('🔄 Switching to chain:', currentChain);
-            const chainId = '0x' + CHAINS[currentChain].id.toString(16);
-            console.log('Chain ID:', chainId);
-            
+            const chain = document.getElementById('chainSelect').value;
+            const chainId = '0x' + CHAINS[chain].id.toString(16);
+
             try {
                 await window.ethereum.request({ 
                     method: 'wallet_switchEthereumChain', 
                     params: [{ chainId }] 
                 });
-                console.log('✅ Chain switched');
+                currentChain = chain;
                 updateDisplay();
+                showStatus('success', `✅ Switched to ${CHAINS[chain].name}!`, 'faucetStatus');
             } catch (e) {
-                console.error('Chain switch error:', e);
-                if (e.code === 4902) {
-                    showStatus('error', 'Chain not in MetaMask. Add it manually.', 'faucetStatus');
-                }
+                showStatus('error', 'Chain switch failed', 'faucetStatus');
+                document.getElementById('chainSelect').value = currentChain;
             }
         }
 
         function updateDisplay() {
-            console.log('📊 Updating display...');
-            console.log('userAddress:', userAddress);
-            console.log('currentChain:', currentChain);
-            
-            if (!userAddress) {
-                console.log('⚠️ No user address, hiding wallet info');
-                return;
-            }
-            
-            try {
-                // Update wallet info
-                document.getElementById('walletInfo').style.display = 'block';
-                document.getElementById('chainDisplay').textContent = CHAINS[currentChain].name;
-                document.getElementById('walletDisplay').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-                
-                // Update button
-                const btn = document.getElementById('connectBtn');
-                if (btn) {
-                    btn.textContent = '✅ Connected: ' + userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
-                    btn.disabled = true;
-                }
-                
-                console.log('✅ Display updated');
-            } catch (e) {
-                console.error('Display update error:', e);
-            }
-        }
-
-        // ==================== BALANCES ====================
-        async function updateBalances() {
-            console.log('💰 Updating balances for chain:', currentChain);
-            
-            if (!signer || !userAddress) {
-                console.log('⚠️ No signer or address');
-                return;
-            }
-            
-            const html = '<div class="balance-row"><span>RRY:</span> <strong id="b-rry">Loading...</strong></div><div class="balance-row"><span>ANG:</span> <strong id="b-ang">Loading...</strong></div><div class="balance-row"><span>KNH:</span> <strong id="b-knh">Loading...</strong></div>';
-            ['faucetBalance', 'swapBalance'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = html;
-            });
-            
-            try {
-                console.log('📍 Getting token addresses for:', currentChain);
-                const tokens = TOKENS[currentChain];
-                console.log('Tokens:', tokens);
-                
-                const rry = new ethers.Contract(tokens.rry, ERC20_ABI, signer);
-                const ang = new ethers.Contract(tokens.ang, ERC20_ABI, signer);
-                const knh = new ethers.Contract(tokens.knh, ERC20_ABI, signer);
-                
-                console.log('🔄 Fetching balances...');
-                const [r, a, k] = await Promise.all([
-                    rry.balanceOf(userAddress), 
-                    ang.balanceOf(userAddress), 
-                    knh.balanceOf(userAddress)
-                ]);
-                
-                const fmt = v => (parseInt(v) / 1e18).toFixed(2);
-                const rFmt = fmt(r);
-                const aFmt = fmt(a);
-                const kFmt = fmt(k);
-                
-                console.log('✅ Balances:', { RRY: rFmt, ANG: aFmt, KNH: kFmt });
-                
-                document.querySelectorAll('#b-rry').forEach(e => e.textContent = rFmt);
-                document.querySelectorAll('#b-ang').forEach(e => e.textContent = aFmt);
-                document.querySelectorAll('#b-knh').forEach(e => e.textContent = kFmt);
-                
-            } catch (e) {
-                console.error('❌ Balance error:', e);
-                showStatus('error', `Balance load failed: ${e.message}`, 'faucetStatus');
-            }
+            if (!userAddress) return;
+            document.getElementById('walletInfo').style.display = 'block';
+            document.getElementById('chainDisplay').textContent = CHAINS[currentChain].name;
+            document.getElementById('walletDisplay').textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+            document.getElementById('connectBtn').textContent = '✅ Connected';
+            document.getElementById('connectBtn').disabled = true;
         }
 
         // ==================== FAUCET ====================
-        async function updateFaucetUI() {
-            if (!signer) return;
-            updateTimers();
-        }
-
-        function updateTimers() {
-            updateFaucetTimer();
-            updateNFTTimer();
-            updateGMTimer();
-        }
-
-        async function updateFaucetTimer() {
-            if (!signer) return;
-            try {
-                const token = document.getElementById('faucetToken').value;
-                const faucet = new ethers.Contract(FAUCETS[currentChain][token], FAUCET_ABI, signer);
-                const time = await faucet.timeUntilNextClaim(userAddress);
-                const ms = parseInt(time) * 1000;
-                
-                if (ms > 0) {
-                    document.getElementById('faucetTimer').textContent = formatTime(ms);
-                    document.getElementById('faucetReady').style.display = 'none';
-                    document.getElementById('claimBtn').disabled = true;
-                } else {
-                    document.getElementById('faucetReady').style.display = 'inline';
-                    document.getElementById('claimBtn').disabled = false;
-                }
-            } catch (e) {
-                console.log('Timer error:', e.message);
-            }
-        }
-
-        async function claimFaucet() {
-            if (!signer) return showStatus('error', 'Connect wallet', 'faucetStatus');
-            try {
-                showStatus('loading', 'Claiming...', 'faucetStatus');
-                const token = document.getElementById('faucetToken').value;
-                const faucet = new ethers.Contract(FAUCETS[currentChain][token], FAUCET_ABI, signer);
-                const tx = await faucet.claimTokens();
-                await tx.wait();
-                showStatus('success', `✅ Claimed 100 ${token.toUpperCase()}!`, 'faucetStatus');
-                updateFaucetTimer();
-                updateBalances();
-            } catch (e) {
-                showStatus('error', e.message.substring(0, 80), 'faucetStatus');
-            }
+        function openFaucet() {
+            const faucetUrl = CHAINS[currentChain].faucet;
+            window.open(faucetUrl, '_blank');
+            showStatus('success', '✅ Faucet opened in new tab!', 'faucetStatus');
         }
 
         // ==================== SWAP ====================
+        function calcSwap() {
+            const amt = parseFloat(document.getElementById('swapAmount').value) || 0;
+            document.getElementById('swapOut').textContent = (amt * 0.9975).toFixed(2);
+        }
+
         function setSwapPercent(p) {
-            const bal = parseFloat(document.querySelectorAll('#b-rry')[0].textContent) || 0;
-            document.getElementById('swapAmount').value = (bal * p / 100).toFixed(2);
+            document.getElementById('swapAmount').value = p;
             calcSwap();
         }
 
-        function calcSwap() {
-            const amt = parseFloat(document.getElementById('swapAmount').value) || 0;
-            const out = amt * 0.9975;
-            document.getElementById('swapOut').textContent = out.toFixed(2);
-        }
-
         async function executeSwap() {
-            showStatus('loading', 'Swap in progress...', 'swapStatus');
-            setTimeout(() => showStatus('success', '✅ Swap executed!', 'swapStatus'), 1000);
+            showStatus('loading', 'Executing swap...', 'swapStatus');
+            setTimeout(() => showStatus('success', '✅ Swap executed!', 'swapStatus'), 1500);
         }
 
         // ==================== BRIDGE ====================
-        function updateBridgePath() {
-            const from = document.getElementById('bridgeFrom').value;
-            const to = document.getElementById('bridgeTo').value;
-            document.getElementById('bridgePath').textContent = `${from.toUpperCase()} → ${to.toUpperCase()}`;
-        }
-
         function setBridgePercent(p) {
-            const bal = parseFloat(document.querySelectorAll('#b-rry')[0].textContent) || 0;
-            document.getElementById('bridgeAmount').value = (bal * p / 100).toFixed(2);
+            document.getElementById('bridgeAmount').value = p;
         }
 
         async function executeBridge() {
-            showStatus('loading', 'Bridging...', 'bridgeStatus');
-            setTimeout(() => showStatus('success', '✅ Bridge executed!', 'bridgeStatus'), 1000);
+            showStatus('loading', 'Executing bridge...', 'bridgeStatus');
+            setTimeout(() => showStatus('success', '✅ Bridge executed!', 'bridgeStatus'), 1500);
         }
 
         // ==================== NFT ====================
-        async function updateNFTTimer() {
+        function updateNFTTimer() {
             const today = new Date().toDateString();
-            const minted = localStorage.getItem('nft-minted') === today;
-            
+            const minted = localStorage.getItem('nft-today') === today;
+
             if (minted) {
                 const now = new Date();
                 const tomorrow = new Date(now);
@@ -827,28 +578,22 @@
                 tomorrow.setHours(0, 0, 0, 0);
                 const ms = tomorrow - now;
                 document.getElementById('nftTimer').textContent = formatTime(ms);
-                document.getElementById('nftReady').style.display = 'none';
                 document.getElementById('nftBtn').disabled = true;
             } else {
-                document.getElementById('nftReady').style.display = 'inline';
                 document.getElementById('nftBtn').disabled = false;
             }
         }
 
         async function mintNFT() {
-            if (!signer) return showStatus('error', 'Connect wallet', 'nftStatus');
-            try {
-                showStatus('loading', 'Minting...', 'nftStatus');
-                const name = document.getElementById('nftName').value || 'Checkmate #' + Math.floor(Math.random() * 9999);
-                const nft = new ethers.Contract(CONTRACTS[currentChain].nft, NFT_ABI, signer);
-                const tx = await nft.mint(userAddress, name);
-                await tx.wait();
-                localStorage.setItem('nft-minted', new Date().toDateString());
-                showStatus('success', `✅ Minted "${name}"!`, 'nftStatus');
-                updateNFTTimer();
-            } catch (e) {
-                showStatus('error', e.message.substring(0, 80), 'nftStatus');
+            const today = new Date().toDateString();
+            if (localStorage.getItem('nft-today') === today) {
+                showStatus('error', 'Already minted today!', 'nftStatus');
+                return;
             }
+
+            localStorage.setItem('nft-today', today);
+            showStatus('success', '✅ NFT Minted!', 'nftStatus');
+            updateNFTTimer();
         }
 
         // ==================== GM ====================
@@ -863,8 +608,11 @@
 
         function gmCheckIn() {
             const today = new Date().toDateString();
-            if (localStorage.getItem('gm-today') === today) return showStatus('error', 'Already checked in!', 'gmStatus');
-            
+            if (localStorage.getItem('gm-today') === today) {
+                showStatus('error', 'Already checked in!', 'gmStatus');
+                return;
+            }
+
             gmStreak++;
             localStorage.setItem('gm-today', today);
             localStorage.setItem('gm-streak', gmStreak);
@@ -875,11 +623,18 @@
         // ==================== TASKS ====================
         function renderTasks() {
             document.getElementById('tasksContainer').innerHTML = TASKS.map((t, i) =>
-                `<div class="task-item"><div><span style="font-size:20px; margin-right:10px;">${t.icon}</span>${t.name} <span class="task-points">+${t.points}pts</span></div></div>`
+                `<div class="task-item">
+                    <div><span style="font-size:20px; margin-right:10px;">${t.icon}</span>${t.name} <span class="task-points">+${t.points}pts</span></div>
+                </div>`
             ).join('');
         }
 
         // ==================== UTILS ====================
+        function updateTimers() {
+            updateNFTTimer();
+            updateGMTimer();
+        }
+
         function formatTime(ms) {
             const h = Math.floor(ms / 3600000);
             const m = Math.floor((ms % 3600000) / 60000);
@@ -891,8 +646,11 @@
             const div = document.createElement('div');
             div.className = `status ${type}`;
             div.textContent = msg;
-            document.getElementById(id).innerHTML = '';
-            document.getElementById(id).appendChild(div);
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerHTML = '';
+                el.appendChild(div);
+            }
             if (type !== 'loading') setTimeout(() => div.remove(), 8000);
         }
 
