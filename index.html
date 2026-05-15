@@ -681,13 +681,23 @@
                 userAddress = accounts[0];
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
-                document.getElementById('walletConnectBtn').textContent = '✅ Connected';
-                document.getElementById('walletAddress').textContent = userAddress;
-                document.getElementById('chainName').textContent = 'Connected';
-                document.getElementById('walletInfo').style.display = 'block';
+                
+                if (document.getElementById('walletConnectBtn')) {
+                    document.getElementById('walletConnectBtn').textContent = '✅ Connected';
+                }
+                if (document.getElementById('walletAddress')) {
+                    document.getElementById('walletAddress').textContent = userAddress;
+                }
+                if (document.getElementById('chainName')) {
+                    document.getElementById('chainName').textContent = 'Connected';
+                }
+                if (document.getElementById('walletInfo')) {
+                    document.getElementById('walletInfo').style.display = 'block';
+                }
                 updateProfile();
+                showStatus('success', '✅ Wallet Connected!', 'arc-nftStatus');
             } catch (error) {
-                alert('Error: ' + error.message);
+                showStatus('error', 'Wallet Error: ' + error.message.substring(0, 60), 'arc-nftStatus');
             }
         }
 
@@ -848,7 +858,11 @@
                 saveStats();
                 renderTasks();
                 updateProfile();
-                document.getElementById(chain + '-gmStreak').textContent = stats.gmStreak;
+                
+                const streakEl = document.getElementById(chain + '-gmStreak');
+                if (streakEl) {
+                    streakEl.textContent = stats.gmStreak;
+                }
                 showStatus('success', '✨ GM! Streak: ' + stats.gmStreak, chain + '-gmStatus');
             } catch (error) {
                 showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-gmStatus');
@@ -858,11 +872,17 @@
         function updateProfile() {
             const chains = ['arc', 'ink', 'giwa'];
             chains.forEach(chain => {
-                document.getElementById(chain + '-profileWallet').textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
-                document.getElementById(chain + '-profileSwaps').textContent = stats.swaps;
-                document.getElementById(chain + '-profileBridges').textContent = stats.bridges;
-                document.getElementById(chain + '-profileNFTs').textContent = stats.nfts;
-                document.getElementById(chain + '-profileStreak').textContent = stats.gmStreak;
+                const wallet = document.getElementById(chain + '-profileWallet');
+                const swaps = document.getElementById(chain + '-profileSwaps');
+                const bridges = document.getElementById(chain + '-profileBridges');
+                const nfts = document.getElementById(chain + '-profileNFTs');
+                const streak = document.getElementById(chain + '-profileStreak');
+                
+                if (wallet) wallet.textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
+                if (swaps) swaps.textContent = stats.swaps;
+                if (bridges) bridges.textContent = stats.bridges;
+                if (nfts) nfts.textContent = stats.nfts;
+                if (streak) streak.textContent = stats.gmStreak;
             });
         }
 
