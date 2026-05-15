@@ -131,6 +131,19 @@
             color: var(--primary);
             margin-bottom: 15px;
         }
+        .balance-display {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .balance-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
         .input-group {
             margin: 15px 0;
             display: flex;
@@ -145,6 +158,10 @@
             border: 2px solid var(--border);
             color: var(--text);
             border-radius: 8px;
+        }
+        input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .info-box {
             background: var(--bg-tertiary);
@@ -212,9 +229,10 @@
         }
         .task-item {
             background: var(--bg-tertiary);
-            border-left: 4px solid var(--task-blue);
+            border: 2px solid var(--border);
+            border-left: 6px solid var(--task-blue);
             padding: 15px;
-            margin: 10px 0;
+            margin: 12px 0;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
@@ -222,31 +240,71 @@
         }
         .task-item.completed {
             border-left-color: var(--success);
-            opacity: 0.7;
+            background: rgba(16, 185, 129, 0.05);
         }
-        .task-btn {
-            background: var(--task-blue);
-            color: var(--bg);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
+        .task-info {
+            flex: 1;
         }
-        .task-btn.done {
+        .task-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .task-points {
+            color: var(--task-blue);
+            font-size: 12px;
+        }
+        .task-status {
+            padding: 6px 12px;
             background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
         }
-        .faucet-buttons {
+        .badge-item {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 8px;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .badge-icon {
+            font-size: 32px;
+        }
+        .badge-info {
+            flex: 1;
+        }
+        .badge-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .badge-progress {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+        .nft-container {
+            text-align: center;
+        }
+        .nft-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 12px;
+            border: 3px solid var(--primary);
+            margin: 20px auto;
+            object-fit: cover;
         }
         .faucet-btn {
-            flex: 1;
-            min-width: 150px;
+            width: 100%;
             padding: 15px;
+            margin: 10px 0;
             border: none;
-            border-radius: 8px;
             font-weight: bold;
-            cursor: pointer;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -280,10 +338,8 @@
             <div id="arc-faucet" class="tab-content active">
                 <div class="card">
                     <h2>💧 Faucet</h2>
-                    <div class="faucet-buttons">
-                        <button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#00d4ff; color:black;">🔵 ARC Faucet</button>
-                        <button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#7c3aed; color:white;">⚪ INK Faucet</button>
-                    </div>
+                    <button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#00d4ff; color:black;">🔵 ARC Faucet</button>
+                    <button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#7c3aed; color:white;">⚪ INK Faucet</button>
                 </div>
             </div>
             
@@ -291,30 +347,31 @@
             <div id="arc-swap" class="tab-content">
                 <div class="card">
                     <h2>⚡ Swap</h2>
+                    <div class="balance-display" id="arc-swapBalance"></div>
                     <div class="info-box"><strong>Select Fee:</strong></div>
                     <div class="fee-selector">
-                        <button class="fee-btn active" onclick="setSwapFee(0.00025, this)">0.025%</button>
-                        <button class="fee-btn" onclick="setSwapFee(0.0005, this)">0.050%</button>
-                        <button class="fee-btn" onclick="setSwapFee(0.00075, this)">0.075%</button>
-                        <button class="fee-btn" onclick="setSwapFee(0.001, this)">0.1%</button>
+                        <button class="fee-btn active" onclick="setSwapFee(0.00025, this, 'arc')">0.025%</button>
+                        <button class="fee-btn" onclick="setSwapFee(0.0005, this, 'arc')">0.050%</button>
+                        <button class="fee-btn" onclick="setSwapFee(0.00075, this, 'arc')">0.075%</button>
+                        <button class="fee-btn" onclick="setSwapFee(0.001, this, 'arc')">0.1%</button>
                     </div>
                     <div class="input-group">
-                        <input type="number" id="arc-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput()">
-                        <select id="arc-swapTokenIn" onchange="calcSwapOutput()">
+                        <input type="number" id="arc-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput('arc')">
+                        <select id="arc-swapTokenIn" onchange="calcSwapOutput('arc')">
                             <option value="usdc">USDC</option>
                             <option value="eurc">EURC</option>
                         </select>
-                        <button class="reverse-btn" onclick="reverseSwapTokens()">⇅</button>
+                        <button class="reverse-btn" onclick="reverseSwapTokens('arc')">⇅</button>
                     </div>
                     <div class="quick-buttons">
-                        <button class="quick-btn" onclick="setSwapPercent(25)">25%</button>
-                        <button class="quick-btn" onclick="setSwapPercent(50)">50%</button>
-                        <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
-                        <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(25, 'arc')">25%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(50, 'arc')">50%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(75, 'arc')">75%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(100, 'arc')">100%</button>
                     </div>
                     <div class="info-box">Pay: <span id="arc-swapAmountDisplay">0</span> <span id="arc-swapInToken">USDC</span><br>Receive: <span id="arc-swapOutput">0</span> <span id="arc-swapOutToken">EURC</span></div>
                     <select id="arc-swapTokenOut" style="width:100%; margin:10px 0;"><option value="eurc">EURC</option><option value="usdc">USDC</option></select>
-                    <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Swap Now</button>
+                    <button onclick="executeSwap('arc')" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Swap Now</button>
                     <div id="arc-swapStatus"></div>
                 </div>
             </div>
@@ -323,28 +380,29 @@
             <div id="arc-bridge" class="tab-content">
                 <div class="card">
                     <h2>🌉 Bridge</h2>
+                    <div class="balance-display" id="arc-bridgeBalance"></div>
                     <div class="info-box"><strong>Select Fee:</strong></div>
                     <div class="fee-selector">
-                        <button class="fee-btn active" onclick="setBridgeFee(0.00025, this)">0.025%</button>
-                        <button class="fee-btn" onclick="setBridgeFee(0.0005, this)">0.050%</button>
-                        <button class="fee-btn" onclick="setBridgeFee(0.00075, this)">0.075%</button>
-                        <button class="fee-btn" onclick="setBridgeFee(0.001, this)">0.1%</button>
+                        <button class="fee-btn active" onclick="setBridgeFee(0.00025, this, 'arc')">0.025%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.0005, this, 'arc')">0.050%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.00075, this, 'arc')">0.075%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.001, this, 'arc')">0.1%</button>
                     </div>
                     <div class="input-group">
-                        <select id="arc-bridgeSource" onchange="updateBridgePath()"><option value="arc">From ARC</option><option value="ink">From INK</option></select>
-                        <select id="arc-bridgeDest" onchange="updateBridgePath()"><option value="ink">To INK</option><option value="arc">To ARC</option></select>
-                        <button class="reverse-btn" onclick="reverseBridgeChains()">⇅</button>
+                        <select id="arc-bridgeSource" onchange="updateBridgePath('arc')"><option value="arc">From ARC</option><option value="ink">From INK</option></select>
+                        <select id="arc-bridgeDest" onchange="updateBridgePath('arc')"><option value="ink">To INK</option><option value="arc">To ARC</option></select>
+                        <button class="reverse-btn" onclick="reverseBridgeChains('arc')">⇅</button>
                     </div>
                     <div class="info-box">Path: <span id="arc-bridgePath">ARC → INK</span></div>
-                    <div class="input-group"><input type="number" id="arc-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput()"></div>
+                    <div class="input-group"><input type="number" id="arc-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput('arc')"></div>
                     <div class="quick-buttons">
-                        <button class="quick-btn" onclick="setBridgePercent(25)">25%</button>
-                        <button class="quick-btn" onclick="setBridgePercent(50)">50%</button>
-                        <button class="quick-btn" onclick="setBridgePercent(75)">75%</button>
-                        <button class="quick-btn" onclick="setBridgePercent(100)">100%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(25, 'arc')">25%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(50, 'arc')">50%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(75, 'arc')">75%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(100, 'arc')">100%</button>
                     </div>
                     <div class="info-box">Pay: <span id="arc-bridgeAmountDisplay">0</span> Native<br>Receive: <span id="arc-bridgeOutput">0</span> Native</div>
-                    <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Bridge Now</button>
+                    <button onclick="executeBridge('arc')" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Bridge Now</button>
                     <div id="arc-bridgeStatus"></div>
                 </div>
             </div>
@@ -352,8 +410,12 @@
             <!-- NFT -->
             <div id="arc-nft" class="tab-content">
                 <div class="card">
-                    <h2>🎮 Mint NFT</h2>
-                    <div class="input-group"><input type="text" id="arc-nftName" placeholder="NFT Name"></div>
+                    <h2>🎮 Mint Checkmate NFT</h2>
+                    <div class="nft-container">
+                        <img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image">
+                        <div class="info-box">Checkmate NFT | Max Supply: 9999 | Mints per day: 1 | Resets at 00:00 UTC</div>
+                    </div>
+                    <div class="input-group"><input type="text" id="arc-nftName" placeholder="NFT Name" value="Checkmate"></div>
                     <button onclick="mintNFT('arc')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button>
                     <div id="arc-nftStatus"></div>
                 </div>
@@ -362,9 +424,15 @@
             <!-- GM -->
             <div id="arc-gm" class="tab-content">
                 <div class="card">
-                    <h2>✨ GM Check-in</h2>
-                    <div style="text-align:center; font-size:48px; color:var(--primary); margin:20px 0;">GM ☀️</div>
-                    <div style="text-align:center; margin:20px 0;">Streak: <span id="arc-gmStreak" style="color:var(--primary); font-size:24px;">0</span> days</div>
+                    <h2>✨ GM Daily Check-in</h2>
+                    <div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div>
+                    <div style="text-align:center; margin:20px 0;">
+                        <div style="font-size:32px; color:var(--primary); font-weight:bold;" id="arc-gmStreak">0</div>
+                        <div style="font-size:14px; color:var(--text-muted);">Day Streak</div>
+                    </div>
+                    <div class="info-box">
+                        <strong>Time to reset:</strong> <span id="arc-gmTimer" style="color:var(--task-blue);">--:--:--</span>
+                    </div>
                     <button onclick="gmCheckIn('arc')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button>
                     <div id="arc-gmStatus"></div>
                 </div>
@@ -373,7 +441,7 @@
             <!-- TASKS -->
             <div id="arc-tasks" class="tab-content">
                 <div class="card">
-                    <h2>📋 Tasks</h2>
+                    <h2>📋 Daily Tasks</h2>
                     <div id="arc-tasksContainer"></div>
                 </div>
             </div>
@@ -381,7 +449,7 @@
             <!-- BADGE -->
             <div id="arc-badge" class="tab-content">
                 <div class="card">
-                    <h2>🏆 Badges</h2>
+                    <h2>🏆 Achievements</h2>
                     <div id="arc-badgesContainer"></div>
                 </div>
             </div>
@@ -391,187 +459,33 @@
                 <div class="card">
                     <h2>👤 Profile</h2>
                     <div class="info-box">Wallet: <strong id="arc-profileWallet">Not Connected</strong></div>
-                    <div class="info-box">Swaps: <strong id="arc-profileSwaps">0</strong></div>
-                    <div class="info-box">Bridges: <strong id="arc-profileBridges">0</strong></div>
-                    <div class="info-box">NFTs: <strong id="arc-profileNFTs">0</strong></div>
+                    <div class="info-box">Swaps Completed: <strong id="arc-profileSwaps">0</strong></div>
+                    <div class="info-box">Bridges Completed: <strong id="arc-profileBridges">0</strong></div>
+                    <div class="info-box">NFTs Minted: <strong id="arc-profileNFTs">0</strong></div>
+                    <div class="info-box">GM Streak: <strong id="arc-profileStreak">0</strong> days</div>
                 </div>
             </div>
         </div>
 
-        <!-- INK CONTENT -->
+        <!-- INK & GIWA TABS (Same structure, abbreviated for space) -->
         <div id="ink-content" style="display:none;">
-            <!-- FAUCET -->
-            <div id="ink-faucet" class="tab-content active">
-                <div class="card">
-                    <h2>💧 Faucet</h2>
-                    <button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="width:100%; padding:15px; background:#7c3aed; color:white; font-weight:bold;">⚪ INK Faucet</button>
-                </div>
-            </div>
-            
-            <!-- SWAP -->
-            <div id="ink-swap" class="tab-content">
-                <div class="card">
-                    <h2>⚡ Swap</h2>
-                    <div class="info-box"><strong>Select Fee:</strong></div>
-                    <div class="fee-selector">
-                        <button class="fee-btn active" onclick="setSwapFee(0.00025, this)">0.025%</button>
-                        <button class="fee-btn" onclick="setSwapFee(0.0005, this)">0.050%</button>
-                        <button class="fee-btn" onclick="setSwapFee(0.00075, this)">0.075%</button>
-                        <button class="fee-btn" onclick="setSwapFee(0.001, this)">0.1%</button>
-                    </div>
-                    <div class="input-group">
-                        <input type="number" id="ink-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput()">
-                        <select id="ink-swapTokenIn" onchange="calcSwapOutput()">
-                            <option value="usdc">USDC</option>
-                        </select>
-                    </div>
-                    <div class="quick-buttons">
-                        <button class="quick-btn" onclick="setSwapPercent(25)">25%</button>
-                        <button class="quick-btn" onclick="setSwapPercent(50)">50%</button>
-                        <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
-                        <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
-                    </div>
-                    <div class="info-box">Pay: <span id="ink-swapAmountDisplay">0</span> USDC</div>
-                    <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Swap Now</button>
-                    <div id="ink-swapStatus"></div>
-                </div>
-            </div>
-            
-            <!-- BRIDGE -->
-            <div id="ink-bridge" class="tab-content">
-                <div class="card">
-                    <h2>🌉 Bridge</h2>
-                    <div class="info-box"><strong>Select Fee:</strong></div>
-                    <div class="fee-selector">
-                        <button class="fee-btn active" onclick="setBridgeFee(0.00025, this)">0.025%</button>
-                        <button class="fee-btn" onclick="setBridgeFee(0.0005, this)">0.050%</button>
-                        <button class="fee-btn" onclick="setBridgeFee(0.00075, this)">0.075%</button>
-                        <button class="fee-btn" onclick="setBridgeFee(0.001, this)">0.1%</button>
-                    </div>
-                    <div class="input-group">
-                        <select id="ink-bridgeSource" onchange="updateBridgePath()"><option value="ink">From INK</option><option value="arc">From ARC</option></select>
-                        <select id="ink-bridgeDest" onchange="updateBridgePath()"><option value="arc">To ARC</option><option value="ink">To INK</option></select>
-                        <button class="reverse-btn" onclick="reverseBridgeChains()">⇅</button>
-                    </div>
-                    <div class="info-box">Path: <span id="ink-bridgePath">INK → ARC</span></div>
-                    <div class="input-group"><input type="number" id="ink-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput()"></div>
-                    <div class="quick-buttons">
-                        <button class="quick-btn" onclick="setBridgePercent(25)">25%</button>
-                        <button class="quick-btn" onclick="setBridgePercent(50)">50%</button>
-                        <button class="quick-btn" onclick="setBridgePercent(75)">75%</button>
-                        <button class="quick-btn" onclick="setBridgePercent(100)">100%</button>
-                    </div>
-                    <div class="info-box">Pay: <span id="ink-bridgeAmountDisplay">0</span> Native<br>Receive: <span id="ink-bridgeOutput">0</span> Native</div>
-                    <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Bridge Now</button>
-                    <div id="ink-bridgeStatus"></div>
-                </div>
-            </div>
-            
-            <!-- NFT -->
-            <div id="ink-nft" class="tab-content">
-                <div class="card">
-                    <h2>🎮 Mint NFT</h2>
-                    <div class="input-group"><input type="text" id="ink-nftName" placeholder="NFT Name"></div>
-                    <button onclick="mintNFT('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button>
-                    <div id="ink-nftStatus"></div>
-                </div>
-            </div>
-            
-            <!-- GM -->
-            <div id="ink-gm" class="tab-content">
-                <div class="card">
-                    <h2>✨ GM Check-in</h2>
-                    <div style="text-align:center; font-size:48px; color:var(--primary); margin:20px 0;">GM ☀️</div>
-                    <div style="text-align:center; margin:20px 0;">Streak: <span id="ink-gmStreak" style="color:var(--primary); font-size:24px;">0</span> days</div>
-                    <button onclick="gmCheckIn('ink')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button>
-                    <div id="ink-gmStatus"></div>
-                </div>
-            </div>
-            
-            <!-- TASKS -->
-            <div id="ink-tasks" class="tab-content">
-                <div class="card">
-                    <h2>📋 Tasks</h2>
-                    <div id="ink-tasksContainer"></div>
-                </div>
-            </div>
-            
-            <!-- BADGE -->
-            <div id="ink-badge" class="tab-content">
-                <div class="card">
-                    <h2>🏆 Badges</h2>
-                    <div id="ink-badgesContainer"></div>
-                </div>
-            </div>
-            
-            <!-- PROFILE -->
-            <div id="ink-profile" class="tab-content">
-                <div class="card">
-                    <h2>👤 Profile</h2>
-                    <div class="info-box">Wallet: <strong id="ink-profileWallet">Not Connected</strong></div>
-                    <div class="info-box">Swaps: <strong id="ink-profileSwaps">0</strong></div>
-                    <div class="info-box">Bridges: <strong id="ink-profileBridges">0</strong></div>
-                    <div class="info-box">NFTs: <strong id="ink-profileNFTs">0</strong></div>
-                </div>
-            </div>
+            <div id="ink-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#7c3aed; color:white;">⚪ INK Faucet</button></div></div>
+            <div id="ink-swap" class="tab-content"><div class="card"><h2>⚡ Swap</h2><div class="balance-display" id="ink-swapBalance"></div><div class="fee-selector"><button class="fee-btn active" onclick="setSwapFee(0.00025, this, 'ink')">0.025%</button><button class="fee-btn" onclick="setSwapFee(0.0005, this, 'ink')">0.050%</button><button class="fee-btn" onclick="setSwapFee(0.00075, this, 'ink')">0.075%</button><button class="fee-btn" onclick="setSwapFee(0.001, this, 'ink')">0.1%</button></div><div class="input-group"><input type="number" id="ink-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput('ink')"><select id="ink-swapTokenIn" onchange="calcSwapOutput('ink')"><option value="usdc">USDC</option></select></div><div class="quick-buttons"><button class="quick-btn" onclick="setSwapPercent(25, 'ink')">25%</button><button class="quick-btn" onclick="setSwapPercent(50, 'ink')">50%</button><button class="quick-btn" onclick="setSwapPercent(75, 'ink')">75%</button><button class="quick-btn" onclick="setSwapPercent(100, 'ink')">100%</button></div><div class="info-box">Pay: <span id="ink-swapAmountDisplay">0</span> USDC</div><button onclick="executeSwap('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Swap Now</button><div id="ink-swapStatus"></div></div></div>
+            <div id="ink-bridge" class="tab-content"><div class="card"><h2>🌉 Bridge</h2><div class="balance-display" id="ink-bridgeBalance"></div><div class="fee-selector"><button class="fee-btn active" onclick="setBridgeFee(0.00025, this, 'ink')">0.025%</button><button class="fee-btn" onclick="setBridgeFee(0.0005, this, 'ink')">0.050%</button><button class="fee-btn" onclick="setBridgeFee(0.00075, this, 'ink')">0.075%</button><button class="fee-btn" onclick="setBridgeFee(0.001, this, 'ink')">0.1%</button></div><div class="input-group"><select id="ink-bridgeSource" onchange="updateBridgePath('ink')"><option value="ink">From INK</option><option value="arc">From ARC</option></select><select id="ink-bridgeDest" onchange="updateBridgePath('ink')"><option value="arc">To ARC</option><option value="ink">To INK</option></select></div><div class="info-box">Path: <span id="ink-bridgePath">INK → ARC</span></div><div class="input-group"><input type="number" id="ink-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput('ink')"></div><div class="quick-buttons"><button class="quick-btn" onclick="setBridgePercent(25, 'ink')">25%</button><button class="quick-btn" onclick="setBridgePercent(50, 'ink')">50%</button><button class="quick-btn" onclick="setBridgePercent(75, 'ink')">75%</button><button class="quick-btn" onclick="setBridgePercent(100, 'ink')">100%</button></div><div class="info-box">Pay: <span id="ink-bridgeAmountDisplay">0</span> Native<br>Receive: <span id="ink-bridgeOutput">0</span> Native</div><button onclick="executeBridge('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Bridge Now</button><div id="ink-bridgeStatus"></div></div></div>
+            <div id="ink-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box">Checkmate NFT | Max Supply: 9999 | Mints per day: 1 | Resets at 00:00 UTC</div></div><div class="input-group"><input type="text" id="ink-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFT('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button><div id="ink-nftStatus"></div></div></div>
+            <div id="ink-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="ink-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="ink-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('ink')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="ink-gmStatus"></div></div></div>
+            <div id="ink-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="ink-tasksContainer"></div></div></div>
+            <div id="ink-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="ink-badgesContainer"></div></div></div>
+            <div id="ink-profile" class="tab-content"><div class="card"><h2>👤 Profile</h2><div class="info-box">Wallet: <strong id="ink-profileWallet">Not Connected</strong></div><div class="info-box">Swaps: <strong id="ink-profileSwaps">0</strong></div><div class="info-box">Bridges: <strong id="ink-profileBridges">0</strong></div><div class="info-box">NFTs: <strong id="ink-profileNFTs">0</strong></div><div class="info-box">GM Streak: <strong id="ink-profileStreak">0</strong></div></div></div>
         </div>
 
-        <!-- GIWA CONTENT -->
         <div id="giwa-content" style="display:none;">
-            <!-- FAUCET -->
-            <div id="giwa-faucet" class="tab-content active">
-                <div class="card">
-                    <h2>💧 Faucet</h2>
-                    <button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="width:100%; padding:15px; background:#7c3aed; color:white; font-weight:bold;">🟣 GIWA Faucet</button>
-                </div>
-            </div>
-            
-            <!-- NFT -->
-            <div id="giwa-nft" class="tab-content">
-                <div class="card">
-                    <h2>🎮 Mint NFT</h2>
-                    <div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name"></div>
-                    <button onclick="mintNFT('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button>
-                    <div id="giwa-nftStatus"></div>
-                </div>
-            </div>
-            
-            <!-- GM -->
-            <div id="giwa-gm" class="tab-content">
-                <div class="card">
-                    <h2>✨ GM Check-in</h2>
-                    <div style="text-align:center; font-size:48px; color:var(--primary); margin:20px 0;">GM ☀️</div>
-                    <div style="text-align:center; margin:20px 0;">Streak: <span id="giwa-gmStreak" style="color:var(--primary); font-size:24px;">0</span> days</div>
-                    <button onclick="gmCheckIn('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button>
-                    <div id="giwa-gmStatus"></div>
-                </div>
-            </div>
-            
-            <!-- TASKS -->
-            <div id="giwa-tasks" class="tab-content">
-                <div class="card">
-                    <h2>📋 Tasks</h2>
-                    <div id="giwa-tasksContainer"></div>
-                </div>
-            </div>
-            
-            <!-- BADGE -->
-            <div id="giwa-badge" class="tab-content">
-                <div class="card">
-                    <h2>🏆 Badges</h2>
-                    <div id="giwa-badgesContainer"></div>
-                </div>
-            </div>
-            
-            <!-- PROFILE -->
-            <div id="giwa-profile" class="tab-content">
-                <div class="card">
-                    <h2>👤 Profile</h2>
-                    <div class="info-box">Wallet: <strong id="giwa-profileWallet">Not Connected</strong></div>
-                    <div class="info-box">NFTs: <strong id="giwa-profileNFTs">0</strong></div>
-                    <div class="info-box">GM Streak: <strong id="giwa-profileStreak">0</strong></div>
-                </div>
-            </div>
+            <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
+            <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box">Checkmate NFT | Max Supply: 9999 | Mints per day: 1 | Resets at 00:00 UTC</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFT('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button><div id="giwa-nftStatus"></div></div></div>
+            <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="giwa-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="giwa-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="giwa-gmStatus"></div></div></div>
+            <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
+            <div id="giwa-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="giwa-badgesContainer"></div></div></div>
+            <div id="giwa-profile" class="tab-content"><div class="card"><h2>👤 Profile</h2><div class="info-box">Wallet: <strong id="giwa-profileWallet">Not Connected</strong></div><div class="info-box">NFTs: <strong id="giwa-profileNFTs">0</strong></div><div class="info-box">GM Streak: <strong id="giwa-profileStreak">0</strong></div></div></div>
         </div>
     </main>
 
@@ -585,26 +499,34 @@
             'function approve(address spender, uint256 amount) returns (bool)',
             'function transferFrom(address from, address to, uint256 amount) returns (bool)',
             'function transfer(address to, uint256 amount) returns (bool)',
-            'function balanceOf(address owner) view returns (uint256)'
+            'function balanceOf(address owner) view returns (uint256)',
+            'function decimals() view returns (uint8)'
         ];
 
         let currentChain = 'arc';
         let userAddress = null;
         let provider = null;
         let signer = null;
-        let swapFee = 0.00025;
-        let bridgeFee = 0.00025;
-        let stats = { swaps: 0, bridges: 0, nfts: 0, gmStreak: 0, lastGM: null };
+        let swapFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
+        let bridgeFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
+        let balances = { arc: { usdc: 0, eurc: 0, native: 0 }, ink: { usdc: 0, native: 0 }, giwa: { native: 0 } };
+        let stats = { swaps: 0, bridges: 0, nfts: 0, gmStreak: 0, lastGM: null, nftMintToday: false };
         let completedTasks = {};
 
         const ARC_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const INK_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const GIWA_TABS = ['faucet', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const TASKS = [
-            { name: 'Complete Swap', icon: '⚡', points: 50 },
-            { name: 'Complete Bridge', icon: '🌉', points: 50 },
-            { name: 'Mint NFT', icon: '🎮', points: 30 },
-            { name: 'Daily GM', icon: '✨', points: 20 }
+            { name: 'Complete Swap', icon: '⚡', points: 50, desc: 'Swap any token pair' },
+            { name: 'Complete Bridge', icon: '🌉', points: 50, desc: 'Bridge to another chain' },
+            { name: 'Mint NFT', icon: '🎮', points: 30, desc: 'Mint a Checkmate NFT' },
+            { name: 'Daily GM', icon: '✨', points: 20, desc: 'Check in every day' }
+        ];
+        const BADGES = [
+            { name: 'Early Adopter', icon: '🚀', req: 'Join UPBIT', current: 1, target: 1 },
+            { name: 'Swap Master', icon: '⚡', req: 'Complete 5 swaps', current: stats.swaps, target: 5 },
+            { name: 'Bridge Builder', icon: '🌉', req: 'Complete 3 bridges', current: stats.bridges, target: 3 },
+            { name: 'NFT Collector', icon: '🎮', req: 'Mint 10 Checkmates', current: stats.nfts, target: 10 }
         ];
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -612,6 +534,8 @@
             renderTasks();
             renderBadges();
             loadStats();
+            updateGMTimers();
+            setInterval(updateGMTimers, 1000);
         });
 
         function renderTabs() {
@@ -631,8 +555,11 @@
                 const done = completedTasks[t.name];
                 return `
                     <div class="task-item ${done?'completed':''}">
-                        <div>${t.icon} ${t.name} <span style="color:var(--task-blue); margin-left:10px;">+${t.points}pts</span></div>
-                        <button class="task-btn ${done?'done':''}" ${done?'disabled':''}>${done?'✓':'○'}</button>
+                        <div class="task-info">
+                            <div class="task-name">${t.icon} ${t.name}</div>
+                            <div class="task-points">${t.desc} • +${t.points}pts</div>
+                        </div>
+                        <button class="task-status" style="background:${done?'var(--success)':'var(--danger)'}">${done?'✓ DONE':'PENDING'}</button>
                     </div>
                 `;
             }).join('');
@@ -642,17 +569,33 @@
         }
 
         function renderBadges() {
-            const badgeList = [
-                { name: 'First Swap', icon: '⚡', req: 'Complete 1 swap' },
-                { name: 'Bridge Master', icon: '🌉', req: 'Complete 3 bridges' },
-                { name: 'NFT Collector', icon: '🎮', req: 'Mint 5 NFTs' }
-            ];
-            let html = badgeList.map(b => 
-                `<div class="info-box">${b.icon} <strong>${b.name}</strong><br><small>${b.req}</small></div>`
-            ).join('');
+            let html = BADGES.map(b => `
+                <div class="badge-item">
+                    <div class="badge-icon">${b.icon}</div>
+                    <div class="badge-info">
+                        <div class="badge-name">${b.name}</div>
+                        <div class="badge-progress">${b.req}</div>
+                    </div>
+                </div>
+            `).join('');
             document.getElementById('arc-badgesContainer').innerHTML = html;
             document.getElementById('ink-badgesContainer').innerHTML = html;
             document.getElementById('giwa-badgesContainer').innerHTML = html;
+        }
+
+        function updateGMTimers() {
+            const chains = ['arc', 'ink', 'giwa'];
+            chains.forEach(chain => {
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setHours(24, 0, 0, 0);
+                const diff = Math.max(0, Math.floor((tomorrow - now) / 1000));
+                const h = Math.floor(diff / 3600);
+                const m = Math.floor((diff % 3600) / 60);
+                const s = diff % 60;
+                const el = document.getElementById(chain + '-gmTimer');
+                if (el) el.textContent = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            });
         }
 
         function selectChain(chain) {
@@ -681,126 +624,188 @@
                 userAddress = accounts[0];
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
-                
-                if (document.getElementById('walletConnectBtn')) {
-                    document.getElementById('walletConnectBtn').textContent = '✅ Connected';
-                }
+                document.getElementById('walletConnectBtn').textContent = '✅ Connected';
                 if (document.getElementById('walletAddress')) {
                     document.getElementById('walletAddress').textContent = userAddress;
-                }
-                if (document.getElementById('chainName')) {
-                    document.getElementById('chainName').textContent = 'Connected';
                 }
                 if (document.getElementById('walletInfo')) {
                     document.getElementById('walletInfo').style.display = 'block';
                 }
                 updateProfile();
-                showStatus('success', '✅ Wallet Connected!', 'arc-nftStatus');
+                await loadBalances();
             } catch (error) {
-                showStatus('error', 'Wallet Error: ' + error.message.substring(0, 60), 'arc-nftStatus');
+                alert('Error: ' + error.message);
             }
         }
 
-        function setSwapFee(fee, el) {
-            swapFee = fee;
-            document.querySelectorAll('.fee-selector .fee-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            calcSwapOutput();
-        }
-
-        function calcSwapOutput() {
-            const amount = parseFloat(document.getElementById(currentChain + '-swapAmount').value) || 0;
-            const receive = amount * (1 - swapFee);
-            document.getElementById(currentChain + '-swapAmountDisplay').textContent = amount.toFixed(6);
-            document.getElementById(currentChain + '-swapOutput').textContent = receive.toFixed(6);
-        }
-
-        function reverseSwapTokens() {
-            const tin = document.getElementById(currentChain + '-swapTokenIn').value;
-            const tout = document.getElementById(currentChain + '-swapTokenOut')?.value;
-            if (tout) {
-                document.getElementById(currentChain + '-swapTokenIn').value = tout;
-                document.getElementById(currentChain + '-swapTokenOut').value = tin;
-            }
-            calcSwapOutput();
-        }
-
-        function setSwapPercent(pct) {
-            document.getElementById(currentChain + '-swapAmount').value = (Math.random() * 100 * pct / 100).toFixed(6);
-            calcSwapOutput();
-        }
-
-        async function executeSwap() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', currentChain + '-swapStatus');
-            if (!document.getElementById(currentChain + '-swapAmount').value) return showStatus('error', 'Enter amount!', currentChain + '-swapStatus');
-            
-            showStatus('loading', 'Sign transaction in wallet...', currentChain + '-swapStatus');
+        async function loadBalances() {
+            if (!userAddress || !provider) return;
             try {
-                const amount = ethers.parseEther(document.getElementById(currentChain + '-swapAmount').value);
-                const tokenIn = document.getElementById(currentChain + '-swapTokenIn').value;
-                const tokenInAddr = currentChain === 'ink' ? INK_USDC : (tokenIn === 'usdc' ? ARC_USDC : ARC_EURC);
+                // ARC Balances
+                const arcUsdc = new ethers.Contract(ARC_USDC, ERC20_ABI, provider);
+                const arcEurc = new ethers.Contract(ARC_EURC, ERC20_ABI, provider);
+                balances.arc.usdc = await arcUsdc.balanceOf(userAddress);
+                balances.arc.eurc = await arcEurc.balanceOf(userAddress);
+                balances.arc.native = await provider.getBalance(userAddress);
                 
+                // INK Balances
+                const inkUsdc = new ethers.Contract(INK_USDC, ERC20_ABI, provider);
+                balances.ink.usdc = await inkUsdc.balanceOf(userAddress);
+                balances.ink.native = await provider.getBalance(userAddress);
+                
+                updateBalanceDisplay();
+            } catch (error) {
+                console.error('Balance load error:', error);
+            }
+        }
+
+        function updateBalanceDisplay() {
+            const display = (balance, decimals = 18) => (Number(balance) / (10 ** decimals)).toFixed(4);
+            
+            const arcSwapHtml = `
+                <div class="balance-item"><span>USDC:</span> <strong>${display(balances.arc.usdc, 6)}</strong></div>
+                <div class="balance-item"><span>EURC:</span> <strong>${display(balances.arc.eurc, 6)}</strong></div>
+                <div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>
+            `;
+            if (document.getElementById('arc-swapBalance')) {
+                document.getElementById('arc-swapBalance').innerHTML = arcSwapHtml;
+            }
+            if (document.getElementById('arc-bridgeBalance')) {
+                document.getElementById('arc-bridgeBalance').innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>`;
+            }
+            if (document.getElementById('ink-swapBalance')) {
+                document.getElementById('ink-swapBalance').innerHTML = `<div class="balance-item"><span>USDC:</span> <strong>${display(balances.ink.usdc, 6)}</strong></div>`;
+            }
+            if (document.getElementById('ink-bridgeBalance')) {
+                document.getElementById('ink-bridgeBalance').innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.ink.native)}</strong></div>`;
+            }
+        }
+
+        function setSwapFee(fee, el, chain) {
+            swapFee[chain] = fee;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            calcSwapOutput(chain);
+        }
+
+        function calcSwapOutput(chain) {
+            const amountInput = document.getElementById(chain + '-swapAmount');
+            const amount = parseFloat(amountInput?.value) || 0;
+            const receive = amount * (1 - swapFee[chain]);
+            if (document.getElementById(chain + '-swapAmountDisplay')) {
+                document.getElementById(chain + '-swapAmountDisplay').textContent = amount.toFixed(6);
+            }
+            if (document.getElementById(chain + '-swapOutput')) {
+                document.getElementById(chain + '-swapOutput').textContent = receive.toFixed(6);
+            }
+        }
+
+        function reverseSwapTokens(chain) {
+            const tin = document.getElementById(chain + '-swapTokenIn')?.value;
+            const tout = document.getElementById(chain + '-swapTokenOut')?.value;
+            if (tin && tout) {
+                document.getElementById(chain + '-swapTokenIn').value = tout;
+                document.getElementById(chain + '-swapTokenOut').value = tin;
+                calcSwapOutput(chain);
+            }
+        }
+
+        function setSwapPercent(pct, chain) {
+            const tokenIn = document.getElementById(chain + '-swapTokenIn')?.value;
+            let balance = 0;
+            if (tokenIn === 'usdc') balance = Number(balances[chain].usdc) / 1e6;
+            else if (tokenIn === 'eurc') balance = Number(balances[chain].eurc) / 1e6;
+            const amount = (balance * pct / 100).toFixed(6);
+            if (document.getElementById(chain + '-swapAmount')) {
+                document.getElementById(chain + '-swapAmount').value = amount;
+            }
+            calcSwapOutput(chain);
+        }
+
+        async function executeSwap(chain) {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-swapStatus');
+            const amount = parseFloat(document.getElementById(chain + '-swapAmount')?.value) || 0;
+            if (!amount) return showStatus('error', 'Enter amount!', chain + '-swapStatus');
+            
+            showStatus('loading', 'Sign transaction in wallet...', chain + '-swapStatus');
+            try {
+                const tokenInAddr = chain === 'ink' ? INK_USDC : (document.getElementById(chain + '-swapTokenIn').value === 'usdc' ? ARC_USDC : ARC_EURC);
+                const amountEthers = ethers.parseEther(amount.toString());
                 const token = new ethers.Contract(tokenInAddr, ERC20_ABI, signer);
-                await token.approve(OWNER, amount);
-                await token.transferFrom(userAddress, OWNER, amount);
+                
+                await token.approve(OWNER, amountEthers);
+                await token.transferFrom(userAddress, OWNER, amountEthers);
                 
                 stats.swaps++;
                 completedTasks['Complete Swap'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
-                showStatus('success', '✅ Swap completed!', currentChain + '-swapStatus');
-                document.getElementById(currentChain + '-swapAmount').value = '';
-                calcSwapOutput();
+                showStatus('success', '✅ Swap completed!', chain + '-swapStatus');
+                if (document.getElementById(chain + '-swapAmount')) {
+                    document.getElementById(chain + '-swapAmount').value = '';
+                }
+                calcSwapOutput(chain);
+                await loadBalances();
             } catch (error) {
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), currentChain + '-swapStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-swapStatus');
             }
         }
 
-        function setBridgeFee(fee, el) {
-            bridgeFee = fee;
-            document.querySelectorAll('.fee-selector .fee-btn').forEach(b => b.classList.remove('active'));
+        function setBridgeFee(fee, el, chain) {
+            bridgeFee[chain] = fee;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-            calcBridgeOutput();
+            calcBridgeOutput(chain);
         }
 
-        function calcBridgeOutput() {
-            const amount = parseFloat(document.getElementById(currentChain + '-bridgeAmount').value) || 0;
-            const receive = amount * (1 - bridgeFee);
-            document.getElementById(currentChain + '-bridgeAmountDisplay').textContent = amount.toFixed(6);
-            document.getElementById(currentChain + '-bridgeOutput').textContent = receive.toFixed(6);
+        function calcBridgeOutput(chain) {
+            const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
+            const receive = amount * (1 - bridgeFee[chain]);
+            if (document.getElementById(chain + '-bridgeAmountDisplay')) {
+                document.getElementById(chain + '-bridgeAmountDisplay').textContent = amount.toFixed(6);
+            }
+            if (document.getElementById(chain + '-bridgeOutput')) {
+                document.getElementById(chain + '-bridgeOutput').textContent = receive.toFixed(6);
+            }
         }
 
-        function updateBridgePath() {
-            const src = document.getElementById(currentChain + '-bridgeSource').value;
-            const dst = document.getElementById(currentChain + '-bridgeDest').value;
-            document.getElementById(currentChain + '-bridgePath').textContent = src.toUpperCase() + ' → ' + dst.toUpperCase();
+        function updateBridgePath(chain) {
+            const src = document.getElementById(chain + '-bridgeSource')?.value;
+            const dst = document.getElementById(chain + '-bridgeDest')?.value;
+            if (src && dst && document.getElementById(chain + '-bridgePath')) {
+                document.getElementById(chain + '-bridgePath').textContent = src.toUpperCase() + ' → ' + dst.toUpperCase();
+            }
         }
 
-        function reverseBridgeChains() {
-            const src = document.getElementById(currentChain + '-bridgeSource').value;
-            const dst = document.getElementById(currentChain + '-bridgeDest').value;
-            document.getElementById(currentChain + '-bridgeSource').value = dst;
-            document.getElementById(currentChain + '-bridgeDest').value = src;
-            updateBridgePath();
+        function reverseBridgeChains(chain) {
+            const src = document.getElementById(chain + '-bridgeSource')?.value;
+            const dst = document.getElementById(chain + '-bridgeDest')?.value;
+            if (src && dst) {
+                document.getElementById(chain + '-bridgeSource').value = dst;
+                document.getElementById(chain + '-bridgeDest').value = src;
+                updateBridgePath(chain);
+            }
         }
 
-        function setBridgePercent(pct) {
-            document.getElementById(currentChain + '-bridgeAmount').value = (Math.random() * 10 * pct / 100).toFixed(6);
-            calcBridgeOutput();
+        function setBridgePercent(pct, chain) {
+            const balance = Number(balances[chain].native) / 1e18;
+            const amount = (balance * pct / 100).toFixed(6);
+            if (document.getElementById(chain + '-bridgeAmount')) {
+                document.getElementById(chain + '-bridgeAmount').value = amount;
+            }
+            calcBridgeOutput(chain);
         }
 
-        async function executeBridge() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', currentChain + '-bridgeStatus');
-            if (!document.getElementById(currentChain + '-bridgeAmount').value) return showStatus('error', 'Enter amount!', currentChain + '-bridgeStatus');
+        async function executeBridge(chain) {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-bridgeStatus');
+            const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
+            if (!amount) return showStatus('error', 'Enter amount!', chain + '-bridgeStatus');
             
-            showStatus('loading', 'Sign transaction in wallet...', currentChain + '-bridgeStatus');
+            showStatus('loading', 'Sign transaction in wallet...', chain + '-bridgeStatus');
             try {
-                const amount = ethers.parseEther(document.getElementById(currentChain + '-bridgeAmount').value);
-                const tx = await signer.sendTransaction({
-                    to: OWNER,
-                    value: amount
-                });
+                const amountEthers = ethers.parseEther(amount.toString());
+                const tx = await signer.sendTransaction({ to: OWNER, value: amountEthers });
                 await tx.wait();
                 
                 stats.bridges++;
@@ -808,32 +813,38 @@
                 saveStats();
                 renderTasks();
                 updateProfile();
-                showStatus('success', '✅ Bridge completed!', currentChain + '-bridgeStatus');
-                document.getElementById(currentChain + '-bridgeAmount').value = '';
-                calcBridgeOutput();
+                showStatus('success', '✅ Bridge completed!', chain + '-bridgeStatus');
+                if (document.getElementById(chain + '-bridgeAmount')) {
+                    document.getElementById(chain + '-bridgeAmount').value = '';
+                }
+                calcBridgeOutput(chain);
+                await loadBalances();
             } catch (error) {
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), currentChain + '-bridgeStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-bridgeStatus');
             }
         }
 
         async function mintNFT(chain) {
             if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-nftStatus');
+            const today = new Date().toDateString();
+            if (stats.nftMintToday) return showStatus('error', 'Already minted today! Reset at 00:00 UTC', chain + '-nftStatus');
+            
             showStatus('loading', 'Sign transaction in wallet...', chain + '-nftStatus');
             try {
-                const nftName = document.getElementById(chain + '-nftName').value || 'NFT #' + Math.floor(Math.random() * 9999);
-                const tx = await signer.sendTransaction({
-                    to: OWNER,
-                    value: ethers.parseEther('0.01')
-                });
+                const nftName = document.getElementById(chain + '-nftName')?.value || 'Checkmate';
+                const tx = await signer.sendTransaction({ to: OWNER, value: ethers.parseEther('0.01') });
                 await tx.wait();
                 
                 stats.nfts++;
+                stats.nftMintToday = true;
                 completedTasks['Mint NFT'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
-                showStatus('success', '✅ NFT minted: ' + nftName, chain + '-nftStatus');
-                document.getElementById(chain + '-nftName').value = '';
+                showStatus('success', `✅ Minted: ${nftName} NFT!`, chain + '-nftStatus');
+                if (document.getElementById(chain + '-nftName')) {
+                    document.getElementById(chain + '-nftName').value = 'Checkmate';
+                }
             } catch (error) {
                 showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-nftStatus');
             }
@@ -846,24 +857,24 @@
             
             showStatus('loading', 'Sign transaction in wallet...', chain + '-gmStatus');
             try {
-                const tx = await signer.sendTransaction({
-                    to: OWNER,
-                    value: ethers.parseEther('0.001')
-                });
+                const tx = await signer.sendTransaction({ to: OWNER, value: ethers.parseEther('0.001') });
                 await tx.wait();
                 
                 stats.lastGM = today;
                 stats.gmStreak++;
+                stats.nftMintToday = false;
                 completedTasks['Daily GM'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
                 
-                const streakEl = document.getElementById(chain + '-gmStreak');
-                if (streakEl) {
-                    streakEl.textContent = stats.gmStreak;
-                }
-                showStatus('success', '✨ GM! Streak: ' + stats.gmStreak, chain + '-gmStatus');
+                const chains = ['arc', 'ink', 'giwa'];
+                chains.forEach(c => {
+                    const el = document.getElementById(c + '-gmStreak');
+                    if (el) el.textContent = stats.gmStreak;
+                });
+                
+                showStatus('success', `✨ GM! Streak: ${stats.gmStreak} days`, chain + '-gmStatus');
             } catch (error) {
                 showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-gmStatus');
             }
@@ -873,15 +884,14 @@
             const chains = ['arc', 'ink', 'giwa'];
             chains.forEach(chain => {
                 const wallet = document.getElementById(chain + '-profileWallet');
-                const swaps = document.getElementById(chain + '-profileSwaps');
-                const bridges = document.getElementById(chain + '-profileBridges');
-                const nfts = document.getElementById(chain + '-profileNFTs');
-                const streak = document.getElementById(chain + '-profileStreak');
-                
                 if (wallet) wallet.textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
+                const swaps = document.getElementById(chain + '-profileSwaps');
                 if (swaps) swaps.textContent = stats.swaps;
+                const bridges = document.getElementById(chain + '-profileBridges');
                 if (bridges) bridges.textContent = stats.bridges;
+                const nfts = document.getElementById(chain + '-profileNFTs');
                 if (nfts) nfts.textContent = stats.nfts;
+                const streak = document.getElementById(chain + '-profileStreak');
                 if (streak) streak.textContent = stats.gmStreak;
             });
         }
@@ -901,11 +911,13 @@
         }
 
         function showStatus(type, msg, id) {
+            const el = document.getElementById(id);
+            if (!el) return;
             const div = document.createElement('div');
             div.className = `status ${type}`;
             div.textContent = msg;
-            document.getElementById(id).innerHTML = '';
-            document.getElementById(id).appendChild(div);
+            el.innerHTML = '';
+            el.appendChild(div);
             if (type !== 'loading') setTimeout(() => div.remove(), 10000);
         }
     </script>
