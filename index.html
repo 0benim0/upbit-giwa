@@ -599,7 +599,7 @@
             });
         }
 
-        function selectChain(chain) {
+        async function selectChain(chain) {
             currentChain = chain;
             document.querySelectorAll('.chain-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
@@ -609,6 +609,24 @@
             document.getElementById('arc-tabs').style.display = chain === 'arc' ? 'flex' : 'none';
             document.getElementById('ink-tabs').style.display = chain === 'ink' ? 'flex' : 'none';
             document.getElementById('giwa-tabs').style.display = chain === 'giwa' ? 'flex' : 'none';
+            
+            // Auto-switch MetaMask to selected chain
+            if (window.ethereum && userAddress) {
+                try {
+                    let chainId = '0x4cef52'; // ARC
+                    if (chain === 'ink') chainId = '0x2f6aed'; // INK (763111 in hex)
+                    else if (chain === 'giwa') chainId = '0x1a6a9d2'; // GIWA (27699666 in hex)
+                    
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: chainId }],
+                    });
+                } catch (error) {
+                    if (error.code !== 4902) {
+                        console.error('Chain switch error:', error);
+                    }
+                }
+            }
         }
 
         function switchTab(chain, tab) {
