@@ -482,7 +482,7 @@
         <div id="giwa-content" style="display:none;">
             <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
             <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div id="giwa-nftSupply" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0; line-height:1.8;">Checkmate NFT<br><span style="font-size:32px;">1 / 9999</span> Minted</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
-            <div id="giwa-bridge" class="tab-content"><div class="card"><h2>🌉 Bridge Native Token</h2><div style="background:rgba(0,212,255,0.1); padding:15px; border-radius:8px; margin-bottom:15px;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">From Chain</div><div style="font-size:20px; color:var(--task-blue); font-weight:bold;">🟣 GIWA Sepolia</div><div style="font-size:12px; color:var(--text-muted); margin-top:5px;">Available: <span id="giwa-bridgeBalance" style="color:var(--task-blue); font-weight:bold;">0.0000</span> ETH</div></div><div class="input-group"><label>To Chain</label><select id="giwa-bridgeChain" onchange="updateBridgeChain(this.value)" style="padding:10px; border-radius:8px; border:2px solid var(--task-blue); background:white; color:black; font-weight:bold;"><option value="arc">🔵 ARC Testnet</option><option value="ink">⚪ INK Sepolia</option><option value="giwa">🟣 GIWA Sepolia</option></select></div><div class="input-group"><label>Amount (ETH)</label><input type="number" id="giwa-bridgeAmount" placeholder="0.1" step="0.0001" min="0"></div><div style="display:flex; gap:10px; margin:10px 0;"><button onclick="setBridgePercent(25, 'giwa')" class="percent-btn">25%</button><button onclick="setBridgePercent(50, 'giwa')" class="percent-btn">50%</button><button onclick="setBridgePercent(75, 'giwa')" class="percent-btn">75%</button><button onclick="setBridgePercent(100, 'giwa')" class="percent-btn">100%</button></div><div class="input-group"><label>Fee Option</label><select id="giwa-bridgeFee" onchange="setBridgeFee(this.value, 'giwa')"><option value="25">0.025%</option><option value="50" selected>0.050%</option><option value="75">0.075%</option><option value="100">0.1%</option></select></div><button onclick="bridgeTokenGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Bridge Token</button><div id="giwa-bridgeStatus"></div><div id="giwa-reverseButtonsContainer" style="margin-top:20px; display:none;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:10px; text-align:center;">Reverse Bridge</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><button onclick="selectReverseChain('arc')" style="padding:10px 15px; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">🔵 Back to ARC</button><button onclick="selectReverseChain('ink')" style="padding:10px 15px; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">⚪ Back to INK</button><button onclick="selectReverseChain('giwa')" style="padding:10px 15px; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">🟣 Back to GIWA</button></div></div></div></div>
+            <div id="giwa-bridge" class="tab-content"><div class="card"><h2>🌉 Bridge Native Token</h2><div style="background:rgba(0,212,255,0.1); padding:15px; border-radius:8px; margin-bottom:15px;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">From Chain</div><div id="bridge-fromChain" style="font-size:20px; color:var(--task-blue); font-weight:bold;">Loading...</div><div style="font-size:12px; color:var(--text-muted); margin-top:5px;">Available: <span id="bridge-balance" style="color:var(--task-blue); font-weight:bold;">0.0000</span> ETH</div></div><div class="input-group"><label>To Chain</label><select id="bridge-toChain" onchange="updateBridgeDestination(this.value)" style="padding:10px; border-radius:8px; border:2px solid var(--task-blue); background:white; color:black; font-weight:bold;"><option value="">Loading chains...</option></select></div><div class="input-group"><label>Amount (ETH)</label><input type="number" id="bridge-amount" placeholder="0.1" step="0.0001" min="0"></div><div style="display:flex; gap:10px; margin:10px 0;"><button onclick="setBridgePercent(25)" class="percent-btn">25%</button><button onclick="setBridgePercent(50)" class="percent-btn">50%</button><button onclick="setBridgePercent(75)" class="percent-btn">75%</button><button onclick="setBridgePercent(100)" class="percent-btn">100%</button></div><div class="input-group"><label>Fee Option</label><select id="bridge-fee" onchange="updateBridgeFee(this.value)"><option value="25">0.025%</option><option value="50" selected>0.050%</option><option value="75">0.075%</option><option value="100">0.1%</option></select></div><button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Bridge Token</button><div id="bridge-status"></div><div id="bridge-reverseContainer" style="margin-top:20px; display:none;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:10px; text-align:center;">Reverse Bridge</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;" id="bridge-reverseButtons"></div></div></div></div>
             <div id="giwa-deploy" class="tab-content"><div class="card"><h2>🚀 Deploy Project</h2><div class="info-box">Deploy new projects on GIWA</div><div id="giwa-deployCounter" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0;">Deployments: 0</div><div class="input-group"><label>Project Name</label><input type="text" id="giwa-projectName" placeholder="My Awesome Project" maxlength="50"></div><button onclick="deployProjectGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Deploy Project</button><div id="giwa-deployStatus"></div></div></div>
             <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:18px; font-weight:bold; margin-bottom:15px;">Reset in: <span id="giwa-gmTimerCountdown" style="color:var(--task-blue); font-size:24px;">00:00:00</span></div><div id="giwa-gmAnimationContainer" style="text-align:center; height:120px; position:relative; margin:30px 0;"><div id="giwa-gmMorning" style="display:none; position:absolute; width:100%; height:100%;"><div style="font-size:60px; position:relative; left:20px; animation: float 3s ease-in-out infinite;">☀️</div><div style="font-size:80px; position:absolute; left:0; top:-10px; animation: float 3s ease-in-out infinite;">☁️</div></div><div id="giwa-gmDay" style="display:none; font-size:80px; animation: shine 2s ease-in-out infinite;">☀️</div><div id="giwa-gmSunset" style="display:none; font-size:70px; opacity:0.7;">🌇</div><div id="giwa-gmNight" style="display:none; position:relative; height:100%;"><div style="font-size:70px; position:absolute; right:30px; top:10px;">🌙</div><div style="font-size:24px; position:absolute; left:20px; top:20px; animation: twinkle 1.5s infinite;">✨</div><div style="font-size:20px; position:absolute; left:40px; top:50px; animation: twinkle 1.8s infinite;">⭐</div><div style="font-size:20px; position:absolute; right:50px; top:30px; animation: twinkle 1.3s infinite;">⭐</div></div></div><div style="text-align:center; margin:20px 0;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">Day Streak</div><div style="font-size:48px; color:var(--task-blue); font-weight:bold;" id="giwa-gmStreak">0</div></div><div id="giwa-gmStatusBox" style="text-align:center; margin:15px 0;"><div id="giwa-gmStatusReady" style="display:none; font-size:14px; color:var(--success); font-weight:bold; padding:10px; background:rgba(16,185,129,0.1); border-radius:8px;">✅ Ready to Check In!</div><div id="giwa-gmStatusMissed" style="display:none; font-size:14px; color:var(--danger); font-weight:bold; padding:10px; background:rgba(239,68,68,0.1); border-radius:8px;">❌ Streak Missed! Check in now!</div></div><button onclick="gmCheckInGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Say GM</button><div id="giwa-gmStatus"></div></div></div><style>@keyframes float {0%, 100% { transform: translateY(0px); }50% { transform: translateY(-15px); }}@keyframes shine {0%, 100% { filter: brightness(1); }50% { filter: brightness(1.3); }}@keyframes twinkle {0%, 100% { opacity: 0.3; }50% { opacity: 1; }}</style>
             <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
@@ -665,6 +665,9 @@
                     console.error(`❌ Switch failed: ${error.message}`);
                 }
             }
+            
+            // Update bridge UI when chain changes
+            updateBridgeOnChainChange();
         }
 
         function switchTab(chain, tab) {
@@ -693,7 +696,7 @@
                     await loadBalances();
                     await updateGiwaNFTSupply();
                     await updateGiwaDeployCounter();
-                    await updateBridgeBalance();
+                    updateBridgeUI();
                 }, 500);
             } catch (error) {
                 console.error('Wallet error:', error);
@@ -1096,11 +1099,37 @@
             }
         }
 
-        let currentBridgeChain = 'arc'; // Default destination chain
+        let currentBridgeChain = null;
+        let currentBridgeDestination = null;
+        let bridgeChainInfo = {
+            'giwa': { name: '🟣 GIWA Sepolia', contract: GIWA_BRIDGE_ADDRESS, abi: BRIDGE_ABI },
+            'arc': { name: '🔵 ARC Testnet', contract: ARC_BRIDGE_ADDRESS, abi: ARC_BRIDGE_ABI },
+            'ink': { name: '⚪ INK Sepolia', contract: INK_BRIDGE_ADDRESS, abi: INK_BRIDGE_ABI }
+        };
 
-        function updateBridgeChain(chain) {
-            currentBridgeChain = chain;
-            console.log(`Bridge destination changed to: ${chain}`);
+        function getAvailableDestinations(fromChain) {
+            const chains = ['giwa', 'arc', 'ink'];
+            return chains.filter(c => c !== fromChain);
+        }
+
+        function updateBridgeUI() {
+            currentBridgeChain = currentChain; // Use global currentChain variable
+            
+            // Update From Chain display
+            const fromChainInfo = bridgeChainInfo[currentBridgeChain];
+            document.getElementById('bridge-fromChain').textContent = fromChainInfo.name;
+            
+            // Update destination chain options
+            const destinations = getAvailableDestinations(currentBridgeChain);
+            let optionsHTML = '';
+            destinations.forEach(dest => {
+                optionsHTML += `<option value="${dest}">${bridgeChainInfo[dest].name}</option>`;
+            });
+            document.getElementById('bridge-toChain').innerHTML = optionsHTML;
+            currentBridgeDestination = destinations[0];
+            
+            // Load balance for current chain
+            updateBridgeBalance();
         }
 
         async function updateBridgeBalance() {
@@ -1110,40 +1139,51 @@
                 const balance = await provider.getBalance(userAddress);
                 const balanceETH = (balance / 1e18).toFixed(4);
                 
-                const el = document.getElementById('giwa-bridgeBalance');
-                if (el) {
-                    el.textContent = balanceETH;
-                }
-                
-                // Store for percent calculations
+                document.getElementById('bridge-balance').textContent = balanceETH;
                 balances.nativeBalance = balance;
+                
+                console.log(`Bridge Balance (${currentBridgeChain}): ${balanceETH} ETH`);
             } catch (error) {
                 console.error('Error loading bridge balance:', error);
             }
         }
 
-        async function bridgeTokenGiwa() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-bridgeStatus');
-            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-bridgeStatus');
+        function setBridgePercent(pct) {
+            if (!balances.nativeBalance) {
+                showStatus('error', 'Balance not loaded!', 'bridge-status');
+                return;
+            }
             
-            const amount = document.getElementById('giwa-bridgeAmount').value;
-            const feeOption = document.getElementById('giwa-bridgeFee').value;
+            const pctValue = (balances.nativeBalance * pct) / 100;
+            const ethAmount = (pctValue / 1e18).toFixed(4);
+            document.getElementById('bridge-amount').value = ethAmount;
+        }
+
+        function updateBridgeDestination(dest) {
+            currentBridgeDestination = dest;
+            console.log(`Bridge destination changed to: ${dest}`);
+        }
+
+        function updateBridgeFee(fee) {
+            console.log(`Bridge fee set to: ${fee}`);
+        }
+
+        async function executeBridge() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'bridge-status');
+            if (!signer) return showStatus('error', 'Signer not available!', 'bridge-status');
             
-            if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'giwa-bridgeStatus');
+            const amount = document.getElementById('bridge-amount').value;
+            const feeOption = document.getElementById('bridge-fee').value;
             
-            showStatus('loading', `Bridging to ${currentBridgeChain.toUpperCase()}...`, 'giwa-bridgeStatus');
+            if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'bridge-status');
+            if (!currentBridgeDestination) return showStatus('error', 'Select destination!', 'bridge-status');
+            
+            showStatus('loading', `Bridging to ${bridgeChainInfo[currentBridgeDestination].name}...`, 'bridge-status');
             try {
                 const feeInBasisPoints = parseInt(feeOption);
-                let bridgeContract;
+                const chainInfo = bridgeChainInfo[currentBridgeChain];
                 
-                // Select correct bridge contract based on destination chain
-                if (currentBridgeChain === 'arc') {
-                    bridgeContract = new ethers.Contract(ARC_BRIDGE_ADDRESS, ARC_BRIDGE_ABI, signer);
-                } else if (currentBridgeChain === 'ink') {
-                    bridgeContract = new ethers.Contract(INK_BRIDGE_ADDRESS, INK_BRIDGE_ABI, signer);
-                } else if (currentBridgeChain === 'giwa') {
-                    bridgeContract = new ethers.Contract(GIWA_BRIDGE_ADDRESS, BRIDGE_ABI, signer);
-                }
+                const bridgeContract = new ethers.Contract(chainInfo.contract, chainInfo.abi, signer);
                 
                 const tx = await bridgeContract.bridgeToken(feeInBasisPoints, {
                     value: ethers.parseEther(amount)
@@ -1161,23 +1201,36 @@
                 updateProfile();
                 updateBridgeBalance();
                 
-                showStatus('success', `✅ Bridged ${amount} ETH to ${currentBridgeChain.toUpperCase()}!`, 'giwa-bridgeStatus');
+                showStatus('success', `✅ Bridged ${amount} ETH to ${bridgeChainInfo[currentBridgeDestination].name}!`, 'bridge-status');
                 
                 // Show reverse buttons
-                document.getElementById('giwa-reverseButtonsContainer').style.display = 'block';
+                const destinations = getAvailableDestinations(currentBridgeChain);
+                let reverseHTML = '';
+                destinations.forEach(dest => {
+                    reverseHTML += `<button onclick="selectBridgeReverse('${dest}')" style="padding:10px 15px; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">${bridgeChainInfo[dest].name}</button>`;
+                });
+                document.getElementById('bridge-reverseButtons').innerHTML = reverseHTML;
+                document.getElementById('bridge-reverseContainer').style.display = 'block';
                 
-                document.getElementById('giwa-bridgeAmount').value = '';
+                document.getElementById('bridge-amount').value = '';
             } catch (error) {
                 console.error('Bridge Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-bridgeStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'bridge-status');
             }
         }
 
-        function selectReverseChain(chain) {
-            document.getElementById('giwa-bridgeChain').value = chain;
-            updateBridgeChain(chain);
-            document.getElementById('giwa-reverseButtonsContainer').style.display = 'none';
-            document.getElementById('giwa-bridgeStatus').innerHTML = '';
+        function selectBridgeReverse(chain) {
+            document.getElementById('bridge-toChain').value = chain;
+            updateBridgeDestination(chain);
+            document.getElementById('bridge-reverseContainer').style.display = 'none';
+            document.getElementById('bridge-status').innerHTML = '';
+        }
+
+        // Update bridge UI when chain changes
+        function updateBridgeOnChainChange() {
+            setTimeout(() => {
+                updateBridgeUI();
+            }, 500);
         }
 
         async function updateGiwaDeployCounter() {
