@@ -610,49 +610,54 @@
             document.getElementById('ink-tabs').style.display = chain === 'ink' ? 'flex' : 'none';
             document.getElementById('giwa-tabs').style.display = chain === 'giwa' ? 'flex' : 'none';
             
-            // Auto-switch MetaMask to selected chain
+            // Auto-add and switch MetaMask to selected chain
             if (window.ethereum && userAddress) {
                 const chainConfigs = {
-                    arc: { chainId: '0x4cef52', name: 'ARC', rpc: 'https://arc-testnet.drpc.org' },
-                    ink: { chainId: '0xba6fd', name: 'INK Sepolia', rpc: 'https://rpc-sepolia.ink.technology' },
-                    giwa: { chainId: '0x1a6a9d2', name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' }
+                    arc: { 
+                        chainId: '0x4cef52', 
+                        name: 'ARC Testnet',
+                        rpc: 'https://arc-testnet.drpc.org',
+                        symbol: 'ARC'
+                    },
+                    ink: { 
+                        chainId: '0xba6fd', 
+                        name: 'INK Sepolia',
+                        rpc: 'https://rpc-sepolia.ink.technology',
+                        symbol: 'ETH'
+                    },
+                    giwa: { 
+                        chainId: '0x1a6a9d2', 
+                        name: 'GIWA Testnet',
+                        rpc: 'https://rpc.testnet.chain.giwa.io',
+                        symbol: 'GIWA'
+                    }
                 };
                 
                 const config = chainConfigs[chain];
                 if (!config) return;
                 
                 try {
-                    console.log(`Attempting to switch to ${config.name} (${config.chainId})...`);
+                    console.log(`Adding/Switching to ${config.name}...`);
                     
+                    // First try to add the chain (works even if already added)
                     await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: config.chainId }],
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: config.chainId,
+                            chainName: config.name,
+                            rpcUrls: [config.rpc],
+                            nativeCurrency: { 
+                                name: config.name, 
+                                symbol: config.symbol, 
+                                decimals: 18 
+                            },
+                        }],
                     });
                     
                     console.log(`✅ Successfully switched to ${config.name}`);
                     document.getElementById('chainName').textContent = config.name;
                 } catch (error) {
-                    console.error(`❌ Switch failed: ${error.message}`);
-                    
-                    // If chain not added, try to add it
-                    if (error.code === 4902) {
-                        try {
-                            console.log(`Adding ${config.name} to wallet...`);
-                            await window.ethereum.request({
-                                method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: config.chainId,
-                                    chainName: config.name,
-                                    rpcUrls: [config.rpc],
-                                    nativeCurrency: { name: 'Native', symbol: 'TOKEN', decimals: 18 },
-                                }],
-                            });
-                            console.log(`✅ Added and switched to ${config.name}`);
-                            document.getElementById('chainName').textContent = config.name;
-                        } catch (addError) {
-                            console.error(`❌ Add chain failed: ${addError.message}`);
-                        }
-                    }
+                    console.error(`❌ Chain add/switch failed: ${error.message}`);
                 }
             }
         }
