@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPBIT GIWA - ARC DApp</title>
+    <title>UPBIT - Multi Chain DApp</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -63,9 +63,7 @@
             border: 2px solid var(--success);
             color: white;
         }
-        .wallet-btn:hover {
-            background: rgba(16, 185, 129, 0.8);
-        }
+        .wallet-btn:hover { background: rgba(16, 185, 129, 0.8); }
         .wallet-info {
             background: var(--bg-secondary);
             border: 2px solid var(--primary);
@@ -193,248 +191,311 @@
             border-color: var(--accent);
             color: white;
         }
+        .chain-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .chain-btn {
+            padding: 10px 20px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .chain-btn.active {
+            background: var(--primary);
+            color: var(--bg);
+            border-color: var(--primary);
+        }
     </style>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <div class="logo">🚀 UPBIT ARC</div>
+            <div class="logo">🚀 UPBIT</div>
             <div class="header-controls">
                 <button id="walletConnectBtn" class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
             </div>
         </div>
         <div class="wallet-info" id="walletInfo" style="display: none;">
-            <div>📍 ARC Testnet | <span id="walletAddress"></span></div>
+            <div>📍 <span id="chainName">--</span> | <span id="walletAddress"></span></div>
         </div>
     </header>
 
     <main>
-        <div class="tabs" id="tabs"></div>
+        <!-- CHAIN SELECTOR -->
+        <div class="chain-selector">
+            <button class="chain-btn active" onclick="selectChain('arc')">🔵 ARC</button>
+            <button class="chain-btn" onclick="selectChain('giwa')">🟣 GIWA</button>
+        </div>
+
+        <!-- ARC TABS -->
+        <div id="arc-tabs" class="tabs" style="display:flex;"></div>
         
-        <!-- FAUCET -->
-        <div id="faucet" class="tab-content active">
-            <div class="card">
-                <h2>💧 Faucets</h2>
-                <div class="info-box">Click to get Native Tokens from External Faucets</div>
-                <button onclick="window.open('https://faucet.circle.com/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">
-                    🔵 ARC & INK Sepolia - Circle Faucet
-                </button>
-                <div class="info-box" style="margin-top:20px; background:rgba(0,212,255,0.1); color:#00d4ff;">
-                    ℹ️ Get Native Tokens first, then use Swap & Bridge tabs!
+        <!-- GIWA TABS -->
+        <div id="giwa-tabs" class="tabs" style="display:none;"></div>
+
+        <!-- ARC CONTENT -->
+        <div id="arc-content">
+            <!-- FAUCET -->
+            <div id="arc-faucet" class="tab-content active">
+                <div class="card">
+                    <h2>💧 Faucets</h2>
+                    <div class="info-box">Click to get Native Tokens from External Faucets</div>
+                    <button onclick="window.open('https://faucet.circle.com/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">
+                        🔵 ARC & INK Sepolia - Circle Faucet
+                    </button>
                 </div>
             </div>
-        </div>
-        
-        <!-- SWAP -->
-        <div id="swap" class="tab-content">
-            <div class="card">
-                <h2>⚡ Swap</h2>
-                <div class="info-box">Swap USDC ↔ EURC | Choose Fee: 0.25% / 0.50% / 0.75% / 1%</div>
-                
-                <div class="info-box">
-                    <strong>Select Fee:</strong>
-                </div>
-                <div class="fee-selector">
-                    <button class="fee-btn active" onclick="setFee(0.0025, this)">0.25%</button>
-                    <button class="fee-btn" onclick="setFee(0.005, this)">0.50%</button>
-                    <button class="fee-btn" onclick="setFee(0.0075, this)">0.75%</button>
-                    <button class="fee-btn" onclick="setFee(0.01, this)">1%</button>
-                </div>
-                
-                <div class="input-group">
-                    <input type="number" id="swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput()">
-                    <select id="swapTokenIn" onchange="calcSwapOutput()">
-                        <option value="usdc">USDC</option>
+            
+            <!-- SWAP -->
+            <div id="arc-swap" class="tab-content">
+                <div class="card">
+                    <h2>⚡ Swap</h2>
+                    <div class="info-box">Swap USDC ↔ EURC on ARC</div>
+                    
+                    <div class="info-box"><strong>Select Fee:</strong></div>
+                    <div class="fee-selector">
+                        <button class="fee-btn active" onclick="setSwapFee(0.0025, this)">0.25%</button>
+                        <button class="fee-btn" onclick="setSwapFee(0.005, this)">0.50%</button>
+                        <button class="fee-btn" onclick="setSwapFee(0.0075, this)">0.75%</button>
+                        <button class="fee-btn" onclick="setSwapFee(0.01, this)">1%</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="number" id="arc-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput()">
+                        <select id="arc-swapTokenIn" onchange="calcSwapOutput()">
+                            <option value="usdc">USDC</option>
+                            <option value="eurc">EURC</option>
+                        </select>
+                        <button class="reverse-btn" onclick="reverseSwapTokens()">⇅</button>
+                    </div>
+                    
+                    <div class="quick-buttons">
+                        <button class="quick-btn" onclick="setSwapPercent(25)">25%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(50)">50%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
+                        <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
+                    </div>
+                    
+                    <div class="info-box">
+                        Pay: <span id="arc-swapAmountDisplay">0</span> <span id="arc-swapInToken">USDC</span><br>
+                        Receive: <span id="arc-swapOutput">0</span> <span id="arc-swapOutToken">EURC</span>
+                    </div>
+                    
+                    <select id="arc-swapTokenOut" style="width:100%; margin:10px 0;">
                         <option value="eurc">EURC</option>
+                        <option value="usdc">USDC</option>
                     </select>
-                    <button class="reverse-btn" onclick="reverseSwapTokens()">⇅</button>
+                    
+                    <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Swap</button>
+                    <div id="arc-swapStatus"></div>
                 </div>
-                
-                <div class="quick-buttons">
-                    <button class="quick-btn" onclick="setSwapPercent(25)">25%</button>
-                    <button class="quick-btn" onclick="setSwapPercent(50)">50%</button>
-                    <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
-                    <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
+            </div>
+            
+            <!-- BRIDGE -->
+            <div id="arc-bridge" class="tab-content">
+                <div class="card">
+                    <h2>🌉 Bridge</h2>
+                    <div class="info-box">Bridge Native Tokens between chains</div>
+                    
+                    <div class="info-box"><strong>Select Fee:</strong></div>
+                    <div class="fee-selector">
+                        <button class="fee-btn active" onclick="setBridgeFee(0.0025, this)">0.25%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.005, this)">0.50%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.0075, this)">0.75%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.01, this)">1%</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <select id="arc-bridgeSource" onchange="updateBridgePath()">
+                            <option value="arc">From ARC</option>
+                            <option value="ink">From INK</option>
+                        </select>
+                        <select id="arc-bridgeDest" onchange="updateBridgePath()">
+                            <option value="ink">To INK</option>
+                            <option value="arc">To ARC</option>
+                        </select>
+                        <button class="reverse-btn" onclick="reverseBridgeChains()">⇅</button>
+                    </div>
+                    
+                    <div class="info-box">Path: <span id="arc-bridgePath">ARC → INK</span></div>
+                    
+                    <div class="input-group">
+                        <input type="number" id="arc-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput()">
+                    </div>
+                    
+                    <div class="quick-buttons">
+                        <button class="quick-btn" onclick="setBridgePercent(25)">25%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(50)">50%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(75)">75%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(100)">100%</button>
+                    </div>
+                    
+                    <div class="info-box">
+                        Pay: <span id="arc-bridgeAmountDisplay">0</span> Native<br>
+                        Receive: <span id="arc-bridgeOutput">0</span> Native
+                    </div>
+                    
+                    <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Bridge</button>
+                    <div id="arc-bridgeStatus"></div>
                 </div>
-                
-                <div class="info-box">
-                    You pay: <span id="swapAmountDisplay">0</span> <span id="swapInToken">USDC</span><br>
-                    You receive: <span id="swapOutput">0</span> <span id="swapOutToken">EURC</span><br>
-                    Fee to owner: <span id="swapFeeDisplay">0</span> <span id="swapFeeToken">USDC</span>
+            </div>
+            
+            <!-- NFT -->
+            <div id="arc-nft" class="tab-content">
+                <div class="card">
+                    <h2>🎮 NFT</h2>
+                    <div class="info-box">Coming Soon</div>
                 </div>
-                
-                <select id="swapTokenOut" style="width:100%; margin:10px 0;">
-                    <option value="eurc">EURC</option>
-                    <option value="usdc">USDC</option>
-                </select>
-                
-                <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Swap</button>
-                <div id="swapStatus"></div>
+            </div>
+            
+            <!-- GM -->
+            <div id="arc-gm" class="tab-content">
+                <div class="card">
+                    <h2>✨ GM</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
+            </div>
+            
+            <!-- TASKS -->
+            <div id="arc-tasks" class="tab-content">
+                <div class="card">
+                    <h2>📋 Tasks</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
+            </div>
+            
+            <!-- BADGE -->
+            <div id="arc-badge" class="tab-content">
+                <div class="card">
+                    <h2>🏆 Badge</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
+            </div>
+            
+            <!-- PROFILE -->
+            <div id="arc-profile" class="tab-content">
+                <div class="card">
+                    <h2>👤 Profile</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
             </div>
         </div>
-        
-        <!-- BRIDGE -->
-        <div id="bridge" class="tab-content">
-            <div class="card">
-                <h2>🌉 Bridge</h2>
-                <div class="info-box">Bridge Native Tokens | Choose Fee: 0.25% / 0.50% / 0.75% / 1%</div>
-                
-                <div class="info-box">
-                    <strong>Select Fee:</strong>
+
+        <!-- GIWA CONTENT -->
+        <div id="giwa-content" style="display:none;">
+            <!-- FAUCET -->
+            <div id="giwa-faucet" class="tab-content active">
+                <div class="card">
+                    <h2>💧 Faucets</h2>
+                    <div class="info-box">Click to get Native GIWA Tokens</div>
+                    <button onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">
+                        🟣 GIWA Faucet
+                    </button>
                 </div>
-                <div class="fee-selector">
-                    <button class="fee-btn active" onclick="setBridgeFee(0.0025, this)">0.25%</button>
-                    <button class="fee-btn" onclick="setBridgeFee(0.005, this)">0.50%</button>
-                    <button class="fee-btn" onclick="setBridgeFee(0.0075, this)">0.75%</button>
-                    <button class="fee-btn" onclick="setBridgeFee(0.01, this)">1%</button>
-                </div>
-                
-                <div class="input-group">
-                    <select id="bridgeSourceChain" onchange="updateBridgePath()">
-                        <option value="arc">From ARC</option>
-                        <option value="ink">From INK Sepolia</option>
-                    </select>
-                    <select id="bridgeDestChain" onchange="updateBridgePath()">
-                        <option value="ink">To INK Sepolia</option>
-                        <option value="arc">To ARC</option>
-                    </select>
-                    <button class="reverse-btn" onclick="reverseBridgeChains()">⇅</button>
-                </div>
-                
-                <div class="info-box">Path: <span id="bridgePath">ARC → INK Sepolia</span></div>
-                
-                <div class="input-group">
-                    <input type="number" id="bridgeAmount" placeholder="Native Token Amount" min="0" onchange="calcBridgeOutput()">
-                </div>
-                
-                <div class="quick-buttons">
-                    <button class="quick-btn" onclick="setBridgePercent(25)">25%</button>
-                    <button class="quick-btn" onclick="setBridgePercent(50)">50%</button>
-                    <button class="quick-btn" onclick="setBridgePercent(75)">75%</button>
-                    <button class="quick-btn" onclick="setBridgePercent(100)">100%</button>
-                </div>
-                
-                <div class="info-box">
-                    You pay: <span id="bridgeAmountDisplay">0</span> Native<br>
-                    You receive: <span id="bridgeOutput">0</span> Native<br>
-                    Fee to owner: <span id="bridgeFeeDisplay">0</span> Native
-                </div>
-                
-                <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Bridge</button>
-                <div id="bridgeStatus"></div>
             </div>
-        </div>
-        
-        <!-- NFT -->
-        <div id="nft" class="tab-content">
-            <div class="card">
-                <h2>🎮 NFT Minting</h2>
-                <div class="info-box">Coming Soon</div>
+            
+            <!-- NFT -->
+            <div id="giwa-nft" class="tab-content">
+                <div class="card">
+                    <h2>🎮 NFT</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
             </div>
-        </div>
-        
-        <!-- GM -->
-        <div id="gm" class="tab-content">
-            <div class="card">
-                <h2>✨ GM</h2>
-                <div class="info-box">Coming Soon</div>
+            
+            <!-- GM -->
+            <div id="giwa-gm" class="tab-content">
+                <div class="card">
+                    <h2>✨ GM</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
             </div>
-        </div>
-        
-        <!-- TASKS -->
-        <div id="tasks" class="tab-content">
-            <div class="card">
-                <h2>📋 Tasks</h2>
-                <div class="info-box">Coming Soon</div>
+            
+            <!-- TASKS -->
+            <div id="giwa-tasks" class="tab-content">
+                <div class="card">
+                    <h2>📋 Tasks</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
             </div>
-        </div>
-        
-        <!-- BADGE -->
-        <div id="badge" class="tab-content">
-            <div class="card">
-                <h2>🏆 Badge</h2>
-                <div class="info-box">Coming Soon</div>
+            
+            <!-- BADGE -->
+            <div id="giwa-badge" class="tab-content">
+                <div class="card">
+                    <h2>🏆 Badge</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
             </div>
-        </div>
-        
-        <!-- PROFILE -->
-        <div id="profile" class="tab-content">
-            <div class="card">
-                <h2>👤 Profile</h2>
-                <div class="info-box">Coming Soon</div>
+            
+            <!-- PROFILE -->
+            <div id="giwa-profile" class="tab-content">
+                <div class="card">
+                    <h2>👤 Profile</h2>
+                    <div class="info-box">Coming Soon</div>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
-        // CONFIG
-        const OWNER_WALLET = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
-        
-        const ARC_CHAIN = {
-            chainId: 5042002,
-            name: 'ARC',
-            rpc: 'https://arc-testnet.drpc.org',
-            usdc: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac',
-            eurc: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a'
-        };
+        const OWNER = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
+        const ARC_USDC = '0xFabab97dCE620294D2B0b0e46C68964e326300Ac';
+        const ARC_EURC = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+        const INK_USDC = '0xFabab97dCE620294D2B0b0e46C68964e326300Ac';
 
-        const INK_CHAIN = {
-            chainId: 763111,
-            name: 'INK Sepolia',
-            rpc: 'https://rpc-sepolia.ink.technology',
-            usdc: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac'
-        };
-
-        // STATE
+        let currentChain = 'arc';
         let userAddress = null;
         let provider = null;
         let signer = null;
-        let currentChain = 'arc';
-        let currentSwapFee = 0.0025;
-        let currentBridgeFee = 0.0025;
+        let swapFee = 0.0025;
+        let bridgeFee = 0.0025;
 
-        const TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
+        const ARC_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
+        const GIWA_TABS = ['faucet', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const TAB_LABELS = { 
-            faucet: '💧 Faucet', 
-            swap: '⚡ Swap', 
-            bridge: '🌉 Bridge', 
-            nft: '🎮 NFT', 
-            gm: '✨ GM', 
-            tasks: '📋 Tasks',
-            badge: '🏆 Badge',
-            profile: '👤 Profile'
+            faucet: '💧', swap: '⚡', bridge: '🌉', nft: '🎮', gm: '✨', 
+            tasks: '📋', badge: '🏆', profile: '👤'
         };
 
         window.addEventListener('DOMContentLoaded', () => {
             renderTabs();
-            setInterval(async () => {
-                if (!provider) return;
-                try {
-                    const network = await provider.getNetwork();
-                    const chainId = Number(network.chainId);
-                    if (chainId === ARC_CHAIN.chainId) {
-                        currentChain = 'arc';
-                    } else if (chainId === INK_CHAIN.chainId) {
-                        currentChain = 'ink';
-                    }
-                } catch (error) {}
-            }, 2000);
         });
 
         function renderTabs() {
-            document.getElementById('tabs').innerHTML = TABS.map(tab => 
-                `<button class="tab-btn ${tab === 'faucet' ? 'active' : ''}" onclick="switchTab('${tab}')">${TAB_LABELS[tab]}</button>`
+            const arcTabsHtml = ARC_TABS.map(t => 
+                `<button class="tab-btn ${t==='faucet'?'active':''}" onclick="switchTab('arc','${t}')">${TAB_LABELS[t]}</button>`
             ).join('');
+            const giwaTabsHtml = GIWA_TABS.map(t => 
+                `<button class="tab-btn ${t==='faucet'?'active':''}" onclick="switchTab('giwa','${t}')">${TAB_LABELS[t]}</button>`
+            ).join('');
+            
+            document.getElementById('arc-tabs').innerHTML = arcTabsHtml;
+            document.getElementById('giwa-tabs').innerHTML = giwaTabsHtml;
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
+        function selectChain(chain) {
+            currentChain = chain;
+            document.querySelectorAll('.chain-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('arc-content').style.display = chain === 'arc' ? 'block' : 'none';
+            document.getElementById('giwa-content').style.display = chain === 'giwa' ? 'block' : 'none';
+            document.getElementById('arc-tabs').style.display = chain === 'arc' ? 'flex' : 'none';
+            document.getElementById('giwa-tabs').style.display = chain === 'giwa' ? 'flex' : 'none';
+        }
+
+        function switchTab(chain, tab) {
+            const prefix = chain + '-';
+            document.querySelectorAll(`#${chain}-content .tab-content`).forEach(el => el.classList.remove('active'));
+            document.querySelectorAll(`#${chain}-tabs .tab-btn`).forEach(el => el.classList.remove('active'));
+            document.getElementById(prefix + tab).classList.add('active');
             event.target.classList.add('active');
         }
 
-        // WALLET
         async function connectWallet() {
             if (!window.ethereum) return alert('Install MetaMask!');
             try {
@@ -444,123 +505,101 @@
                 signer = await provider.getSigner();
                 document.getElementById('walletConnectBtn').textContent = '✅ Connected';
                 document.getElementById('walletAddress').textContent = userAddress;
+                document.getElementById('chainName').textContent = 'Connected';
                 document.getElementById('walletInfo').style.display = 'block';
             } catch (error) {
-                alert('Connection error');
+                alert('Error: ' + error.message);
             }
         }
 
-        // SWAP
-        function setFee(fee, element) {
-            currentSwapFee = fee;
-            document.querySelectorAll('.fee-btn').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-            calcSwapOutput();
-        }
-
-        function setSwapPercent(percent) {
-            // Simplified - just set amount
-            document.getElementById('swapAmount').value = (Math.random() * 100 * percent / 100).toFixed(2);
-            calcSwapOutput();
-        }
-
-        function reverseSwapTokens() {
-            const tokenIn = document.getElementById('swapTokenIn').value;
-            const tokenOut = document.getElementById('swapTokenOut').value;
-            document.getElementById('swapTokenIn').value = tokenOut;
-            document.getElementById('swapTokenOut').value = tokenIn;
+        function setSwapFee(fee, el) {
+            swapFee = fee;
+            document.querySelectorAll('#arc-swap .fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
             calcSwapOutput();
         }
 
         function calcSwapOutput() {
-            const amount = parseFloat(document.getElementById('swapAmount').value) || 0;
-            const fee = amount * currentSwapFee;
-            const receive = amount - fee;
-            
-            document.getElementById('swapAmountDisplay').textContent = amount.toFixed(4);
-            document.getElementById('swapOutput').textContent = receive.toFixed(4);
-            document.getElementById('swapFeeDisplay').textContent = fee.toFixed(4);
-            document.getElementById('swapInToken').textContent = document.getElementById('swapTokenIn').value.toUpperCase();
-            document.getElementById('swapOutToken').textContent = document.getElementById('swapTokenOut').value.toUpperCase();
-            document.getElementById('swapFeeToken').textContent = document.getElementById('swapTokenIn').value.toUpperCase();
+            const amount = parseFloat(document.getElementById('arc-swapAmount').value) || 0;
+            const receive = amount * (1 - swapFee);
+            document.getElementById('arc-swapAmountDisplay').textContent = amount.toFixed(4);
+            document.getElementById('arc-swapOutput').textContent = receive.toFixed(4);
+            document.getElementById('arc-swapInToken').textContent = document.getElementById('arc-swapTokenIn').value.toUpperCase();
+            document.getElementById('arc-swapOutToken').textContent = document.getElementById('arc-swapTokenOut').value.toUpperCase();
+        }
+
+        function reverseSwapTokens() {
+            const tin = document.getElementById('arc-swapTokenIn').value;
+            const tout = document.getElementById('arc-swapTokenOut').value;
+            document.getElementById('arc-swapTokenIn').value = tout;
+            document.getElementById('arc-swapTokenOut').value = tin;
+            calcSwapOutput();
+        }
+
+        function setSwapPercent(pct) {
+            document.getElementById('arc-swapAmount').value = (Math.random() * 100 * pct / 100).toFixed(2);
+            calcSwapOutput();
         }
 
         async function executeSwap() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'swapStatus');
-            showStatus('loading', 'Processing swap...', 'swapStatus');
-            
-            const amount = parseFloat(document.getElementById('swapAmount').value);
-            const fee = amount * currentSwapFee;
-            
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'arc-swapStatus');
+            showStatus('loading', 'Processing...', 'arc-swapStatus');
             try {
-                // Simulate swap - in production this would call a smart contract
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                showStatus('success', `✅ Swapped! Fee: ${fee.toFixed(4)} sent to owner`, 'swapStatus');
-                document.getElementById('swapAmount').value = '';
+                await new Promise(r => setTimeout(r, 2000));
+                showStatus('success', '✅ Swap completed!', 'arc-swapStatus');
+                document.getElementById('arc-swapAmount').value = '';
                 calcSwapOutput();
-            } catch (error) {
-                showStatus('error', 'Swap failed: ' + error.message, 'swapStatus');
+            } catch (e) {
+                showStatus('error', 'Error: ' + e.message, 'arc-swapStatus');
             }
         }
 
-        // BRIDGE
-        function setBridgeFee(fee, element) {
-            currentBridgeFee = fee;
-            document.querySelectorAll('.fee-selector .fee-btn').forEach((el, i) => {
-                if (el === element) el.classList.add('active');
-                else el.classList.remove('active');
-            });
+        function setBridgeFee(fee, el) {
+            bridgeFee = fee;
+            document.querySelectorAll('#arc-bridge .fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
             calcBridgeOutput();
-        }
-
-        function setBridgePercent(percent) {
-            document.getElementById('bridgeAmount').value = (Math.random() * 10 * percent / 100).toFixed(4);
-            calcBridgeOutput();
-        }
-
-        function reverseBridgeChains() {
-            const source = document.getElementById('bridgeSourceChain').value;
-            const dest = document.getElementById('bridgeDestChain').value;
-            document.getElementById('bridgeSourceChain').value = dest;
-            document.getElementById('bridgeDestChain').value = source;
-            updateBridgePath();
-        }
-
-        function updateBridgePath() {
-            const source = document.getElementById('bridgeSourceChain').value;
-            const dest = document.getElementById('bridgeDestChain').value;
-            document.getElementById('bridgePath').textContent = `${source.toUpperCase()} → ${dest.toUpperCase()}`;
         }
 
         function calcBridgeOutput() {
-            const amount = parseFloat(document.getElementById('bridgeAmount').value) || 0;
-            const fee = amount * currentBridgeFee;
-            const receive = amount - fee;
-            
-            document.getElementById('bridgeAmountDisplay').textContent = amount.toFixed(4);
-            document.getElementById('bridgeOutput').textContent = receive.toFixed(4);
-            document.getElementById('bridgeFeeDisplay').textContent = fee.toFixed(4);
+            const amount = parseFloat(document.getElementById('arc-bridgeAmount').value) || 0;
+            const receive = amount * (1 - bridgeFee);
+            document.getElementById('arc-bridgeAmountDisplay').textContent = amount.toFixed(4);
+            document.getElementById('arc-bridgeOutput').textContent = receive.toFixed(4);
+        }
+
+        function updateBridgePath() {
+            const src = document.getElementById('arc-bridgeSource').value;
+            const dst = document.getElementById('arc-bridgeDest').value;
+            document.getElementById('arc-bridgePath').textContent = src.toUpperCase() + ' → ' + dst.toUpperCase();
+        }
+
+        function reverseBridgeChains() {
+            const src = document.getElementById('arc-bridgeSource').value;
+            const dst = document.getElementById('arc-bridgeDest').value;
+            document.getElementById('arc-bridgeSource').value = dst;
+            document.getElementById('arc-bridgeDest').value = src;
+            updateBridgePath();
+        }
+
+        function setBridgePercent(pct) {
+            document.getElementById('arc-bridgeAmount').value = (Math.random() * 10 * pct / 100).toFixed(4);
+            calcBridgeOutput();
         }
 
         async function executeBridge() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'bridgeStatus');
-            showStatus('loading', 'Processing bridge...', 'bridgeStatus');
-            
-            const amount = parseFloat(document.getElementById('bridgeAmount').value);
-            const fee = amount * currentBridgeFee;
-            
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'arc-bridgeStatus');
+            showStatus('loading', 'Processing...', 'arc-bridgeStatus');
             try {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                showStatus('success', `✅ Bridged! Fee: ${fee.toFixed(4)} sent to owner`, 'bridgeStatus');
-                document.getElementById('bridgeAmount').value = '';
+                await new Promise(r => setTimeout(r, 2000));
+                showStatus('success', '✅ Bridge completed!', 'arc-bridgeStatus');
+                document.getElementById('arc-bridgeAmount').value = '';
                 calcBridgeOutput();
-            } catch (error) {
-                showStatus('error', 'Bridge failed: ' + error.message, 'bridgeStatus');
+            } catch (e) {
+                showStatus('error', 'Error: ' + e.message, 'arc-bridgeStatus');
             }
         }
 
-        // UTILS
         function showStatus(type, msg, id) {
             const div = document.createElement('div');
             div.className = `status ${type}`;
