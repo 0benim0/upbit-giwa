@@ -78,6 +78,25 @@
             margin: 30px auto;
             padding: 20px;
         }
+        .chain-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .chain-btn {
+            padding: 10px 20px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .chain-btn.active {
+            background: var(--primary);
+            color: var(--bg);
+            border-color: var(--primary);
+        }
         .tabs {
             display: flex;
             gap: 10px;
@@ -191,24 +210,29 @@
             border-color: var(--accent);
             color: white;
         }
-        .chain-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .chain-btn {
-            padding: 10px 20px;
+        .task-item {
             background: var(--bg-tertiary);
-            border: 2px solid var(--border);
-            color: var(--text);
-            cursor: pointer;
+            border-left: 4px solid var(--task-blue);
+            padding: 15px;
+            margin: 10px 0;
             border-radius: 8px;
-            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .chain-btn.active {
-            background: var(--primary);
+        .task-item.completed {
+            border-left-color: var(--success);
+            opacity: 0.7;
+        }
+        .task-btn {
+            background: var(--task-blue);
             color: var(--bg);
-            border-color: var(--primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+        .task-btn.done {
+            background: var(--success);
         }
     </style>
 </head>
@@ -226,16 +250,12 @@
     </header>
 
     <main>
-        <!-- CHAIN SELECTOR -->
         <div class="chain-selector">
             <button class="chain-btn active" onclick="selectChain('arc')">🔵 ARC</button>
             <button class="chain-btn" onclick="selectChain('giwa')">🟣 GIWA</button>
         </div>
 
-        <!-- ARC TABS -->
-        <div id="arc-tabs" class="tabs" style="display:flex;"></div>
-        
-        <!-- GIWA TABS -->
+        <div id="arc-tabs" class="tabs"></div>
         <div id="giwa-tabs" class="tabs" style="display:none;"></div>
 
         <!-- ARC CONTENT -->
@@ -243,10 +263,9 @@
             <!-- FAUCET -->
             <div id="arc-faucet" class="tab-content active">
                 <div class="card">
-                    <h2>💧 Faucets</h2>
-                    <div class="info-box">Click to get Native Tokens from External Faucets</div>
-                    <button onclick="window.open('https://faucet.circle.com/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">
-                        🔵 ARC & INK Sepolia - Circle Faucet
+                    <h2>💧 Faucet</h2>
+                    <button onclick="window.open('https://faucet.circle.com/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; border:none; border-radius:8px; font-weight:bold;">
+                        Get Circle Faucet
                     </button>
                 </div>
             </div>
@@ -255,8 +274,6 @@
             <div id="arc-swap" class="tab-content">
                 <div class="card">
                     <h2>⚡ Swap</h2>
-                    <div class="info-box">Swap USDC ↔ EURC on ARC</div>
-                    
                     <div class="info-box"><strong>Select Fee:</strong></div>
                     <div class="fee-selector">
                         <button class="fee-btn active" onclick="setSwapFee(0.0025, this)">0.25%</button>
@@ -264,7 +281,6 @@
                         <button class="fee-btn" onclick="setSwapFee(0.0075, this)">0.75%</button>
                         <button class="fee-btn" onclick="setSwapFee(0.01, this)">1%</button>
                     </div>
-                    
                     <div class="input-group">
                         <input type="number" id="arc-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput()">
                         <select id="arc-swapTokenIn" onchange="calcSwapOutput()">
@@ -273,25 +289,15 @@
                         </select>
                         <button class="reverse-btn" onclick="reverseSwapTokens()">⇅</button>
                     </div>
-                    
                     <div class="quick-buttons">
                         <button class="quick-btn" onclick="setSwapPercent(25)">25%</button>
                         <button class="quick-btn" onclick="setSwapPercent(50)">50%</button>
                         <button class="quick-btn" onclick="setSwapPercent(75)">75%</button>
                         <button class="quick-btn" onclick="setSwapPercent(100)">100%</button>
                     </div>
-                    
-                    <div class="info-box">
-                        Pay: <span id="arc-swapAmountDisplay">0</span> <span id="arc-swapInToken">USDC</span><br>
-                        Receive: <span id="arc-swapOutput">0</span> <span id="arc-swapOutToken">EURC</span>
-                    </div>
-                    
-                    <select id="arc-swapTokenOut" style="width:100%; margin:10px 0;">
-                        <option value="eurc">EURC</option>
-                        <option value="usdc">USDC</option>
-                    </select>
-                    
-                    <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Swap</button>
+                    <div class="info-box">Pay: <span id="arc-swapAmountDisplay">0</span> <span id="arc-swapInToken">USDC</span><br>Receive: <span id="arc-swapOutput">0</span> <span id="arc-swapOutToken">EURC</span></div>
+                    <select id="arc-swapTokenOut" style="width:100%; margin:10px 0;"><option value="eurc">EURC</option><option value="usdc">USDC</option></select>
+                    <button onclick="executeSwap()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Swap Now</button>
                     <div id="arc-swapStatus"></div>
                 </div>
             </div>
@@ -300,8 +306,6 @@
             <div id="arc-bridge" class="tab-content">
                 <div class="card">
                     <h2>🌉 Bridge</h2>
-                    <div class="info-box">Bridge Native Tokens between chains</div>
-                    
                     <div class="info-box"><strong>Select Fee:</strong></div>
                     <div class="fee-selector">
                         <button class="fee-btn active" onclick="setBridgeFee(0.0025, this)">0.25%</button>
@@ -309,38 +313,21 @@
                         <button class="fee-btn" onclick="setBridgeFee(0.0075, this)">0.75%</button>
                         <button class="fee-btn" onclick="setBridgeFee(0.01, this)">1%</button>
                     </div>
-                    
                     <div class="input-group">
-                        <select id="arc-bridgeSource" onchange="updateBridgePath()">
-                            <option value="arc">From ARC</option>
-                            <option value="ink">From INK</option>
-                        </select>
-                        <select id="arc-bridgeDest" onchange="updateBridgePath()">
-                            <option value="ink">To INK</option>
-                            <option value="arc">To ARC</option>
-                        </select>
+                        <select id="arc-bridgeSource" onchange="updateBridgePath()"><option value="arc">From ARC</option><option value="ink">From INK</option></select>
+                        <select id="arc-bridgeDest" onchange="updateBridgePath()"><option value="ink">To INK</option><option value="arc">To ARC</option></select>
                         <button class="reverse-btn" onclick="reverseBridgeChains()">⇅</button>
                     </div>
-                    
                     <div class="info-box">Path: <span id="arc-bridgePath">ARC → INK</span></div>
-                    
-                    <div class="input-group">
-                        <input type="number" id="arc-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput()">
-                    </div>
-                    
+                    <div class="input-group"><input type="number" id="arc-bridgeAmount" placeholder="Amount" min="0" onchange="calcBridgeOutput()"></div>
                     <div class="quick-buttons">
                         <button class="quick-btn" onclick="setBridgePercent(25)">25%</button>
                         <button class="quick-btn" onclick="setBridgePercent(50)">50%</button>
                         <button class="quick-btn" onclick="setBridgePercent(75)">75%</button>
                         <button class="quick-btn" onclick="setBridgePercent(100)">100%</button>
                     </div>
-                    
-                    <div class="info-box">
-                        Pay: <span id="arc-bridgeAmountDisplay">0</span> Native<br>
-                        Receive: <span id="arc-bridgeOutput">0</span> Native
-                    </div>
-                    
-                    <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Bridge</button>
+                    <div class="info-box">Pay: <span id="arc-bridgeAmountDisplay">0</span> Native<br>Receive: <span id="arc-bridgeOutput">0</span> Native</div>
+                    <button onclick="executeBridge()" style="width:100%; padding:15px; margin:15px 0; background:#00d4ff; color:black; font-weight:bold;">Bridge Now</button>
                     <div id="arc-bridgeStatus"></div>
                 </div>
             </div>
@@ -348,16 +335,21 @@
             <!-- NFT -->
             <div id="arc-nft" class="tab-content">
                 <div class="card">
-                    <h2>🎮 NFT</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <h2>🎮 NFT Minting</h2>
+                    <div class="input-group"><input type="text" id="arc-nftName" placeholder="NFT Name"></div>
+                    <button onclick="mintNFT()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT</button>
+                    <div id="arc-nftStatus"></div>
                 </div>
             </div>
             
             <!-- GM -->
             <div id="arc-gm" class="tab-content">
                 <div class="card">
-                    <h2>✨ GM</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <h2>✨ GM Check-in</h2>
+                    <div style="text-align:center; font-size:48px; color:var(--primary); margin:20px 0;">GM ☀️</div>
+                    <div style="text-align:center; margin:20px 0;">Streak: <span id="arc-gmStreak" style="color:var(--primary); font-size:24px;">0</span> days</div>
+                    <button onclick="gmCheckIn()" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM!</button>
+                    <div id="arc-gmStatus"></div>
                 </div>
             </div>
             
@@ -365,15 +357,15 @@
             <div id="arc-tasks" class="tab-content">
                 <div class="card">
                     <h2>📋 Tasks</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <div id="arc-tasksContainer"></div>
                 </div>
             </div>
             
             <!-- BADGE -->
             <div id="arc-badge" class="tab-content">
                 <div class="card">
-                    <h2>🏆 Badge</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <h2>🏆 Badges</h2>
+                    <div id="arc-badgesContainer"></div>
                 </div>
             </div>
             
@@ -381,7 +373,10 @@
             <div id="arc-profile" class="tab-content">
                 <div class="card">
                     <h2>👤 Profile</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <div class="info-box">Wallet: <strong id="arc-profileWallet">Not Connected</strong></div>
+                    <div class="info-box">Swaps: <strong id="arc-profileSwaps">0</strong></div>
+                    <div class="info-box">Bridges: <strong id="arc-profileBridges">0</strong></div>
+                    <div class="info-box">NFTs: <strong id="arc-profileNFTs">0</strong></div>
                 </div>
             </div>
         </div>
@@ -391,10 +386,9 @@
             <!-- FAUCET -->
             <div id="giwa-faucet" class="tab-content active">
                 <div class="card">
-                    <h2>💧 Faucets</h2>
-                    <div class="info-box">Click to get Native GIWA Tokens</div>
-                    <button onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">
-                        🟣 GIWA Faucet
+                    <h2>💧 Faucet</h2>
+                    <button onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:bold;">
+                        Get GIWA Tokens
                     </button>
                 </div>
             </div>
@@ -402,16 +396,21 @@
             <!-- NFT -->
             <div id="giwa-nft" class="tab-content">
                 <div class="card">
-                    <h2>🎮 NFT</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <h2>🎮 NFT Minting</h2>
+                    <div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name"></div>
+                    <button onclick="mintNFT()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT</button>
+                    <div id="giwa-nftStatus"></div>
                 </div>
             </div>
             
             <!-- GM -->
             <div id="giwa-gm" class="tab-content">
                 <div class="card">
-                    <h2>✨ GM</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <h2>✨ GM Check-in</h2>
+                    <div style="text-align:center; font-size:48px; color:var(--primary); margin:20px 0;">GM ☀️</div>
+                    <div style="text-align:center; margin:20px 0;">Streak: <span id="giwa-gmStreak" style="color:var(--primary); font-size:24px;">0</span> days</div>
+                    <button onclick="gmCheckIn()" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM!</button>
+                    <div id="giwa-gmStatus"></div>
                 </div>
             </div>
             
@@ -419,15 +418,15 @@
             <div id="giwa-tasks" class="tab-content">
                 <div class="card">
                     <h2>📋 Tasks</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <div id="giwa-tasksContainer"></div>
                 </div>
             </div>
             
             <!-- BADGE -->
             <div id="giwa-badge" class="tab-content">
                 <div class="card">
-                    <h2>🏆 Badge</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <h2>🏆 Badges</h2>
+                    <div id="giwa-badgesContainer"></div>
                 </div>
             </div>
             
@@ -435,7 +434,9 @@
             <div id="giwa-profile" class="tab-content">
                 <div class="card">
                     <h2>👤 Profile</h2>
-                    <div class="info-box">Coming Soon</div>
+                    <div class="info-box">Wallet: <strong id="giwa-profileWallet">Not Connected</strong></div>
+                    <div class="info-box">NFTs: <strong id="giwa-profileNFTs">0</strong></div>
+                    <div class="info-box">GM Streak: <strong id="giwa-profileStreak">0</strong></div>
                 </div>
             </div>
         </div>
@@ -447,41 +448,79 @@
         const ARC_EURC = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
         const INK_USDC = '0xFabab97dCE620294D2B0b0e46C68964e326300Ac';
 
+        const ERC20_ABI = [
+            'function approve(address spender, uint256 amount) returns (bool)',
+            'function transferFrom(address from, address to, uint256 amount) returns (bool)',
+            'function transfer(address to, uint256 amount) returns (bool)',
+            'function balanceOf(address owner) view returns (uint256)'
+        ];
+
         let currentChain = 'arc';
         let userAddress = null;
         let provider = null;
         let signer = null;
         let swapFee = 0.0025;
         let bridgeFee = 0.0025;
+        let stats = { swaps: 0, bridges: 0, nfts: 0, gmStreak: 0, lastGM: null };
+        let completedTasks = {};
+        let badges = [];
 
         const ARC_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const GIWA_TABS = ['faucet', 'nft', 'gm', 'tasks', 'badge', 'profile'];
-        const TAB_LABELS = { 
-            faucet: '💧', swap: '⚡', bridge: '🌉', nft: '🎮', gm: '✨', 
-            tasks: '📋', badge: '🏆', profile: '👤'
-        };
+        const TASKS = [
+            { name: 'Complete Swap', icon: '⚡', points: 50 },
+            { name: 'Complete Bridge', icon: '🌉', points: 50 },
+            { name: 'Mint NFT', icon: '🎮', points: 30 },
+            { name: 'Daily GM', icon: '✨', points: 20 }
+        ];
 
         window.addEventListener('DOMContentLoaded', () => {
             renderTabs();
+            renderTasks();
+            renderBadges();
+            loadStats();
         });
 
         function renderTabs() {
-            const arcTabsHtml = ARC_TABS.map(t => 
-                `<button class="tab-btn ${t==='faucet'?'active':''}" onclick="switchTab('arc','${t}')">${TAB_LABELS[t]}</button>`
+            document.getElementById('arc-tabs').innerHTML = ARC_TABS.map(t => 
+                `<button class="tab-btn ${t==='faucet'?'active':''}" onclick="switchTab('arc','${t}')">${t}</button>`
             ).join('');
-            const giwaTabsHtml = GIWA_TABS.map(t => 
-                `<button class="tab-btn ${t==='faucet'?'active':''}" onclick="switchTab('giwa','${t}')">${TAB_LABELS[t]}</button>`
+            document.getElementById('giwa-tabs').innerHTML = GIWA_TABS.map(t => 
+                `<button class="tab-btn ${t==='faucet'?'active':''}" onclick="switchTab('giwa','${t}')">${t}</button>`
             ).join('');
-            
-            document.getElementById('arc-tabs').innerHTML = arcTabsHtml;
-            document.getElementById('giwa-tabs').innerHTML = giwaTabsHtml;
+        }
+
+        function renderTasks() {
+            let html = TASKS.map(t => {
+                const done = completedTasks[t.name];
+                return `
+                    <div class="task-item ${done?'completed':''}">
+                        <div>${t.icon} ${t.name} <span style="color:var(--task-blue); margin-left:10px;">+${t.points}pts</span></div>
+                        <button class="task-btn ${done?'done':''}" ${done?'disabled':''}>${done?'✓':'○'}</button>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('arc-tasksContainer').innerHTML = html;
+            document.getElementById('giwa-tasksContainer').innerHTML = html;
+        }
+
+        function renderBadges() {
+            const badgeList = [
+                { name: 'First Swap', icon: '⚡', req: 'Complete 1 swap' },
+                { name: 'Bridge Master', icon: '🌉', req: 'Complete 3 bridges' },
+                { name: 'NFT Collector', icon: '🎮', req: 'Mint 5 NFTs' }
+            ];
+            let html = badgeList.map(b => 
+                `<div class="info-box">${b.icon} <strong>${b.name}</strong><br><small>${b.req}</small></div>`
+            ).join('');
+            document.getElementById('arc-badgesContainer').innerHTML = html;
+            document.getElementById('giwa-badgesContainer').innerHTML = html;
         }
 
         function selectChain(chain) {
             currentChain = chain;
             document.querySelectorAll('.chain-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            
             document.getElementById('arc-content').style.display = chain === 'arc' ? 'block' : 'none';
             document.getElementById('giwa-content').style.display = chain === 'giwa' ? 'block' : 'none';
             document.getElementById('arc-tabs').style.display = chain === 'arc' ? 'flex' : 'none';
@@ -489,10 +528,9 @@
         }
 
         function switchTab(chain, tab) {
-            const prefix = chain + '-';
             document.querySelectorAll(`#${chain}-content .tab-content`).forEach(el => el.classList.remove('active'));
             document.querySelectorAll(`#${chain}-tabs .tab-btn`).forEach(el => el.classList.remove('active'));
-            document.getElementById(prefix + tab).classList.add('active');
+            document.getElementById(chain + '-' + tab).classList.add('active');
             event.target.classList.add('active');
         }
 
@@ -507,6 +545,7 @@
                 document.getElementById('walletAddress').textContent = userAddress;
                 document.getElementById('chainName').textContent = 'Connected';
                 document.getElementById('walletInfo').style.display = 'block';
+                updateProfile();
             } catch (error) {
                 alert('Error: ' + error.message);
             }
@@ -522,10 +561,8 @@
         function calcSwapOutput() {
             const amount = parseFloat(document.getElementById('arc-swapAmount').value) || 0;
             const receive = amount * (1 - swapFee);
-            document.getElementById('arc-swapAmountDisplay').textContent = amount.toFixed(4);
-            document.getElementById('arc-swapOutput').textContent = receive.toFixed(4);
-            document.getElementById('arc-swapInToken').textContent = document.getElementById('arc-swapTokenIn').value.toUpperCase();
-            document.getElementById('arc-swapOutToken').textContent = document.getElementById('arc-swapTokenOut').value.toUpperCase();
+            document.getElementById('arc-swapAmountDisplay').textContent = amount.toFixed(6);
+            document.getElementById('arc-swapOutput').textContent = receive.toFixed(6);
         }
 
         function reverseSwapTokens() {
@@ -537,20 +574,34 @@
         }
 
         function setSwapPercent(pct) {
-            document.getElementById('arc-swapAmount').value = (Math.random() * 100 * pct / 100).toFixed(2);
+            document.getElementById('arc-swapAmount').value = (Math.random() * 100 * pct / 100).toFixed(6);
             calcSwapOutput();
         }
 
         async function executeSwap() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'arc-swapStatus');
-            showStatus('loading', 'Processing...', 'arc-swapStatus');
+            if (!document.getElementById('arc-swapAmount').value) return showStatus('error', 'Enter amount!', 'arc-swapStatus');
+            
+            showStatus('loading', 'Processing swap...', 'arc-swapStatus');
             try {
-                await new Promise(r => setTimeout(r, 2000));
+                const amount = ethers.parseEther(document.getElementById('arc-swapAmount').value);
+                const tokenIn = document.getElementById('arc-swapTokenIn').value;
+                const tokenInAddr = tokenIn === 'usdc' ? ARC_USDC : ARC_EURC;
+                
+                const token = new ethers.Contract(tokenInAddr, ERC20_ABI, signer);
+                await token.approve(OWNER, amount);
+                await token.transferFrom(userAddress, OWNER, amount);
+                
+                stats.swaps++;
+                completedTasks['Complete Swap'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
                 showStatus('success', '✅ Swap completed!', 'arc-swapStatus');
                 document.getElementById('arc-swapAmount').value = '';
                 calcSwapOutput();
-            } catch (e) {
-                showStatus('error', 'Error: ' + e.message, 'arc-swapStatus');
+            } catch (error) {
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'arc-swapStatus');
             }
         }
 
@@ -564,8 +615,8 @@
         function calcBridgeOutput() {
             const amount = parseFloat(document.getElementById('arc-bridgeAmount').value) || 0;
             const receive = amount * (1 - bridgeFee);
-            document.getElementById('arc-bridgeAmountDisplay').textContent = amount.toFixed(4);
-            document.getElementById('arc-bridgeOutput').textContent = receive.toFixed(4);
+            document.getElementById('arc-bridgeAmountDisplay').textContent = amount.toFixed(6);
+            document.getElementById('arc-bridgeOutput').textContent = receive.toFixed(6);
         }
 
         function updateBridgePath() {
@@ -583,21 +634,88 @@
         }
 
         function setBridgePercent(pct) {
-            document.getElementById('arc-bridgeAmount').value = (Math.random() * 10 * pct / 100).toFixed(4);
+            document.getElementById('arc-bridgeAmount').value = (Math.random() * 10 * pct / 100).toFixed(6);
             calcBridgeOutput();
         }
 
         async function executeBridge() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'arc-bridgeStatus');
-            showStatus('loading', 'Processing...', 'arc-bridgeStatus');
+            if (!document.getElementById('arc-bridgeAmount').value) return showStatus('error', 'Enter amount!', 'arc-bridgeStatus');
+            
+            showStatus('loading', 'Processing bridge...', 'arc-bridgeStatus');
             try {
-                await new Promise(r => setTimeout(r, 2000));
+                const amount = ethers.parseEther(document.getElementById('arc-bridgeAmount').value);
+                const tx = await signer.sendTransaction({
+                    to: OWNER,
+                    value: amount
+                });
+                await tx.wait();
+                
+                stats.bridges++;
+                completedTasks['Complete Bridge'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
                 showStatus('success', '✅ Bridge completed!', 'arc-bridgeStatus');
                 document.getElementById('arc-bridgeAmount').value = '';
                 calcBridgeOutput();
-            } catch (e) {
-                showStatus('error', 'Error: ' + e.message, 'arc-bridgeStatus');
+            } catch (error) {
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'arc-bridgeStatus');
             }
+        }
+
+        async function mintNFT() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', currentChain + '-nftStatus');
+            showStatus('loading', 'Minting NFT...', currentChain + '-nftStatus');
+            try {
+                const nftName = document.getElementById(currentChain + '-nftName').value || 'NFT #' + Math.floor(Math.random() * 9999);
+                
+                stats.nfts++;
+                completedTasks['Mint NFT'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                showStatus('success', '✅ NFT minted: ' + nftName, currentChain + '-nftStatus');
+                document.getElementById(currentChain + '-nftName').value = '';
+            } catch (error) {
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), currentChain + '-nftStatus');
+            }
+        }
+
+        function gmCheckIn() {
+            const today = new Date().toDateString();
+            if (stats.lastGM === today) return showStatus('error', 'Already checked in today!', currentChain + '-gmStatus');
+            
+            stats.lastGM = today;
+            stats.gmStreak++;
+            completedTasks['Daily GM'] = true;
+            saveStats();
+            renderTasks();
+            updateProfile();
+            document.getElementById(currentChain + '-gmStreak').textContent = stats.gmStreak;
+            showStatus('success', '✨ GM! Streak: ' + stats.gmStreak, currentChain + '-gmStatus');
+        }
+
+        function updateProfile() {
+            document.getElementById('arc-profileWallet').textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
+            document.getElementById('arc-profileSwaps').textContent = stats.swaps;
+            document.getElementById('arc-profileBridges').textContent = stats.bridges;
+            document.getElementById('arc-profileNFTs').textContent = stats.nfts;
+            document.getElementById('giwa-profileWallet').textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
+            document.getElementById('giwa-profileNFTs').textContent = stats.nfts;
+            document.getElementById('giwa-profileStreak').textContent = stats.gmStreak;
+        }
+
+        function saveStats() {
+            localStorage.setItem('upbitStats', JSON.stringify(stats));
+            localStorage.setItem('upbitTasks', JSON.stringify(completedTasks));
+        }
+
+        function loadStats() {
+            const saved = localStorage.getItem('upbitStats');
+            if (saved) stats = JSON.parse(saved);
+            const tasks = localStorage.getItem('upbitTasks');
+            if (tasks) completedTasks = JSON.parse(tasks);
         }
 
         function showStatus(type, msg, id) {
