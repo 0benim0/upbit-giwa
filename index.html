@@ -669,6 +669,7 @@
                 
                 setTimeout(async () => {
                     await loadBalances();
+                    await updateGiwaNFTSupply();
                 }, 500);
             } catch (error) {
                 console.error('Wallet error:', error);
@@ -917,24 +918,34 @@
             }
         }
 
+        // GIWA NFT Smart Contract
+        const GIWA_NFT_ADDRESS = '0xd97A1aAD3dbD174e75aceeFf8aFa37A7C8264C14';
+        const NFT_ABI = [
+            'function mintNFT(string memory nftName) public payable',
+            'function totalMinted() public view returns (uint256)',
+            'function getRemainingSupply() public view returns (uint256)',
+            'function userMintCount(address user) public view returns (uint256)'
+        ];
+
         async function mintNFTGiwa() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-nftStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-nftStatus');
             
             showStatus('loading', 'Minting NFT...', 'giwa-nftStatus');
             try {
                 const nftName = document.getElementById('giwa-nftName')?.value || 'Checkmate';
                 
-                // Send TX to Owner (0.0001 token + gas)
-                const tx = await signer.sendTransaction({ 
-                    to: OWNER, 
-                    value: ethers.parseEther('0.0001') 
-                });
-                await tx.wait();
+                // Create contract instance
+                const nftContract = new ethers.Contract(GIWA_NFT_ADDRESS, NFT_ABI, signer);
                 
-                // Update Global Counter
-                let globalMinted = parseInt(localStorage.getItem('giwaGlobalMinted') || '0');
-                globalMinted++;
-                localStorage.setItem('giwaGlobalMinted', globalMinted.toString());
+                // Call smart contract mintNFT function
+                const tx = await nftContract.mintNFT(nftName, { 
+                    value: ethers.parseEther('0.0001')
+                });
+                
+                console.log('NFT TX sent:', tx.hash);
+                await tx.wait();
+                console.log('NFT TX confirmed!');
                 
                 // Update User Stats
                 stats.nfts++;
@@ -952,18 +963,29 @@
                 updateProfile();
                 updateGiwaNFTSupply();
                 
-                showStatus('success', `✅ Minted: ${nftName} NFT! (Total: ${globalMinted}/9999)`, 'giwa-nftStatus');
+                // Get updated counter from contract
+                const totalMinted = await nftContract.totalMinted();
+                showStatus('success', `✅ Minted: ${nftName} NFT! (Total: ${totalMinted.toString()}/9999)`, 'giwa-nftStatus');
                 document.getElementById('giwa-nftName').value = 'Checkmate';
             } catch (error) {
+                console.error('NFT Mint Error:', error);
                 showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-nftStatus');
             }
         }
 
-        function updateGiwaNFTSupply() {
-            const globalMinted = parseInt(localStorage.getItem('giwaGlobalMinted') || '0');
-            const el = document.getElementById('giwa-nftSupply');
-            if (el) {
-                el.innerHTML = `Checkmate NFT<br><span style="font-size:32px;">${globalMinted} / 9999</span> Minted`;
+        async function updateGiwaNFTSupply() {
+            try {
+                if (!provider) return;
+                
+                const nftContract = new ethers.Contract(GIWA_NFT_ADDRESS, NFT_ABI, provider);
+                const totalMinted = await nftContract.totalMinted();
+                
+                const el = document.getElementById('giwa-nftSupply');
+                if (el) {
+                    el.innerHTML = `Checkmate NFT<br><span style="font-size:32px;">${totalMinted.toString()} / 9999</span> Minted`;
+                }
+            } catch (error) {
+                console.error('Error reading NFT supply:', error);
             }
         }
 
