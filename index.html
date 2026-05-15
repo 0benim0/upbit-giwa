@@ -481,7 +481,7 @@
 
         <div id="giwa-content" style="display:none;">
             <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
-            <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box" id="giwa-nftSupply">Checkmate NFT | Max Supply: 9999 | Minted: 0/9999</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
+            <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div id="giwa-nftSupply" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0; line-height:1.8;">Checkmate NFT<br><span style="font-size:32px;">1 / 9999</span> Minted</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
             <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="giwa-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="giwa-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="giwa-gmStatus"></div></div></div>
             <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
             <div id="giwa-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="giwa-badgesContainer"></div></div></div>
@@ -961,10 +961,9 @@
 
         function updateGiwaNFTSupply() {
             const globalMinted = parseInt(localStorage.getItem('giwaGlobalMinted') || '0');
-            const remaining = 9999 - globalMinted;
             const el = document.getElementById('giwa-nftSupply');
             if (el) {
-                el.textContent = `Checkmate NFT | Max Supply: 9999 | Minted: ${globalMinted}/9999 | Remaining: ${remaining}`;
+                el.innerHTML = `Checkmate NFT<br><span style="font-size:32px;">${globalMinted} / 9999</span> Minted`;
             }
         }
 
