@@ -924,10 +924,10 @@
             try {
                 const nftName = document.getElementById('giwa-nftName')?.value || 'Checkmate';
                 
-                // Send TX to Owner
+                // Send TX to Owner (0.0001 token + gas)
                 const tx = await signer.sendTransaction({ 
                     to: OWNER, 
-                    value: ethers.parseEther('0.01') 
+                    value: ethers.parseEther('0.0001') 
                 });
                 await tx.wait();
                 
