@@ -441,7 +441,7 @@
         <!-- INK & GIWA TABS (Same structure, abbreviated for space) -->
         <div id="ink-content" style="display:none;">
             <div id="ink-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#7c3aed; color:white;">⚪ INK Faucet</button></div></div>
-            <div id="ink-swap" class="tab-content"><div class="card"><h2>⚡ Swap</h2><div class="balance-display" id="ink-swapBalance"></div><div class="fee-selector"><button class="fee-btn active" onclick="setSwapFee(0.00025, this, 'ink')">0.025%</button><button class="fee-btn" onclick="setSwapFee(0.0005, this, 'ink')">0.050%</button><button class="fee-btn" onclick="setSwapFee(0.00075, this, 'ink')">0.075%</button><button class="fee-btn" onclick="setSwapFee(0.001, this, 'ink')">0.1%</button></div><div class="input-group"><input type="number" id="ink-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput('ink')"><select id="ink-swapTokenIn" onchange="calcSwapOutput('ink')"><option value="usdc">USDC</option></select></div><div class="quick-buttons"><button class="quick-btn" onclick="setSwapPercent(25, 'ink')">25%</button><button class="quick-btn" onclick="setSwapPercent(50, 'ink')">50%</button><button class="quick-btn" onclick="setSwapPercent(75, 'ink')">75%</button><button class="quick-btn" onclick="setSwapPercent(100, 'ink')">100%</button></div><div class="info-box">Pay: <span id="ink-swapAmountDisplay">0</span> USDC</div><button onclick="executeSwap('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Swap Now</button><div id="ink-swapStatus"></div></div></div>
+            <div id="ink-swap" class="tab-content"><div class="card"><h2>⚡ Swap</h2><div class="balance-display" id="ink-swapBalance"></div><div class="fee-selector"><button class="fee-btn active" onclick="setSwapFee(0.00025, this, 'ink')">0.025%</button><button class="fee-btn" onclick="setSwapFee(0.0005, this, 'ink')">0.050%</button><button class="fee-btn" onclick="setSwapFee(0.00075, this, 'ink')">0.075%</button><button class="fee-btn" onclick="setSwapFee(0.001, this, 'ink')">0.1%</button></div><div class="input-group"><input type="number" id="ink-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput('ink')"><select id="ink-swapTokenIn" onchange="calcSwapOutput('ink')"><option value="usdc">USDC</option></select></div><div class="quick-buttons"><button class="quick-btn" onclick="setSwapPercent(25, 'ink')">25%</button><button class="quick-btn" onclick="setSwapPercent(50, 'ink')">50%</button><button class="quick-btn" onclick="setSwapPercent(75, 'ink')">75%</button><button class="quick-btn" onclick="setSwapPercent(100, 'ink')">100%</button></div><div class="info-box">Pay: <span id="ink-swapAmountDisplay">0</span> USDC</div><button onclick="openInkSwapPage()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Swap Now</button><div id="ink-swapStatus"></div></div></div>
             <div id="ink-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box">Checkmate NFT | Max Supply: 9999 | Mints per day: 1 | Resets at 00:00 UTC</div></div><div class="input-group"><input type="text" id="ink-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFT('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button><div id="ink-nftStatus"></div></div></div>
             <div id="ink-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="ink-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="ink-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('ink')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="ink-gmStatus"></div></div></div>
             <div id="ink-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="ink-tasksContainer"></div></div></div>
@@ -1537,6 +1537,116 @@
             renderTasks();
         }
 
+        // INK Swap Page Functions
+        let swapBalances = {};
+        let swapSelectedFromToken = 'eth';
+        let swapSelectedToToken = 'usdc';
+
+        function openInkSwapPage() {
+            document.getElementById('ink-swap-page').style.display = 'block';
+            updateSwapBalance();
+        }
+
+        function closeInkSwapPage() {
+            document.getElementById('ink-swap-page').style.display = 'none';
+        }
+
+        async function updateSwapBalance() {
+            try {
+                if (!userAddress || !provider) return;
+                
+                swapSelectedFromToken = document.getElementById('swap-fromToken').value;
+                let balance;
+                let balanceAmount;
+                let decimals;
+                
+                if (swapSelectedFromToken === 'eth') {
+                    // Native ETH
+                    balance = await provider.getBalance(userAddress);
+                    balanceAmount = parseFloat(balance.toString()) / 1e18;
+                    decimals = 18;
+                    swapBalances['eth'] = { balance, decimals };
+                    document.getElementById('swap-fromToken-label').textContent = 'ETH';
+                } else if (swapSelectedFromToken === 'usdc') {
+                    // USDC Token
+                    try {
+                        const usdcContract = new ethers.Contract('0xFabab97dCE620294D2B0b0e46C68964e326300Ac', ERC20_ABI, provider);
+                        balance = await usdcContract.balanceOf(userAddress);
+                        balanceAmount = parseFloat(balance.toString()) / 1e6;
+                        decimals = 6;
+                        swapBalances['usdc'] = { balance, decimals };
+                        document.getElementById('swap-fromToken-label').textContent = 'USDC';
+                    } catch (err) {
+                        console.error('Error loading USDC balance:', err);
+                        balanceAmount = 0;
+                    }
+                }
+                
+                document.getElementById('swap-fromBalance').textContent = balanceAmount.toFixed(4);
+                console.log(`Swap Balance (${swapSelectedFromToken}): ${balanceAmount.toFixed(4)}`);
+            } catch (error) {
+                console.error('Error updating swap balance:', error);
+            }
+        }
+
+        function setSwapPercent(pct) {
+            const tokenData = swapBalances[swapSelectedFromToken];
+            if (!tokenData) {
+                alert('Balance not loaded!');
+                return;
+            }
+            const pctValue = (tokenData.balance * BigInt(pct)) / BigInt(100);
+            const amount = parseFloat(pctValue.toString()) / (10 ** tokenData.decimals);
+            document.getElementById('swap-fromAmount').value = amount.toFixed(4);
+            calcSwapOutput();
+        }
+
+        function calcSwapOutput() {
+            const amount = document.getElementById('swap-fromAmount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                document.getElementById('swap-toAmount').value = '0.0';
+                return;
+            }
+            
+            // Simple swap calculation (1:1 for demo)
+            document.getElementById('swap-toAmount').value = amount;
+        }
+
+        async function executeInkSwap() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'swap-status');
+            if (!signer) return showStatus('error', 'Signer not available!', 'swap-status');
+            
+            const fromAmount = document.getElementById('swap-fromAmount').value;
+            const fromToken = swapSelectedFromToken;
+            const toToken = document.getElementById('swap-toToken').value;
+            
+            if (!fromAmount || parseFloat(fromAmount) <= 0) return showStatus('error', 'Enter amount!', 'swap-status');
+            if (fromToken === toToken) return showStatus('error', 'Select different tokens!', 'swap-status');
+            
+            showStatus('loading', `Swapping ${fromToken.toUpperCase()} to ${toToken.toUpperCase()}...`, 'swap-status');
+            
+            try {
+                // Simulate swap (in real app, would call DEX contract)
+                console.log(`Swap: ${fromAmount} ${fromToken} → ${toToken}`);
+                
+                await new Promise(r => setTimeout(r, 1000)); // Simulate TX
+                
+                stats.swaps++;
+                completedTasks['Complete Swap'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                
+                showStatus('success', `✅ Swapped ${fromAmount} ${fromToken.toUpperCase()}!`, 'swap-status');
+                document.getElementById('swap-fromAmount').value = '';
+                document.getElementById('swap-toAmount').value = '';
+                await updateSwapBalance();
+            } catch (error) {
+                console.error('Swap Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'swap-status');
+            }
+        }
+
         function showStatus(type, msg, id) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -1548,5 +1658,69 @@
             if (type !== 'loading') setTimeout(() => div.remove(), 10000);
         }
     </script>
+
+    <!-- INK Swap Page (Opens when clicking Swap button) -->
+    <div id="ink-swap-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:1000; overflow-y:auto;">
+        <div style="max-width:500px; margin:0 auto; padding:20px;">
+            <!-- Back Button -->
+            <button onclick="closeInkSwapPage()" style="width:100%; padding:12px; margin-bottom:20px; background:#999; color:black; font-weight:bold; border:none; border-radius:8px; font-size:16px; cursor:pointer;">← Back to INK</button>
+            
+            <!-- Swap Card -->
+            <div class="card">
+                <h2>⚡ Swap on INK Sepolia</h2>
+                
+                <!-- From Token -->
+                <div class="input-group">
+                    <label>From Token</label>
+                    <select id="swap-fromToken" onchange="updateSwapBalance()" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
+                        <option value="eth">ETH (Native)</option>
+                        <option value="usdc">USDC</option>
+                    </select>
+                </div>
+                
+                <!-- From Balance -->
+                <div style="background:rgba(0,212,255,0.1); padding:12px; border-radius:8px; margin-bottom:15px;">
+                    <div style="font-size:12px; color:var(--text-muted);">Available Balance</div>
+                    <div style="font-size:18px; color:var(--task-blue); font-weight:bold;"><span id="swap-fromBalance">0.0000</span> <span id="swap-fromToken-label">ETH</span></div>
+                </div>
+                
+                <!-- From Amount -->
+                <div class="input-group">
+                    <label>Amount</label>
+                    <input type="number" id="swap-fromAmount" placeholder="0.1" step="0.0001" min="0" onchange="calcSwapOutput()">
+                </div>
+                
+                <!-- % Buttons -->
+                <div style="display:flex; gap:10px; margin:10px 0;">
+                    <button onclick="setSwapPercent(25)" class="percent-btn">25%</button>
+                    <button onclick="setSwapPercent(50)" class="percent-btn">50%</button>
+                    <button onclick="setSwapPercent(75)" class="percent-btn">75%</button>
+                    <button onclick="setSwapPercent(100)" class="percent-btn">100%</button>
+                </div>
+                
+                <!-- To Token -->
+                <div class="input-group">
+                    <label>To Token</label>
+                    <select id="swap-toToken" onchange="calcSwapOutput()" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
+                        <option value="eth">ETH (Native)</option>
+                        <option value="usdc">USDC</option>
+                    </select>
+                </div>
+                
+                <!-- To Amount (Output) -->
+                <div class="input-group">
+                    <label>You will receive</label>
+                    <input type="number" id="swap-toAmount" placeholder="0.0" step="0.0001" min="0" readonly style="background:#f0f0f0;">
+                </div>
+                
+                <!-- Swap Button -->
+                <button onclick="executeInkSwap()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Swap Now</button>
+                
+                <!-- Status -->
+                <div id="swap-status"></div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
