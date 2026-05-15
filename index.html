@@ -1122,9 +1122,10 @@
             try {
                 if (!userAddress || !provider) return;
                 const balance = await provider.getBalance(userAddress);
-                const balanceETH = (balance / 1e18).toFixed(4);
-                document.getElementById('giwa-bridge-balance').textContent = balanceETH;
+                const balanceETH = parseFloat(balance.toString()) / 1e18;
+                document.getElementById('giwa-bridge-balance').textContent = balanceETH.toFixed(4);
                 window.giwaBridgeBalanceRaw = balance;
+                console.log('Bridge Balance loaded:', balanceETH.toFixed(4), 'ETH');
             } catch (error) {
                 console.error('Error loading bridge balance:', error);
             }
