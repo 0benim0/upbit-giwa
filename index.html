@@ -459,7 +459,7 @@
                     <!-- From Chain Dropdown -->
                     <div class="input-group">
                         <label>From Chain</label>
-                        <select id="bridge-fromChain" onchange="updateBridgeFromChain(this.value)" style="padding:10px; border-radius:8px; border:2px solid var(--task-blue); background:white; color:black; font-weight:bold;">
+                        <select id="bridge-fromChain" onchange="updateBridgeFromChain(this.value)" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
                             <option value="giwa">🟣 GIWA Sepolia</option>
                             <option value="arc">🔵 ARC Testnet</option>
                             <option value="ink">⚪ INK Sepolia</option>
@@ -469,13 +469,13 @@
                     <!-- Balance -->
                     <div style="background:rgba(0,212,255,0.1); padding:12px; border-radius:8px; margin-bottom:15px;">
                         <div style="font-size:12px; color:var(--text-muted);">Available</div>
-                        <div style="font-size:18px; color:var(--task-blue); font-weight:bold;"><span id="bridge-balance">0.0000</span> ETH</div>
+                        <div style="font-size:18px; color:var(--task-blue); font-weight:bold;"><span id="bridge-balance">0.0000</span> <span id="bridge-balance-token">ETH</span></div>
                     </div>
                     
                     <!-- To Chain Dropdown -->
                     <div class="input-group">
                         <label>To Chain</label>
-                        <select id="bridge-toChain" style="padding:10px; border-radius:8px; border:2px solid var(--task-blue); background:white; color:black; font-weight:bold;">
+                        <select id="bridge-toChain" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
                             <option value="arc">🔵 ARC Testnet</option>
                             <option value="ink">⚪ INK Sepolia</option>
                         </select>
@@ -483,7 +483,7 @@
                     
                     <!-- Amount -->
                     <div class="input-group">
-                        <label>Amount (ETH)</label>
+                        <label>Amount</label>
                         <input type="number" id="bridge-amount" placeholder="0.1" step="0.0001" min="0">
                     </div>
                     
@@ -1383,14 +1383,36 @@
         setInterval(updateGmTimerCountdownGiwa, 1000);
         setInterval(updateGiwaMoonPhase, 60000);
 
-        // Bridge - Dynamic From/To Chain Selection
+        // ERC20 ABI for token balance
+        const ERC20_ABI = ['function balanceOf(address account) public view returns (uint256)'];
+
+        // Bridge - Dynamic From/To Chain Selection with Token Balances
         let bridgeCurrentChain = 'giwa';
         let bridgeBalanceRaw = null;
+        let bridgeBalanceDecimals = 18;
 
         const bridgeChainInfo = {
-            'giwa': { name: '🟣 GIWA Sepolia', contract: GIWA_BRIDGE_ADDRESS, abi: BRIDGE_ABI },
-            'arc': { name: '🔵 ARC Testnet', contract: ARC_BRIDGE_ADDRESS, abi: ARC_BRIDGE_ABI },
-            'ink': { name: '⚪ INK Sepolia', contract: INK_BRIDGE_ADDRESS, abi: INK_BRIDGE_ABI }
+            'giwa': { 
+                name: '🟣 GIWA Sepolia', 
+                contract: GIWA_BRIDGE_ADDRESS, 
+                abi: BRIDGE_ABI,
+                token: null,
+                tokenName: 'ETH'
+            },
+            'arc': { 
+                name: '🔵 ARC Testnet', 
+                contract: ARC_BRIDGE_ADDRESS, 
+                abi: ARC_BRIDGE_ABI,
+                token: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a',
+                tokenName: 'EURC'
+            },
+            'ink': { 
+                name: '⚪ INK Sepolia', 
+                contract: INK_BRIDGE_ADDRESS, 
+                abi: INK_BRIDGE_ABI,
+                token: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac',
+                tokenName: 'USDC'
+            }
         };
 
         function getAvailableToChains(fromChain) {
@@ -1420,13 +1442,31 @@
         async function loadBridgeBalance() {
             try {
                 if (!userAddress || !provider) return;
-                const balance = await provider.getBalance(userAddress);
-                const balanceETH = parseFloat(balance.toString()) / 1e18;
-                document.getElementById('bridge-balance').textContent = balanceETH.toFixed(4);
-                bridgeBalanceRaw = balance;
-                console.log(`Bridge Balance (${bridgeCurrentChain}): ${balanceETH.toFixed(4)} ETH`);
+                
+                const chainInfo = bridgeChainInfo[bridgeCurrentChain];
+                let balance;
+
+                if (chainInfo.token === null) {
+                    // Native ETH (GIWA)
+                    balance = await provider.getBalance(userAddress);
+                    bridgeBalanceRaw = balance;
+                    bridgeBalanceDecimals = 18;
+                } else {
+                    // ERC20 Token (ARC EURC or INK USDC)
+                    const tokenContract = new ethers.Contract(chainInfo.token, ERC20_ABI, provider);
+                    balance = await tokenContract.balanceOf(userAddress);
+                    bridgeBalanceRaw = balance;
+                    bridgeBalanceDecimals = 6; // Most tokens use 6 decimals
+                }
+
+                const balanceAmount = parseFloat(balance.toString()) / (10 ** bridgeBalanceDecimals);
+                document.getElementById('bridge-balance').textContent = balanceAmount.toFixed(4);
+                document.getElementById('bridge-balance-token').textContent = chainInfo.tokenName;
+                
+                console.log(`Bridge Balance (${bridgeCurrentChain}): ${balanceAmount.toFixed(4)} ${chainInfo.tokenName}`);
             } catch (error) {
                 console.error('Error loading bridge balance:', error);
+                document.getElementById('bridge-balance').textContent = '0.0000';
             }
         }
 
@@ -1436,8 +1476,8 @@
                 return;
             }
             const pctValue = (bridgeBalanceRaw * BigInt(pct)) / BigInt(100);
-            const ethAmount = (parseFloat(pctValue.toString()) / 1e18).toFixed(4);
-            document.getElementById('bridge-amount').value = ethAmount;
+            const amount = parseFloat(pctValue.toString()) / (10 ** bridgeBalanceDecimals);
+            document.getElementById('bridge-amount').value = amount.toFixed(4);
         }
 
         async function executeBridge() {
@@ -1471,7 +1511,7 @@
                 renderTasks();
                 updateProfile();
 
-                showStatus('success', `✅ Bridged ${amount} ETH!\n${bridgeChainInfo[fromChain].name} → ${bridgeChainInfo[toChain].name}`, 'bridge-status');
+                showStatus('success', `✅ Bridged ${amount} ${chainInfo.tokenName}!\n${bridgeChainInfo[fromChain].name} → ${bridgeChainInfo[toChain].name}`, 'bridge-status');
                 document.getElementById('bridge-amount').value = '';
                 await loadBridgeBalance();
             } catch (error) {
