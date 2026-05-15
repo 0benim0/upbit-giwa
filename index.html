@@ -612,18 +612,46 @@
             
             // Auto-switch MetaMask to selected chain
             if (window.ethereum && userAddress) {
+                const chainConfigs = {
+                    arc: { chainId: '0x4cef52', name: 'ARC', rpc: 'https://arc-testnet.drpc.org' },
+                    ink: { chainId: '0xba6fd', name: 'INK Sepolia', rpc: 'https://rpc-sepolia.ink.technology' },
+                    giwa: { chainId: '0x1a6a9d2', name: 'GIWA', rpc: 'https://rpc.testnet.chain.giwa.io' }
+                };
+                
+                const config = chainConfigs[chain];
+                if (!config) return;
+                
                 try {
-                    let chainId = '0x4cef52'; // ARC
-                    if (chain === 'ink') chainId = '0x2f6aed'; // INK (763111 in hex)
-                    else if (chain === 'giwa') chainId = '0x1a6a9d2'; // GIWA (27699666 in hex)
+                    console.log(`Attempting to switch to ${config.name} (${config.chainId})...`);
                     
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: chainId }],
+                        params: [{ chainId: config.chainId }],
                     });
+                    
+                    console.log(`✅ Successfully switched to ${config.name}`);
+                    document.getElementById('chainName').textContent = config.name;
                 } catch (error) {
-                    if (error.code !== 4902) {
-                        console.error('Chain switch error:', error);
+                    console.error(`❌ Switch failed: ${error.message}`);
+                    
+                    // If chain not added, try to add it
+                    if (error.code === 4902) {
+                        try {
+                            console.log(`Adding ${config.name} to wallet...`);
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: config.chainId,
+                                    chainName: config.name,
+                                    rpcUrls: [config.rpc],
+                                    nativeCurrency: { name: 'Native', symbol: 'TOKEN', decimals: 18 },
+                                }],
+                            });
+                            console.log(`✅ Added and switched to ${config.name}`);
+                            document.getElementById('chainName').textContent = config.name;
+                        } catch (addError) {
+                            console.error(`❌ Add chain failed: ${addError.message}`);
+                        }
                     }
                 }
             }
