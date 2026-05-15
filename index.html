@@ -610,54 +610,37 @@
             document.getElementById('ink-tabs').style.display = chain === 'ink' ? 'flex' : 'none';
             document.getElementById('giwa-tabs').style.display = chain === 'giwa' ? 'flex' : 'none';
             
-            // Auto-add and switch MetaMask to selected chain
+            // Auto-switch MetaMask to selected chain
             if (window.ethereum && userAddress) {
-                const chainConfigs = {
-                    arc: { 
-                        chainId: '0x4cef52', 
-                        name: 'ARC Testnet',
-                        rpc: 'https://arc-testnet.drpc.org',
-                        symbol: 'ARC'
-                    },
-                    ink: { 
-                        chainId: '0xba6fd', 
-                        name: 'INK Sepolia',
-                        rpc: 'https://rpc-sepolia.ink.technology',
-                        symbol: 'ETH'
-                    },
-                    giwa: { 
-                        chainId: '0x1a6a9d2', 
-                        name: 'GIWA Testnet',
-                        rpc: 'https://rpc.testnet.chain.giwa.io',
-                        symbol: 'GIWA'
-                    }
+                const chainIds = {
+                    arc: '0x4cef52',      // ARC = 5042002
+                    ink: '0xba6fd',       // INK = 763111
+                    giwa: '0x1a6a9d2'     // GIWA = 27699666
                 };
                 
-                const config = chainConfigs[chain];
-                if (!config) return;
+                const chainNames = {
+                    arc: 'ARC',
+                    ink: 'INK',
+                    giwa: 'GIWA'
+                };
+                
+                const chainId = chainIds[chain];
+                const chainName = chainNames[chain];
+                
+                if (!chainId) return;
                 
                 try {
-                    console.log(`Adding/Switching to ${config.name}...`);
+                    console.log(`Switching to ${chainName} (${chainId})...`);
                     
-                    // First try to add the chain (works even if already added)
                     await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: config.chainId,
-                            chainName: config.name,
-                            rpcUrls: [config.rpc],
-                            nativeCurrency: { 
-                                name: config.name, 
-                                symbol: config.symbol, 
-                                decimals: 18 
-                            },
-                        }],
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: chainId }],
                     });
                     
-                    console.log(`✅ Successfully switched to ${config.name}`);
-                    document.getElementById('chainName').textContent = config.name;
+                    console.log(`✅ Successfully switched to ${chainName}`);
+                    document.getElementById('chainName').textContent = chainName;
                 } catch (error) {
-                    console.error(`❌ Chain add/switch failed: ${error.message}`);
+                    console.error(`❌ Switch failed: ${error.message}`);
                 }
             }
         }
