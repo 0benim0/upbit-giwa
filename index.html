@@ -693,6 +693,23 @@
             document.querySelectorAll(`#${chain}-tabs .tab-btn`).forEach(el => el.classList.remove('active'));
             document.getElementById(chain + '-' + tab).classList.add('active');
             event.target.classList.add('active');
+            
+            // Refresh streak if switching to GIWA GM tab
+            if (chain === 'giwa' && tab === 'gm') {
+                updateGiwaStreakUI();
+            }
+        }
+
+        async function updateGiwaStreakUI() {
+            try {
+                if (!userAddress || !provider) return;
+                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, provider);
+                const userStreak = await gmContract.userStreak(userAddress);
+                const streakEl = document.getElementById('giwa-gmStreak');
+                if (streakEl) streakEl.textContent = userStreak.toString();
+            } catch (error) {
+                console.error('Error updating GIWA streak UI:', error);
+            }
         }
 
         async function connectWallet() {
@@ -1357,7 +1374,7 @@
         setInterval(updateGmTimerCountdownGiwa, 1000);
         setInterval(updateGiwaMoonPhase, 60000);
 
-        function updateProfile() {
+        async function updateProfile() {
             const chains = ['arc', 'ink', 'giwa'];
             chains.forEach(chain => {
                 const wallet = document.getElementById(chain + '-profileWallet');
@@ -1369,8 +1386,29 @@
                 const nfts = document.getElementById(chain + '-profileNFTs');
                 if (nfts) nfts.textContent = stats.nfts;
                 const streak = document.getElementById(chain + '-profileStreak');
-                if (streak) streak.textContent = stats.gmStreak;
+                if (streak && chain === 'giwa' && userAddress && provider) {
+                    // Read streak from GIWA Smart Contract
+                    readGiwaStreakFromContract().then(streakVal => {
+                        if (streak) streak.textContent = streakVal;
+                    }).catch(() => {
+                        if (streak) streak.textContent = stats.gmStreak;
+                    });
+                } else if (streak) {
+                    streak.textContent = stats.gmStreak;
+                }
             });
+        }
+
+        async function readGiwaStreakFromContract() {
+            try {
+                if (!userAddress || !provider) return stats.gmStreak;
+                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, provider);
+                const userStreak = await gmContract.userStreak(userAddress);
+                return userStreak.toString();
+            } catch (error) {
+                console.error('Error reading streak from contract:', error);
+                return stats.gmStreak;
+            }
         }
 
         function saveStats() {
