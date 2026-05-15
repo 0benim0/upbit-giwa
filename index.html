@@ -482,6 +482,8 @@
         <div id="giwa-content" style="display:none;">
             <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
             <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div id="giwa-nftSupply" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0; line-height:1.8;">Checkmate NFT<br><span style="font-size:32px;">1 / 9999</span> Minted</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
+            <div id="giwa-bridge" class="tab-content"><div class="card"><h2>🌉 Bridge Native Token</h2><div class="info-box">Bridge between GIWA and other chains</div><div class="input-group"><label>Amount (ETH)</label><input type="number" id="giwa-bridgeAmount" placeholder="0.1" step="0.0001" min="0"></div><div style="display:flex; gap:10px; margin:10px 0;"><button onclick="setBridgePercent(25, 'giwa')" class="percent-btn">25%</button><button onclick="setBridgePercent(50, 'giwa')" class="percent-btn">50%</button><button onclick="setBridgePercent(75, 'giwa')" class="percent-btn">75%</button><button onclick="setBridgePercent(100, 'giwa')" class="percent-btn">100%</button></div><div class="input-group"><label>Fee Option</label><select id="giwa-bridgeFee" onchange="setBridgeFee(this.value, 'giwa')"><option value="25">0.025%</option><option value="50" selected>0.050%</option><option value="75">0.075%</option><option value="100">0.1%</option></select></div><button onclick="bridgeTokenGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Bridge Token</button><div id="giwa-bridgeStatus"></div></div></div>
+            <div id="giwa-deploy" class="tab-content"><div class="card"><h2>🚀 Deploy Project</h2><div class="info-box">Deploy new projects on GIWA</div><div id="giwa-deployCounter" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0;">Deployments: 0</div><div class="input-group"><label>Project Name</label><input type="text" id="giwa-projectName" placeholder="My Awesome Project" maxlength="50"></div><button onclick="deployProjectGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Deploy Project</button><div id="giwa-deployStatus"></div></div></div>
             <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:18px; font-weight:bold; margin-bottom:15px;">Reset in: <span id="giwa-gmTimerCountdown" style="color:var(--task-blue); font-size:24px;">00:00:00</span></div><div id="giwa-gmAnimationContainer" style="text-align:center; height:120px; position:relative; margin:30px 0;"><div id="giwa-gmMorning" style="display:none; position:absolute; width:100%; height:100%;"><div style="font-size:60px; position:relative; left:20px; animation: float 3s ease-in-out infinite;">☀️</div><div style="font-size:80px; position:absolute; left:0; top:-10px; animation: float 3s ease-in-out infinite;">☁️</div></div><div id="giwa-gmDay" style="display:none; font-size:80px; animation: shine 2s ease-in-out infinite;">☀️</div><div id="giwa-gmSunset" style="display:none; font-size:70px; opacity:0.7;">🌇</div><div id="giwa-gmNight" style="display:none; position:relative; height:100%;"><div style="font-size:70px; position:absolute; right:30px; top:10px;">🌙</div><div style="font-size:24px; position:absolute; left:20px; top:20px; animation: twinkle 1.5s infinite;">✨</div><div style="font-size:20px; position:absolute; left:40px; top:50px; animation: twinkle 1.8s infinite;">⭐</div><div style="font-size:20px; position:absolute; right:50px; top:30px; animation: twinkle 1.3s infinite;">⭐</div></div></div><div style="text-align:center; margin:20px 0;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">Day Streak</div><div style="font-size:48px; color:var(--task-blue); font-weight:bold;" id="giwa-gmStreak">0</div></div><div id="giwa-gmStatusBox" style="text-align:center; margin:15px 0;"><div id="giwa-gmStatusReady" style="display:none; font-size:14px; color:var(--success); font-weight:bold; padding:10px; background:rgba(16,185,129,0.1); border-radius:8px;">✅ Ready to Check In!</div><div id="giwa-gmStatusMissed" style="display:none; font-size:14px; color:var(--danger); font-weight:bold; padding:10px; background:rgba(239,68,68,0.1); border-radius:8px;">❌ Streak Missed! Check in now!</div></div><button onclick="gmCheckInGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Say GM</button><div id="giwa-gmStatus"></div></div></div><style>@keyframes float {0%, 100% { transform: translateY(0px); }50% { transform: translateY(-15px); }}@keyframes shine {0%, 100% { filter: brightness(1); }50% { filter: brightness(1.3); }}@keyframes twinkle {0%, 100% { opacity: 0.3; }50% { opacity: 1; }}</style>
             <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
             <div id="giwa-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="giwa-badgesContainer"></div></div></div>
@@ -515,9 +517,15 @@
 
         const ARC_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const INK_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
-        const GIWA_TABS = ['faucet', 'nft', 'gm', 'tasks', 'badge', 'profile'];
+        const GIWA_TABS = ['faucet', 'nft', 'bridge', 'deploy', 'gm', 'tasks', 'badge', 'profile'];
         const TASKS = [
             { name: 'Complete Swap', icon: '⚡', points: 50, desc: 'Swap any token pair' },
+            { name: 'Complete Bridge', icon: '🌉', points: 50, desc: 'Bridge to another chain' },
+            { name: 'Mint NFT', icon: '🎮', points: 30, desc: 'Mint a Checkmate NFT' },
+            { name: 'Daily GM', icon: '✨', points: 20, desc: 'Check in every day' }
+        ];
+        const GIWA_TASKS = [
+            { name: 'Deploy Project', icon: '🚀', points: 50, desc: 'Deploy a new project' },
             { name: 'Complete Bridge', icon: '🌉', points: 50, desc: 'Bridge to another chain' },
             { name: 'Mint NFT', icon: '🎮', points: 30, desc: 'Mint a Checkmate NFT' },
             { name: 'Daily GM', icon: '✨', points: 20, desc: 'Check in every day' }
@@ -566,7 +574,21 @@
             }).join('');
             document.getElementById('arc-tasksContainer').innerHTML = html;
             document.getElementById('ink-tasksContainer').innerHTML = html;
-            document.getElementById('giwa-tasksContainer').innerHTML = html;
+            
+            // GIWA has different tasks (Deploy instead of Swap)
+            let giwaHtml = GIWA_TASKS.map(t => {
+                const done = completedTasks[t.name];
+                return `
+                    <div class="task-item ${done?'completed':''}">
+                        <div class="task-info">
+                            <div class="task-name">${t.icon} ${t.name}</div>
+                            <div class="task-points">${t.desc} • +${t.points}pts</div>
+                        </div>
+                        <button class="task-status" style="background:${done?'var(--success)':'var(--danger)'}">${done?'✓ DONE':'PENDING'}</button>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('giwa-tasksContainer').innerHTML = giwaHtml;
         }
 
         function renderBadges() {
@@ -670,6 +692,7 @@
                 setTimeout(async () => {
                     await loadBalances();
                     await updateGiwaNFTSupply();
+                    await updateGiwaDeployCounter();
                 }, 500);
             } catch (error) {
                 console.error('Wallet error:', error);
@@ -927,6 +950,151 @@
             'function userMintCount(address user) public view returns (uint256)'
         ];
 
+        // GIWA Bridge Smart Contract
+        const GIWA_BRIDGE_ADDRESS = '0x56D390B0dB9fadEd9eeDD8Aab2b4a880FaF4435D';
+        const BRIDGE_ABI = [
+            'function bridgeToken(uint256 selectedFee) public payable',
+            'function totalBridged() public view returns (uint256)',
+            'function userBridgeCount(address user) public view returns (uint256)'
+        ];
+
+        // GIWA GM Smart Contract
+        const GIWA_GM_ADDRESS = '0x2f1a98E6F2BCaBd1B1c5B16483e7d93c478dfff3';
+        const GM_ABI = [
+            'function sayGM() public payable',
+            'function userStreak(address user) public view returns (uint256)',
+            'function totalGMCheckIns() public view returns (uint256)',
+            'function hasCheckedInToday(address user) public view returns (bool)'
+        ];
+
+        // GIWA Deploy Hub Smart Contract
+        const GIWA_DEPLOY_ADDRESS = '0xa71208Fd462c499bEd8F4F551cBBe2e96503ffCF';
+        const DEPLOY_ABI = [
+            'function deployProject(string memory projectName) public payable',
+            'function totalDeployments() public view returns (uint256)',
+            'function userDeployCount(address user) public view returns (uint256)'
+        ];
+
+        async function bridgeTokenGiwa() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-bridgeStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-bridgeStatus');
+            
+            const amount = document.getElementById('giwa-bridgeAmount').value;
+            const feeOption = document.getElementById('giwa-bridgeFee').value;
+            
+            if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'giwa-bridgeStatus');
+            
+            showStatus('loading', 'Bridging...', 'giwa-bridgeStatus');
+            try {
+                const bridgeContract = new ethers.Contract(GIWA_BRIDGE_ADDRESS, BRIDGE_ABI, signer);
+                
+                // Convert fee option to basis points (25 = 0.025%, 50 = 0.050%, etc.)
+                const feeInBasisPoints = parseInt(feeOption);
+                
+                // Call smart contract bridgeToken function
+                const tx = await bridgeContract.bridgeToken(feeInBasisPoints, {
+                    value: ethers.parseEther(amount)
+                });
+                
+                console.log('Bridge TX sent:', tx.hash);
+                await tx.wait();
+                console.log('Bridge TX confirmed!');
+                
+                // Update User Stats
+                stats.bridges++;
+                
+                // Auto-complete Task
+                completedTasks['Complete Bridge'] = true;
+                
+                saveStats();
+                renderTasks();
+                updateProfile();
+                
+                // Get updated counter from contract
+                const totalBridged = await bridgeContract.totalBridged();
+                showStatus('success', `✅ Bridged ${amount} ETH! (Total: ${totalBridged.toString()})`, 'giwa-bridgeStatus');
+                
+                document.getElementById('giwa-bridgeAmount').value = '';
+            } catch (error) {
+                console.error('Bridge Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-bridgeStatus');
+            }
+        }
+
+        function setBridgePercent(pct, chain) {
+            if (chain === 'giwa') {
+                const el = document.getElementById('giwa-bridgeAmount');
+                if (userAddress && balances.nativeBalance) {
+                    const pctValue = (balances.nativeBalance * pct) / 100;
+                    el.value = (pctValue / 1e18).toFixed(4);
+                }
+            }
+        }
+
+        function setBridgeFee(fee, chain) {
+            if (chain === 'giwa') {
+                console.log(`Bridge fee set to ${fee} basis points`);
+            }
+        }
+
+        async function deployProjectGiwa() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-deployStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-deployStatus');
+            
+            const projectName = document.getElementById('giwa-projectName').value;
+            if (!projectName || projectName.trim() === '') return showStatus('error', 'Enter project name!', 'giwa-deployStatus');
+            
+            showStatus('loading', 'Deploying...', 'giwa-deployStatus');
+            try {
+                const deployContract = new ethers.Contract(GIWA_DEPLOY_ADDRESS, DEPLOY_ABI, signer);
+                
+                // Call smart contract deployProject function
+                const tx = await deployContract.deployProject(projectName, {
+                    value: ethers.parseEther('0.0001')
+                });
+                
+                console.log('Deploy TX sent:', tx.hash);
+                await tx.wait();
+                console.log('Deploy TX confirmed!');
+                
+                // Update User Stats
+                stats.deploys = (stats.deploys || 0) + 1;
+                
+                // Auto-complete Deploy Task
+                completedTasks['Deploy Project'] = true;
+                
+                saveStats();
+                renderTasks();
+                updateProfile();
+                updateGiwaDeployCounter();
+                
+                // Get updated counter from contract
+                const totalDeployments = await deployContract.totalDeployments();
+                showStatus('success', `🚀 Deployed "${projectName}"! (Total: ${totalDeployments.toString()})`, 'giwa-deployStatus');
+                
+                document.getElementById('giwa-projectName').value = '';
+            } catch (error) {
+                console.error('Deploy Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-deployStatus');
+            }
+        }
+
+        async function updateGiwaDeployCounter() {
+            try {
+                if (!provider) return;
+                
+                const deployContract = new ethers.Contract(GIWA_DEPLOY_ADDRESS, DEPLOY_ABI, provider);
+                const totalDeployments = await deployContract.totalDeployments();
+                
+                const el = document.getElementById('giwa-deployCounter');
+                if (el) {
+                    el.textContent = `Deployments: ${totalDeployments.toString()}`;
+                }
+            } catch (error) {
+                console.error('Error reading deploy counter:', error);
+            }
+        }
+
         async function mintNFTGiwa() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-nftStatus');
             if (!signer) return showStatus('error', 'Signer not available!', 'giwa-nftStatus');
@@ -992,28 +1160,35 @@
         // GIWA GM Functions
         async function gmCheckInGiwa() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-gmStatus');
-            const today = new Date().toDateString();
-            if (stats.lastGM === today) return showStatus('error', 'Already checked in today!', 'giwa-gmStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-gmStatus');
             
             showStatus('loading', 'Checking in...', 'giwa-gmStatus');
             try {
-                const tx = await signer.sendTransaction({ 
-                    to: OWNER, 
-                    value: ethers.parseEther('0.0001') 
-                });
-                await tx.wait();
+                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, signer);
                 
-                stats.lastGM = today;
-                stats.gmStreak++;
+                // Call smart contract sayGM function
+                const tx = await gmContract.sayGM({ 
+                    value: ethers.parseEther('0.0001')
+                });
+                
+                console.log('GM TX sent:', tx.hash);
+                await tx.wait();
+                console.log('GM TX confirmed!');
+                
+                // Get updated streak from contract
+                const userStreak = await gmContract.userStreak(userAddress);
+                
+                // Update local stats
                 completedTasks['Daily GM'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
                 
-                document.getElementById('giwa-gmStreak').textContent = stats.gmStreak;
+                document.getElementById('giwa-gmStreak').textContent = userStreak.toString();
                 updateGiwaMoonPhase();
-                showStatus('success', `✨ GM! Streak: ${stats.gmStreak} days`, 'giwa-gmStatus');
+                showStatus('success', `✨ GM! Streak: ${userStreak.toString()} days`, 'giwa-gmStatus');
             } catch (error) {
+                console.error('GM Error:', error);
                 showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-gmStatus');
             }
         }
