@@ -624,61 +624,101 @@
                 userAddress = accounts[0];
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
+                
                 document.getElementById('walletConnectBtn').textContent = '✅ Connected';
-                if (document.getElementById('walletAddress')) {
-                    document.getElementById('walletAddress').textContent = userAddress;
-                }
-                if (document.getElementById('walletInfo')) {
-                    document.getElementById('walletInfo').style.display = 'block';
-                }
+                document.getElementById('walletAddress').textContent = userAddress;
+                document.getElementById('chainName').textContent = 'Connected';
+                document.getElementById('walletInfo').style.display = 'block';
+                
                 updateProfile();
-                await loadBalances();
+                
+                setTimeout(async () => {
+                    await loadBalances();
+                }, 500);
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Wallet error:', error);
+                alert('Wallet Error: ' + error.message);
             }
         }
 
         async function loadBalances() {
-            if (!userAddress || !provider) return;
+            if (!userAddress || !provider) {
+                console.error('No wallet or provider');
+                return;
+            }
             try {
-                // ARC Balances
-                const arcUsdc = new ethers.Contract(ARC_USDC, ERC20_ABI, provider);
-                const arcEurc = new ethers.Contract(ARC_EURC, ERC20_ABI, provider);
-                balances.arc.usdc = await arcUsdc.balanceOf(userAddress);
-                balances.arc.eurc = await arcEurc.balanceOf(userAddress);
-                balances.arc.native = await provider.getBalance(userAddress);
+                console.log('Loading balances for:', userAddress);
                 
-                // INK Balances
-                const inkUsdc = new ethers.Contract(INK_USDC, ERC20_ABI, provider);
-                balances.ink.usdc = await inkUsdc.balanceOf(userAddress);
-                balances.ink.native = await provider.getBalance(userAddress);
+                // Get native balance
+                const nativeBal = await provider.getBalance(userAddress);
+                balances.arc.native = nativeBal;
+                balances.ink.native = nativeBal;
                 
+                // ARC Token Balances
+                try {
+                    const arcUsdc = new ethers.Contract(ARC_USDC, ERC20_ABI, provider);
+                    const arcEurc = new ethers.Contract(ARC_EURC, ERC20_ABI, provider);
+                    const usdcBal = await arcUsdc.balanceOf(userAddress);
+                    const eurcBal = await arcEurc.balanceOf(userAddress);
+                    balances.arc.usdc = usdcBal;
+                    balances.arc.eurc = eurcBal;
+                    console.log('ARC USDC:', usdcBal.toString());
+                    console.log('ARC EURC:', eurcBal.toString());
+                } catch (e) {
+                    console.error('ARC token error:', e);
+                }
+                
+                // INK Token Balances
+                try {
+                    const inkUsdc = new ethers.Contract(INK_USDC, ERC20_ABI, provider);
+                    const usdcBal = await inkUsdc.balanceOf(userAddress);
+                    balances.ink.usdc = usdcBal;
+                    console.log('INK USDC:', usdcBal.toString());
+                } catch (e) {
+                    console.error('INK token error:', e);
+                }
+                
+                console.log('Final balances:', balances);
                 updateBalanceDisplay();
             } catch (error) {
-                console.error('Balance load error:', error);
+                console.error('loadBalances error:', error);
             }
         }
 
         function updateBalanceDisplay() {
-            const display = (balance, decimals = 18) => (Number(balance) / (10 ** decimals)).toFixed(4);
+            const display = (balance, decimals = 18) => {
+                try {
+                    return (Number(balance) / (10 ** decimals)).toFixed(4);
+                } catch (e) {
+                    return '0';
+                }
+            };
             
-            const arcSwapHtml = `
-                <div class="balance-item"><span>USDC:</span> <strong>${display(balances.arc.usdc, 6)}</strong></div>
-                <div class="balance-item"><span>EURC:</span> <strong>${display(balances.arc.eurc, 6)}</strong></div>
-                <div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>
-            `;
-            if (document.getElementById('arc-swapBalance')) {
-                document.getElementById('arc-swapBalance').innerHTML = arcSwapHtml;
+            const arcSwapEl = document.getElementById('arc-swapBalance');
+            if (arcSwapEl) {
+                arcSwapEl.innerHTML = `
+                    <div class="balance-item"><span>USDC:</span> <strong>${display(balances.arc.usdc, 6)}</strong></div>
+                    <div class="balance-item"><span>EURC:</span> <strong>${display(balances.arc.eurc, 6)}</strong></div>
+                    <div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>
+                `;
             }
-            if (document.getElementById('arc-bridgeBalance')) {
-                document.getElementById('arc-bridgeBalance').innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>`;
+            
+            const arcBridgeEl = document.getElementById('arc-bridgeBalance');
+            if (arcBridgeEl) {
+                arcBridgeEl.innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>`;
             }
-            if (document.getElementById('ink-swapBalance')) {
-                document.getElementById('ink-swapBalance').innerHTML = `<div class="balance-item"><span>USDC:</span> <strong>${display(balances.ink.usdc, 6)}</strong></div>`;
+            
+            const inkSwapEl = document.getElementById('ink-swapBalance');
+            if (inkSwapEl) {
+                inkSwapEl.innerHTML = `<div class="balance-item"><span>USDC:</span> <strong>${display(balances.ink.usdc, 6)}</strong></div>`;
             }
-            if (document.getElementById('ink-bridgeBalance')) {
-                document.getElementById('ink-bridgeBalance').innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.ink.native)}</strong></div>`;
+            
+            const inkBridgeEl = document.getElementById('ink-bridgeBalance');
+            if (inkBridgeEl) {
+                inkBridgeEl.innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.ink.native)}</strong></div>`;
             }
+            
+            console.log('Balances updated on screen');
         }
 
         function setSwapFee(fee, el, chain) {
@@ -711,15 +751,27 @@
         }
 
         function setSwapPercent(pct, chain) {
-            const tokenIn = document.getElementById(chain + '-swapTokenIn')?.value;
-            let balance = 0;
-            if (tokenIn === 'usdc') balance = Number(balances[chain].usdc) / 1e6;
-            else if (tokenIn === 'eurc') balance = Number(balances[chain].eurc) / 1e6;
-            const amount = (balance * pct / 100).toFixed(6);
-            if (document.getElementById(chain + '-swapAmount')) {
-                document.getElementById(chain + '-swapAmount').value = amount;
+            try {
+                const tokenIn = document.getElementById(chain + '-swapTokenIn')?.value || 'usdc';
+                let balance = 0;
+                
+                if (chain === 'arc') {
+                    if (tokenIn === 'usdc') balance = Number(balances.arc.usdc) / 1e6;
+                    else if (tokenIn === 'eurc') balance = Number(balances.arc.eurc) / 1e6;
+                } else if (chain === 'ink') {
+                    if (tokenIn === 'usdc') balance = Number(balances.ink.usdc) / 1e6;
+                }
+                
+                const amount = (balance * pct / 100).toFixed(6);
+                const amountInput = document.getElementById(chain + '-swapAmount');
+                if (amountInput) {
+                    amountInput.value = amount;
+                    console.log(`Set ${chain} swap amount to ${amount} (${pct}% of ${balance})`);
+                }
+                calcSwapOutput(chain);
+            } catch (e) {
+                console.error('setSwapPercent error:', e);
             }
-            calcSwapOutput(chain);
         }
 
         async function executeSwap(chain) {
@@ -789,12 +841,18 @@
         }
 
         function setBridgePercent(pct, chain) {
-            const balance = Number(balances[chain].native) / 1e18;
-            const amount = (balance * pct / 100).toFixed(6);
-            if (document.getElementById(chain + '-bridgeAmount')) {
-                document.getElementById(chain + '-bridgeAmount').value = amount;
+            try {
+                const balance = Number(balances[chain].native) / 1e18;
+                const amount = (balance * pct / 100).toFixed(6);
+                const amountInput = document.getElementById(chain + '-bridgeAmount');
+                if (amountInput) {
+                    amountInput.value = amount;
+                    console.log(`Set ${chain} bridge amount to ${amount} (${pct}% of ${balance})`);
+                }
+                calcBridgeOutput(chain);
+            } catch (e) {
+                console.error('setBridgePercent error:', e);
             }
-            calcBridgeOutput(chain);
         }
 
         async function executeBridge(chain) {
