@@ -481,7 +481,7 @@
 
         <div id="giwa-content" style="display:none;">
             <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
-            <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box">Checkmate NFT | Max Supply: 9999 | Mints per day: 1 | Resets at 00:00 UTC</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFT('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button><div id="giwa-nftStatus"></div></div></div>
+            <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box" id="giwa-nftSupply">Checkmate NFT | Max Supply: 9999 | Minted: 0/9999</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
             <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="giwa-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="giwa-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="giwa-gmStatus"></div></div></div>
             <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
             <div id="giwa-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="giwa-badgesContainer"></div></div></div>
@@ -535,6 +535,7 @@
             renderBadges();
             loadStats();
             updateGMTimers();
+            updateGiwaNFTSupply();
             setInterval(updateGMTimers, 1000);
         });
 
@@ -882,29 +883,54 @@
             }
         }
 
-        async function mintNFT(chain) {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-nftStatus');
-            const today = new Date().toDateString();
-            if (stats.nftMintToday) return showStatus('error', 'Already minted today! Reset at 00:00 UTC', chain + '-nftStatus');
+        async function mintNFTGiwa() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-nftStatus');
             
-            showStatus('loading', 'Sign transaction in wallet...', chain + '-nftStatus');
+            showStatus('loading', 'Minting NFT...', 'giwa-nftStatus');
             try {
-                const nftName = document.getElementById(chain + '-nftName')?.value || 'Checkmate';
-                const tx = await signer.sendTransaction({ to: OWNER, value: ethers.parseEther('0.01') });
+                const nftName = document.getElementById('giwa-nftName')?.value || 'Checkmate';
+                
+                // Send TX to Owner
+                const tx = await signer.sendTransaction({ 
+                    to: OWNER, 
+                    value: ethers.parseEther('0.01') 
+                });
                 await tx.wait();
                 
+                // Update Global Counter
+                let globalMinted = parseInt(localStorage.getItem('giwaGlobalMinted') || '0');
+                globalMinted++;
+                localStorage.setItem('giwaGlobalMinted', globalMinted.toString());
+                
+                // Update User Stats
                 stats.nfts++;
-                stats.nftMintToday = true;
-                completedTasks['Mint NFT'] = true;
+                
+                // Auto-complete Task if first mint today
+                const today = new Date().toDateString();
+                const lastNftMintDay = localStorage.getItem('lastNftMintDay');
+                if (lastNftMintDay !== today) {
+                    completedTasks['Mint NFT'] = true;
+                    localStorage.setItem('lastNftMintDay', today);
+                }
+                
                 saveStats();
                 renderTasks();
                 updateProfile();
-                showStatus('success', `✅ Minted: ${nftName} NFT!`, chain + '-nftStatus');
-                if (document.getElementById(chain + '-nftName')) {
-                    document.getElementById(chain + '-nftName').value = 'Checkmate';
-                }
+                updateGiwaNFTSupply();
+                
+                showStatus('success', `✅ Minted: ${nftName} NFT! (Total: ${globalMinted}/9999)`, 'giwa-nftStatus');
+                document.getElementById('giwa-nftName').value = 'Checkmate';
             } catch (error) {
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-nftStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-nftStatus');
+            }
+        }
+
+        function updateGiwaNFTSupply() {
+            const globalMinted = parseInt(localStorage.getItem('giwaGlobalMinted') || '0');
+            const remaining = 9999 - globalMinted;
+            const el = document.getElementById('giwa-nftSupply');
+            if (el) {
+                el.textContent = `Checkmate NFT | Max Supply: 9999 | Minted: ${globalMinted}/9999 | Remaining: ${remaining}`;
             }
         }
 
