@@ -1383,9 +1383,6 @@
         setInterval(updateGmTimerCountdownGiwa, 1000);
         setInterval(updateGiwaMoonPhase, 60000);
 
-        // ERC20 ABI for token balance
-        const ERC20_ABI = ['function balanceOf(address account) public view returns (uint256)'];
-
         // Bridge - Dynamic From/To Chain Selection with Token Balances
         let bridgeCurrentChain = 'giwa';
         let bridgeBalanceRaw = null;
