@@ -482,7 +482,7 @@
         <div id="giwa-content" style="display:none;">
             <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
             <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div id="giwa-nftSupply" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0; line-height:1.8;">Checkmate NFT<br><span style="font-size:32px;">1 / 9999</span> Minted</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
-            <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="giwa-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="giwa-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('giwa')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="giwa-gmStatus"></div></div></div>
+            <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:18px; font-weight:bold; margin-bottom:15px;">Reset in: <span id="giwa-gmTimerCountdown" style="color:var(--task-blue); font-size:24px;">00:00:00</span></div><div id="giwa-gmAnimationContainer" style="text-align:center; height:120px; position:relative; margin:30px 0;"><div id="giwa-gmMorning" style="display:none; position:absolute; width:100%; height:100%;"><div style="font-size:60px; position:relative; left:20px; animation: float 3s ease-in-out infinite;">☀️</div><div style="font-size:80px; position:absolute; left:0; top:-10px; animation: float 3s ease-in-out infinite;">☁️</div></div><div id="giwa-gmDay" style="display:none; font-size:80px; animation: shine 2s ease-in-out infinite;">☀️</div><div id="giwa-gmSunset" style="display:none; font-size:70px; opacity:0.7;">🌇</div><div id="giwa-gmNight" style="display:none; position:relative; height:100%;"><div style="font-size:70px; position:absolute; right:30px; top:10px;">🌙</div><div style="font-size:24px; position:absolute; left:20px; top:20px; animation: twinkle 1.5s infinite;">✨</div><div style="font-size:20px; position:absolute; left:40px; top:50px; animation: twinkle 1.8s infinite;">⭐</div><div style="font-size:20px; position:absolute; right:50px; top:30px; animation: twinkle 1.3s infinite;">⭐</div></div></div><div style="text-align:center; margin:20px 0;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">Day Streak</div><div style="font-size:48px; color:var(--task-blue); font-weight:bold;" id="giwa-gmStreak">0</div></div><div id="giwa-gmStatusBox" style="text-align:center; margin:15px 0;"><div id="giwa-gmStatusReady" style="display:none; font-size:14px; color:var(--success); font-weight:bold; padding:10px; background:rgba(16,185,129,0.1); border-radius:8px;">✅ Ready to Check In!</div><div id="giwa-gmStatusMissed" style="display:none; font-size:14px; color:var(--danger); font-weight:bold; padding:10px; background:rgba(239,68,68,0.1); border-radius:8px;">❌ Streak Missed! Check in now!</div></div><button onclick="gmCheckInGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Say GM</button><div id="giwa-gmStatus"></div></div></div><style>@keyframes float {0%, 100% { transform: translateY(0px); }50% { transform: translateY(-15px); }}@keyframes shine {0%, 100% { filter: brightness(1); }50% { filter: brightness(1.3); }}@keyframes twinkle {0%, 100% { opacity: 0.3; }50% { opacity: 1; }}</style>
             <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
             <div id="giwa-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="giwa-badgesContainer"></div></div></div>
             <div id="giwa-profile" class="tab-content"><div class="card"><h2>👤 Profile</h2><div class="info-box">Wallet: <strong id="giwa-profileWallet">Not Connected</strong></div><div class="info-box">NFTs: <strong id="giwa-profileNFTs">0</strong></div><div class="info-box">GM Streak: <strong id="giwa-profileStreak">0</strong></div></div></div>
@@ -967,35 +967,103 @@
             }
         }
 
-        async function gmCheckIn(chain) {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-gmStatus');
+        // GIWA GM Functions
+        async function gmCheckInGiwa() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-gmStatus');
             const today = new Date().toDateString();
-            if (stats.lastGM === today) return showStatus('error', 'Already checked in today!', chain + '-gmStatus');
+            if (stats.lastGM === today) return showStatus('error', 'Already checked in today!', 'giwa-gmStatus');
             
-            showStatus('loading', 'Sign transaction in wallet...', chain + '-gmStatus');
+            showStatus('loading', 'Checking in...', 'giwa-gmStatus');
             try {
-                const tx = await signer.sendTransaction({ to: OWNER, value: ethers.parseEther('0.001') });
+                const tx = await signer.sendTransaction({ 
+                    to: OWNER, 
+                    value: ethers.parseEther('0.0001') 
+                });
                 await tx.wait();
                 
                 stats.lastGM = today;
                 stats.gmStreak++;
-                stats.nftMintToday = false;
                 completedTasks['Daily GM'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
                 
-                const chains = ['arc', 'ink', 'giwa'];
-                chains.forEach(c => {
-                    const el = document.getElementById(c + '-gmStreak');
-                    if (el) el.textContent = stats.gmStreak;
-                });
-                
-                showStatus('success', `✨ GM! Streak: ${stats.gmStreak} days`, chain + '-gmStatus');
+                document.getElementById('giwa-gmStreak').textContent = stats.gmStreak;
+                updateGiwaMoonPhase();
+                showStatus('success', `✨ GM! Streak: ${stats.gmStreak} days`, 'giwa-gmStatus');
             } catch (error) {
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-gmStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-gmStatus');
             }
         }
+
+        function updateGiwaMoonPhase() {
+            const now = new Date();
+            const hour = now.getHours();
+            
+            // Hide all first
+            document.getElementById('giwa-gmMorning').style.display = 'none';
+            document.getElementById('giwa-gmDay').style.display = 'none';
+            document.getElementById('giwa-gmSunset').style.display = 'none';
+            document.getElementById('giwa-gmNight').style.display = 'none';
+            
+            // Show based on time
+            if (hour >= 6 && hour < 12) {
+                // Morning: Sun behind cloud
+                document.getElementById('giwa-gmMorning').style.display = 'block';
+            } else if (hour >= 12 && hour < 18) {
+                // Noon-Evening: Shining sun
+                document.getElementById('giwa-gmDay').style.display = 'block';
+            } else if (hour >= 18 && hour < 20) {
+                // Sunset
+                document.getElementById('giwa-gmSunset').style.display = 'block';
+            } else {
+                // Night: Moon with stars
+                document.getElementById('giwa-gmNight').style.display = 'block';
+            }
+        }
+
+        function updateGmTimerCountdownGiwa() {
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setHours(24, 0, 0, 0);
+            const diff = Math.max(0, Math.floor((tomorrow - now) / 1000));
+            
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = diff % 60;
+            
+            const timerEl = document.getElementById('giwa-gmTimerCountdown');
+            if (timerEl) {
+                timerEl.textContent = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                
+                // Green if not checked in today, Red if missed
+                const today = new Date().toDateString();
+                const readyEl = document.getElementById('giwa-gmStatusReady');
+                const missedEl = document.getElementById('giwa-gmStatusMissed');
+                
+                if (stats.lastGM === today) {
+                    if (readyEl) readyEl.style.display = 'none';
+                    if (missedEl) missedEl.style.display = 'none';
+                } else if (diff > 0 && diff < 3600) {
+                    // Last hour before reset - show as ready (green)
+                    if (readyEl) readyEl.style.display = 'block';
+                    if (missedEl) missedEl.style.display = 'none';
+                } else if (diff === 0) {
+                    // Reset time - red if not checked
+                    if (readyEl) readyEl.style.display = 'none';
+                    if (missedEl) missedEl.style.display = 'block';
+                } else {
+                    if (readyEl) readyEl.style.display = 'block';
+                    if (missedEl) missedEl.style.display = 'none';
+                }
+            }
+        }
+
+        // Start GM timers
+        updateGiwaMoonPhase();
+        updateGmTimerCountdownGiwa();
+        setInterval(updateGmTimerCountdownGiwa, 1000);
+        setInterval(updateGiwaMoonPhase, 60000);
 
         function updateProfile() {
             const chains = ['arc', 'ink', 'giwa'];
