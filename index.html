@@ -466,10 +466,10 @@
                         </select>
                     </div>
                     
-                    <!-- Balance -->
-                    <div style="background:rgba(0,212,255,0.1); padding:12px; border-radius:8px; margin-bottom:15px;">
-                        <div style="font-size:12px; color:var(--text-muted);">Available</div>
-                        <div style="font-size:18px; color:var(--task-blue); font-weight:bold;"><span id="bridge-balance">0.0000</span> <span id="bridge-balance-token">ETH</span></div>
+                    <!-- Balance Display - Dynamic for multiple tokens -->
+                    <div id="bridge-balanceContainer" style="background:rgba(0,212,255,0.1); padding:12px; border-radius:8px; margin-bottom:15px;">
+                        <div style="font-size:12px; color:var(--text-muted);">Available Balance</div>
+                        <div id="bridge-balanceDisplay"></div>
                     </div>
                     
                     <!-- To Chain Dropdown -->
@@ -1383,32 +1383,37 @@
         setInterval(updateGmTimerCountdownGiwa, 1000);
         setInterval(updateGiwaMoonPhase, 60000);
 
-        // Bridge - Dynamic From/To Chain Selection with Token Balances
+        // Bridge - Multi-Token Balance Loading
         let bridgeCurrentChain = 'giwa';
-        let bridgeBalanceRaw = null;
-        let bridgeBalanceDecimals = 18;
+        let bridgeBalances = {}; // Store all balances
+        let bridgeSelectedToken = null; // Selected token for bridging
 
         const bridgeChainInfo = {
             'giwa': { 
                 name: '🟣 GIWA Sepolia', 
                 contract: GIWA_BRIDGE_ADDRESS, 
                 abi: BRIDGE_ABI,
-                token: null,
-                tokenName: 'ETH'
+                tokens: [
+                    { address: null, name: 'ETH', decimals: 18 }
+                ]
             },
             'arc': { 
                 name: '🔵 ARC Testnet', 
                 contract: ARC_BRIDGE_ADDRESS, 
                 abi: ARC_BRIDGE_ABI,
-                token: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a',
-                tokenName: 'EURC'
+                tokens: [
+                    { address: '0x3600000000000000000000000000000000000000', name: 'USDC', decimals: 6 },
+                    { address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', name: 'EURC', decimals: 6 }
+                ]
             },
             'ink': { 
                 name: '⚪ INK Sepolia', 
                 contract: INK_BRIDGE_ADDRESS, 
                 abi: INK_BRIDGE_ABI,
-                token: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac',
-                tokenName: 'USDC'
+                tokens: [
+                    { address: null, name: 'ETH', decimals: 18 },
+                    { address: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac', name: 'USDC', decimals: 6 }
+                ]
             }
         };
 
@@ -1432,7 +1437,7 @@
                 toSelect.appendChild(opt);
             });
 
-            // Load balance for from chain
+            // Load balances for all tokens on this chain
             await loadBridgeBalance();
         }
 
@@ -1440,46 +1445,73 @@
             try {
                 if (!userAddress || !provider) return;
                 
-                const chainInfo = bridgeChainInfo[bridgeCurrentChain];
-                let balance;
-
-                if (chainInfo.token === null) {
-                    // Native ETH (GIWA)
-                    balance = await provider.getBalance(userAddress);
-                    bridgeBalanceRaw = balance;
-                    bridgeBalanceDecimals = 18;
-                } else {
-                    // ERC20 Token (ARC EURC or INK USDC)
-                    const tokenContract = new ethers.Contract(chainInfo.token, ERC20_ABI, provider);
-                    balance = await tokenContract.balanceOf(userAddress);
-                    bridgeBalanceRaw = balance;
-                    bridgeBalanceDecimals = 6; // Most tokens use 6 decimals
-                }
-
-                const balanceAmount = parseFloat(balance.toString()) / (10 ** bridgeBalanceDecimals);
-                document.getElementById('bridge-balance').textContent = balanceAmount.toFixed(4);
-                document.getElementById('bridge-balance-token').textContent = chainInfo.tokenName;
+                const chainTokens = bridgeChainInfo[bridgeCurrentChain].tokens;
+                const balanceDisplay = document.getElementById('bridge-balanceDisplay');
+                balanceDisplay.innerHTML = '';
+                bridgeBalances = {};
                 
-                console.log(`Bridge Balance (${bridgeCurrentChain}): ${balanceAmount.toFixed(4)} ${chainInfo.tokenName}`);
+                for (const token of chainTokens) {
+                    let balance;
+                    let balanceETH;
+                    
+                    if (token.address === null) {
+                        // Native ETH
+                        balance = await provider.getBalance(userAddress);
+                        balanceETH = parseFloat(balance.toString()) / (10 ** 18);
+                    } else {
+                        // ERC20 Token
+                        try {
+                            const tokenContract = new ethers.Contract(token.address, ERC20_ABI, provider);
+                            balance = await tokenContract.balanceOf(userAddress);
+                            balanceETH = parseFloat(balance.toString()) / (10 ** token.decimals);
+                        } catch (err) {
+                            console.error(`Error loading ${token.name} balance:`, err);
+                            balance = BigInt(0);
+                            balanceETH = 0;
+                        }
+                    }
+                    
+                    bridgeBalances[token.name] = { balance, decimals: token.decimals };
+                    
+                    // Add to display
+                    const balanceEl = document.createElement('div');
+                    balanceEl.style.cssText = 'font-size:16px; color:var(--task-blue); font-weight:bold; margin:5px 0; cursor:pointer; padding:8px; border-radius:6px; background:rgba(0,212,255,0.05);';
+                    balanceEl.textContent = `${token.name}: ${balanceETH.toFixed(4)}`;
+                    balanceEl.onclick = () => selectBridgeToken(token.name);
+                    balanceDisplay.appendChild(balanceEl);
+                }
+                
+                // Select first token by default
+                if (chainTokens.length > 0) {
+                    selectBridgeToken(chainTokens[0].name);
+                }
+                
+                console.log(`Bridge Balances (${bridgeCurrentChain}):`, bridgeBalances);
             } catch (error) {
-                console.error('Error loading bridge balance:', error);
-                document.getElementById('bridge-balance').textContent = '0.0000';
+                console.error('Error loading bridge balances:', error);
             }
         }
 
+        function selectBridgeToken(tokenName) {
+            bridgeSelectedToken = tokenName;
+            console.log(`Selected token for bridge: ${tokenName}`);
+        }
+
         function bridgePercent(pct) {
-            if (!bridgeBalanceRaw) {
-                alert('Balance not loaded!');
+            if (!bridgeSelectedToken || !bridgeBalances[bridgeSelectedToken]) {
+                alert('Select a token first!');
                 return;
             }
-            const pctValue = (bridgeBalanceRaw * BigInt(pct)) / BigInt(100);
-            const amount = parseFloat(pctValue.toString()) / (10 ** bridgeBalanceDecimals);
+            const tokenData = bridgeBalances[bridgeSelectedToken];
+            const pctValue = (tokenData.balance * BigInt(pct)) / BigInt(100);
+            const amount = parseFloat(pctValue.toString()) / (10 ** tokenData.decimals);
             document.getElementById('bridge-amount').value = amount.toFixed(4);
         }
 
         async function executeBridge() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'bridge-status');
             if (!signer) return showStatus('error', 'Signer not available!', 'bridge-status');
+            if (!bridgeSelectedToken) return showStatus('error', 'Select a token!', 'bridge-status');
 
             const fromChain = bridgeCurrentChain;
             const toChain = document.getElementById('bridge-toChain').value;
@@ -1488,7 +1520,7 @@
 
             if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'bridge-status');
 
-            showStatus('loading', `Bridging from ${bridgeChainInfo[fromChain].name} to ${bridgeChainInfo[toChain].name}...`, 'bridge-status');
+            showStatus('loading', `Bridging ${bridgeSelectedToken}...`, 'bridge-status');
             
             try {
                 const chainInfo = bridgeChainInfo[fromChain];
@@ -1500,7 +1532,6 @@
 
                 console.log('Bridge TX:', tx.hash);
                 await tx.wait();
-                console.log('Bridge confirmed!');
 
                 stats.bridges++;
                 completedTasks['Complete Bridge'] = true;
@@ -1508,7 +1539,7 @@
                 renderTasks();
                 updateProfile();
 
-                showStatus('success', `✅ Bridged ${amount} ${chainInfo.tokenName}!\n${bridgeChainInfo[fromChain].name} → ${bridgeChainInfo[toChain].name}`, 'bridge-status');
+                showStatus('success', `✅ Bridged ${amount} ${bridgeSelectedToken}!\n${chainInfo.name} → ${bridgeChainInfo[toChain].name}`, 'bridge-status');
                 document.getElementById('bridge-amount').value = '';
                 await loadBridgeBalance();
             } catch (error) {
