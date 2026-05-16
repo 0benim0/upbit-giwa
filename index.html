@@ -1029,9 +1029,9 @@
             }
         }
 
-        function updateBridgePath(chain) {
-            const fromChain = document.getElementById(chain + '-bridgeFrom')?.value || 'arc';
-            const toChain = document.getElementById(chain + '-bridgeTo')?.value;
+        function updateBridgePath() {
+            const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
+            const toChain = document.getElementById('bridgeTo')?.value;
             
             const chainEmoji = {
                 'arc': '🔵 ARC',
@@ -1039,8 +1039,10 @@
                 'giwa': '🟣 GIWA'
             };
             
-            if (toChain && document.getElementById(chain + '-bridgePath')) {
-                document.getElementById(chain + '-bridgePath').textContent = chainEmoji[fromChain] + ' → ' + chainEmoji[toChain];
+            if (toChain) {
+                if (document.getElementById('bridgePath')) {
+                    document.getElementById('bridgePath').textContent = chainEmoji[fromChain] + ' → ' + chainEmoji[toChain];
+                }
             }
         }
 
@@ -1385,6 +1387,8 @@
             const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
             selectedBridgeChain = fromChain;
             
+            console.log(`Bridge FROM chain selected: ${fromChain}`);
+            
             // Update TO dropdown
             const toSelect = document.getElementById('bridgeTo');
             const allChains = ['arc', 'ink', 'giwa'];
@@ -1400,24 +1404,30 @@
                 toSelect.appendChild(opt);
             });
             
-            updateBridgePath();
+            // AUTO-SWITCH: Update main navbar to show selected chain
+            updateMainChainDisplay(fromChain);
+            
             updateBridgeModalBalance();
+            updateBridgePath();
             calcBridgeOutput();
         }
 
-        function updateBridgePath() {
-            const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
-            const toChain = document.getElementById('bridgeTo')?.value;
+        function updateMainChainDisplay(chain) {
+            // Update the main chain navbar buttons
+            const chainBtns = document.querySelectorAll('.chain-btn');
+            chainBtns.forEach(btn => {
+                btn.classList.remove('active');
+                const btnText = btn.textContent.toLowerCase();
+                if ((chain === 'arc' && btnText.includes('arc')) ||
+                    (chain === 'ink' && btnText.includes('ink')) ||
+                    (chain === 'giwa' && btnText.includes('giwa'))) {
+                    btn.classList.add('active');
+                }
+            });
             
-            const chainEmoji = {
-                'arc': '🔵 ARC',
-                'ink': '⚪ INK',
-                'giwa': '🟣 GIWA'
-            };
-            
-            if (toChain && document.getElementById('bridgePath')) {
-                document.getElementById('bridgePath').textContent = chainEmoji[fromChain] + ' → ' + chainEmoji[toChain];
-            }
+            // Update currentChain
+            currentChain = chain;
+            console.log(`✅ Auto-switched navbar to ${chain.toUpperCase()}`);
         }
 
         function updateBridgeModalBalance() {
@@ -1429,12 +1439,23 @@
                 }
             };
             
+            console.log('📊 Updating Bridge Modal Balance');
+            console.log('   Selected Token:', selectedBridgeToken);
+            console.log('   ARC Balances:', {
+                usdc: balances.arc.usdc?.toString(),
+                eurc: balances.arc.eurc?.toString()
+            });
+            
             const balanceEl = document.getElementById('bridgeBalance');
             if (balanceEl) {
                 if (selectedBridgeToken === 'usdc') {
-                    balanceEl.innerHTML = `<div class="balance-item"><span>💵 USDC Balance:</span> <strong>${display(balances.arc.usdc, 6)} USDC</strong></div>`;
+                    const usdcBalance = display(balances.arc.usdc, 6);
+                    balanceEl.innerHTML = `<div class="balance-item"><span>💵 USDC Balance:</span> <strong>${usdcBalance} USDC</strong></div>`;
+                    console.log('   USDC Balance displayed:', usdcBalance);
                 } else {
-                    balanceEl.innerHTML = `<div class="balance-item"><span>🪙 EURC Balance:</span> <strong>${display(balances.arc.eurc, 6)} EURC</strong></div>`;
+                    const eurcBalance = display(balances.arc.eurc, 6);
+                    balanceEl.innerHTML = `<div class="balance-item"><span>🪙 EURC Balance:</span> <strong>${eurcBalance} EURC</strong></div>`;
+                    console.log('   EURC Balance displayed:', eurcBalance);
                 }
             }
         }
