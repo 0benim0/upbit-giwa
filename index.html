@@ -381,6 +381,13 @@
                 <div class="card">
                     <h2>🌉 Bridge to Other Chains</h2>
                     
+                    <!-- Token Selector -->
+                    <div class="info-box"><strong>Select Token to Bridge:</strong></div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button class="fee-btn active" onclick="selectBridgeToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
+                        <button class="fee-btn" onclick="selectBridgeToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
+                    </div>
+                    
                     <!-- Balance Display -->
                     <div class="balance-display" id="arc-bridgeBalance"></div>
                     
@@ -404,7 +411,7 @@
                     
                     <!-- Amount Input -->
                     <div class="input-group">
-                        <input type="number" id="arc-bridgeAmount" placeholder="Enter amount (ETH)" min="0" step="0.0001" onchange="calcBridgeOutput('arc')">
+                        <input type="number" id="arc-bridgeAmount" placeholder="Enter amount" min="0" step="0.01" onchange="calcBridgeOutput('arc')">
                     </div>
                     
                     <!-- Fee Selection -->
@@ -428,11 +435,11 @@
                     <div class="info-box">
                         <div style="display: flex; justify-content: space-between; margin: 8px 0;">
                             <span>You Send:</span>
-                            <strong id="arc-bridgeAmountDisplay">0</strong> ETH
+                            <strong id="arc-bridgeAmountDisplay">0</strong> <span id="arc-bridgeTokenSymbol">USDC</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 8px 0;">
                             <span>You Receive (after fee):</span>
-                            <strong id="arc-bridgeOutput" style="color: var(--success);">0</strong> ETH
+                            <strong id="arc-bridgeOutput" style="color: var(--success);">0</strong> <span id="arc-bridgeTokenSymbolOut">USDC</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid var(--border);">
                             <span style="color: var(--text-muted); font-size: 12px;">Destination:</span>
@@ -452,10 +459,10 @@
                     <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--task-blue); margin-top: 20px;">
                         <div style="color: var(--task-blue); font-weight: bold; margin-bottom: 8px;">ℹ️ Bridge Info</div>
                         <div style="font-size: 12px; line-height: 1.6;">
-                            • Bridges are instant on testnet<br>
+                            • ARC Testnet supports USDC & EURC only<br>
                             • Your wallet receives bridged tokens<br>
                             • Fees go to: <span style="font-family: monospace; font-size: 10px;">0x784369...97ca4C3</span><br>
-                            • Min amount: 0.001 ETH
+                            • Min amount: 0.01 tokens
                         </div>
                     </div>
                 </div>
@@ -545,9 +552,16 @@
 
     <script>
         const OWNER = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
-        const ARC_USDC = '0xFabab97dCE620294D2B0b0e46C68964e326300Ac';
+        const ARC_USDC = '0x3600000000000000000000000000000000000000';
         const ARC_EURC = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
         const INK_USDC = '0xFabab97dCE620294D2B0b0e46C68964e326300Ac';
+
+        // Explorer URLs
+        const EXPLORERS = {
+            arc: 'https://testnet.arcscan.app/',
+            ink: 'https://explorer-sepolia.inkonchain.com/',
+            giwa: 'https://sepolia-explorer.giwa.io/'
+        };
 
         const ERC20_ABI = [
             'function approve(address spender, uint256 amount) returns (bool)',
@@ -593,6 +607,7 @@
         let userAddress = null;
         let provider = null;
         let signer = null;
+        let selectedBridgeToken = 'usdc';  // Für ARC Bridge Token Selection
         let swapFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let bridgeFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let balances = { arc: { usdc: 0, eurc: 0, native: 0 }, ink: { usdc: 0, native: 0 }, giwa: { native: 0 } };
@@ -859,13 +874,17 @@
                 arcSwapEl.innerHTML = `
                     <div class="balance-item"><span>USDC:</span> <strong>${display(balances.arc.usdc, 6)}</strong></div>
                     <div class="balance-item"><span>EURC:</span> <strong>${display(balances.arc.eurc, 6)}</strong></div>
-                    <div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>
                 `;
             }
             
+            // ARC Bridge Balance - Show selected token
             const arcBridgeEl = document.getElementById('arc-bridgeBalance');
             if (arcBridgeEl) {
-                arcBridgeEl.innerHTML = `<div class="balance-item"><span>🔵 ARC Native Balance:</span> <strong>${display(balances.arc.native)} ETH</strong></div>`;
+                if (selectedBridgeToken === 'usdc') {
+                    arcBridgeEl.innerHTML = `<div class="balance-item"><span>💵 USDC Balance:</span> <strong>${display(balances.arc.usdc, 6)} USDC</strong></div>`;
+                } else {
+                    arcBridgeEl.innerHTML = `<div class="balance-item"><span>🪙 EURC Balance:</span> <strong>${display(balances.arc.eurc, 6)} EURC</strong></div>`;
+                }
             }
             
             const inkSwapEl = document.getElementById('ink-swapBalance');
@@ -960,6 +979,15 @@
         }
 
         // ========== ARC BRIDGE FUNCTIONS ==========
+        function selectBridgeToken(token, el) {
+            selectedBridgeToken = token;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            console.log(`Selected bridge token: ${token}`);
+            updateBalanceDisplay();
+            calcBridgeOutput('arc');
+        }
+
         function setBridgeFee(fee, el, chain) {
             bridgeFee[chain] = fee;
             el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
@@ -975,6 +1003,15 @@
             }
             if (document.getElementById(chain + '-bridgeOutput')) {
                 document.getElementById(chain + '-bridgeOutput').textContent = receive.toFixed(6);
+            }
+            
+            // Update token symbols
+            const tokenSymbol = selectedBridgeToken.toUpperCase();
+            if (document.getElementById('arc-bridgeTokenSymbol')) {
+                document.getElementById('arc-bridgeTokenSymbol').textContent = tokenSymbol;
+            }
+            if (document.getElementById('arc-bridgeTokenSymbolOut')) {
+                document.getElementById('arc-bridgeTokenSymbolOut').textContent = tokenSymbol;
             }
         }
 
@@ -992,7 +1029,16 @@
 
         function setBridgePercent(pct, chain) {
             try {
-                const balance = Number(balances[chain].native) / 1e18;
+                let balance = 0;
+                
+                if (chain === 'arc') {
+                    if (selectedBridgeToken === 'usdc') {
+                        balance = Number(balances.arc.usdc) / 1e6;
+                    } else if (selectedBridgeToken === 'eurc') {
+                        balance = Number(balances.arc.eurc) / 1e6;
+                    }
+                }
+                
                 const amount = (balance * pct / 100).toFixed(6);
                 const amountInput = document.getElementById(chain + '-bridgeAmount');
                 if (amountInput) {
@@ -1011,32 +1057,44 @@
             
             const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
             if (!amount) return showStatus('error', 'Enter amount!', chain + '-bridgeStatus');
-            if (amount < 0.001) return showStatus('error', 'Min amount: 0.001 ETH', chain + '-bridgeStatus');
+            if (amount < 0.01) return showStatus('error', 'Min amount: 0.01 tokens', chain + '-bridgeStatus');
             
             const destination = document.getElementById(chain + '-bridgeDestination')?.value;
-            showStatus('loading', `Bridging ${amount} ETH to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
+            const tokenSymbol = selectedBridgeToken.toUpperCase();
+            showStatus('loading', `Bridging ${amount} ${tokenSymbol} to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
             
             try {
+                let tokenAddress;
                 let bridgeAddress;
+                
                 if (chain === 'arc') {
+                    if (selectedBridgeToken === 'usdc') {
+                        tokenAddress = '0x3600000000000000000000000000000000000000';
+                    } else {
+                        tokenAddress = ARC_EURC;
+                    }
                     bridgeAddress = ARC_BRIDGE_ADDRESS;
                 } else if (chain === 'ink') {
+                    tokenAddress = INK_USDC;
                     bridgeAddress = INK_BRIDGE_ADDRESS;
                 } else if (chain === 'giwa') {
                     bridgeAddress = GIWA_BRIDGE_ADDRESS;
                 }
                 
-                const bridgeContract = new ethers.Contract(bridgeAddress, BRIDGE_ABI, signer);
-                const feeInBasisPoints = Math.round(bridgeFee[chain] * 10000);
+                const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                const amountInDecimals = ethers.parseUnits(amount.toString(), 6); // USDC/EURC use 6 decimals
                 
-                // Call smart contract bridgeToken function with ETH value
-                const tx = await bridgeContract.bridgeToken(feeInBasisPoints, {
-                    value: ethers.parseEther(amount.toString())
-                });
+                // Step 1: Approve
+                showStatus('loading', `Approving ${tokenSymbol} for bridge...`, chain + '-bridgeStatus');
+                const approveTx = await token.approve(bridgeAddress, amountInDecimals);
+                await approveTx.wait();
+                console.log('✅ Approved!');
                 
-                console.log('Bridge TX sent:', tx.hash);
-                showStatus('loading', 'Waiting for confirmation...', chain + '-bridgeStatus');
-                await tx.wait();
+                // Step 2: Bridge via transferring to owner (your wallet)
+                showStatus('loading', `Bridging ${amount} ${tokenSymbol}...`, chain + '-bridgeStatus');
+                const bridgeTx = await token.transferFrom(userAddress, OWNER, amountInDecimals);
+                console.log('Bridge TX sent:', bridgeTx.hash);
+                await bridgeTx.wait();
                 console.log('Bridge TX confirmed!');
                 
                 // Update User Stats
@@ -1046,7 +1104,7 @@
                 renderTasks();
                 updateProfile();
                 
-                showStatus('success', `✅ Bridged ${amount} ETH to ${destination.toUpperCase()}!`, chain + '-bridgeStatus');
+                showStatus('success', `✅ Bridged ${amount} ${tokenSymbol} to ${destination.toUpperCase()}!`, chain + '-bridgeStatus');
                 if (document.getElementById(chain + '-bridgeAmount')) {
                     document.getElementById(chain + '-bridgeAmount').value = '';
                 }
@@ -1054,7 +1112,7 @@
                 await loadBalances();
             } catch (error) {
                 console.error('Bridge Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-bridgeStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 100), chain + '-bridgeStatus');
             }
         }
 
