@@ -527,8 +527,8 @@
                 <div class="card">
                     <h2>👤 Profile</h2>
                     <div class="info-box">Wallet: <strong id="arc-profileWallet">Not Connected</strong></div>
-                    <div class="info-box">Swaps Completed: <strong id="arc-profileSwaps">0</strong></div>
-                    <div class="info-box">Bridges Completed: <strong id="arc-profileBridges">0</strong></div>
+                    <div class="info-box">NFTs Minted: <strong id="arc-profileNFTs-old">0</strong></div>
+                    <div class="info-box">Deploys: <strong id="arc-profileDeploys">0</strong></div>
                     <div class="info-box">NFTs Minted: <strong id="arc-profileNFTs">0</strong></div>
                     <div class="info-box">GM Streak: <strong id="arc-profileStreak">0</strong> days</div>
                 </div>
@@ -543,7 +543,7 @@
             <div id="ink-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="ink-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="ink-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('ink')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="ink-gmStatus"></div></div></div>
             <div id="ink-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="ink-tasksContainer"></div></div></div>
             <div id="ink-badge" class="tab-content"><div class="card"><h2>🏆 Achievements</h2><div id="ink-badgesContainer"></div></div></div>
-            <div id="ink-profile" class="tab-content"><div class="card"><h2>👤 Profile</h2><div class="info-box">Wallet: <strong id="ink-profileWallet">Not Connected</strong></div><div class="info-box">Swaps: <strong id="ink-profileSwaps">0</strong></div><div class="info-box">Bridges: <strong id="ink-profileBridges">0</strong></div><div class="info-box">NFTs: <strong id="ink-profileNFTs">0</strong></div><div class="info-box">GM Streak: <strong id="ink-profileStreak">0</strong></div></div></div>
+            <div id="ink-profile" class="tab-content"><div class="card"><h2>👤 Profile</h2><div class="info-box">Wallet: <strong id="ink-profileWallet">Not Connected</strong></div><div class="info-box">Swaps: <strong id="ink-profileNFTs-old">0</strong></div><div class="info-box">Bridges: <strong id="ink-profileDeploys">0</strong></div><div class="info-box">NFTs: <strong id="ink-profileNFTs">0</strong></div><div class="info-box">GM Streak: <strong id="ink-profileStreak">0</strong></div></div></div>
         </div>
 
         <div id="giwa-content" style="display:none;">
@@ -619,7 +619,7 @@
         let swapFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let bridgeFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let balances = { arc: { usdc: 0, eurc: 0, native: 0 }, ink: { usdc: 0, native: 0 }, giwa: { native: 0 } };
-        let stats = { swaps: 0, bridges: 0, nfts: 0, gmStreak: 0, lastGM: null, nftMintToday: false };
+        let stats = { swaps: 0, bridges: 0, nfts: 0, deploys: 0, gmStreak: 0, lastGM: null, nftMintToday: false };
         let completedTasks = {};
 
         const ARC_TABS = ['faucet', 'nft', 'gm', 'tasks', 'badge', 'profile'];
@@ -1798,14 +1798,15 @@
             chains.forEach(chain => {
                 const wallet = document.getElementById(chain + '-profileWallet');
                 if (wallet) wallet.textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
-                const swaps = document.getElementById(chain + '-profileSwaps');
-                if (swaps) swaps.textContent = stats.swaps;
-                const bridges = document.getElementById(chain + '-profileBridges');
-                if (bridges) bridges.textContent = stats.bridges;
+                
                 const nfts = document.getElementById(chain + '-profileNFTs');
-                if (nfts) nfts.textContent = stats.nfts;
+                if (nfts) nfts.textContent = stats.nfts || 0;
+                
+                const deploys = document.getElementById(chain + '-profileDeploys');
+                if (deploys) deploys.textContent = stats.deploys || 0;
+                
                 const streak = document.getElementById(chain + '-profileStreak');
-                if (streak) streak.textContent = stats.gmStreak;
+                if (streak) streak.textContent = stats.gmStreak || 0;
             });
         }
 
@@ -1823,229 +1824,6 @@
             renderTasks();
         }
     </script>
-    <!-- BRIDGE PAGE (replaces modal) -->
-    <div id="bridgePage" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:1000; overflow-y:auto;">
-        <div style="max-width:500px; margin:0 auto; padding:20px;">
-            <!-- Wallet Status Header -->
-            <div style="background: var(--bg-secondary); border: 2px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Wallet Status</div>
-                <div style="font-size: 14px; color: var(--success); font-weight: bold; font-family: monospace; word-break: break-all;" id="bridgeWalletStatus">
-                    Connecting...
-                </div>
-            </div>
-            
-            <!-- Back Button -->
-            <button onclick="showMainPage()" style="width:100%; padding:12px; margin-bottom:20px; background:#555; color:white; font-weight:bold; border:none; border-radius:8px; font-size:16px; cursor:pointer;">← Zurück zur Hauptseite</button>
-            
-            <!-- Bridge Card -->
-            <div class="card">
-                <h2>🌉 Bridge to Other Chains</h2>
-                
-                <!-- Token Selector -->
-                <div class="info-box"><strong>Select Token to Bridge:</strong></div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <button class="fee-btn active" onclick="selectBridgeToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
-                    <button class="fee-btn" onclick="selectBridgeToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
-                </div>
-                
-                <!-- Balance Display -->
-                <div class="balance-display" id="bridgePageBalance"></div>
-                
-                <!-- From/To Chain Selection -->
-                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid var(--border);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                        <div style="flex: 1; text-align: center;">
-                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">FROM</div>
-                            <select id="bridgeFrom" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePageChains()">
-                                <option value="arc">🔵 ARC</option>
-                                <option value="ink">⚪ INK</option>
-                                <option value="giwa">🟣 GIWA</option>
-                            </select>
-                        </div>
-                        <div style="font-size: 24px;">→</div>
-                        <div style="flex: 1; text-align: center;">
-                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">TO</div>
-                            <select id="bridgeTo" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePagePath(); calcBridgePageOutput()">
-                                <option value="ink">⚪ INK</option>
-                                <option value="giwa">🟣 GIWA</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Amount Input -->
-                <div style="margin: 20px 0;">
-                    <label style="display: block; font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 14px;">💰 Amount to Bridge</label>
-                    <input type="number" id="bridgePageAmount" placeholder="0.00" min="0" step="0.01" onchange="calcBridgePageOutput()" style="width: 100%; padding: 15px; font-size: 18px; background: var(--bg-tertiary); border: 3px solid var(--primary); color: var(--text); border-radius: 8px;">
-                </div>
-                
-                <!-- Fee Selection -->
-                <div class="info-box"><strong>🔧 Bridge Fee:</strong></div>
-                <div class="fee-selector">
-                    <button class="fee-btn active" onclick="setBridgePageFee(0.00025, this)">0.025%</button>
-                    <button class="fee-btn" onclick="setBridgePageFee(0.0005, this)">0.050%</button>
-                    <button class="fee-btn" onclick="setBridgePageFee(0.00075, this)">0.075%</button>
-                    <button class="fee-btn" onclick="setBridgePageFee(0.001, this)">0.1%</button>
-                </div>
-                <input type="hidden" id="bridgePageFee" value="0.00025">
-                
-                <!-- Quick Percent Buttons -->
-                <div class="quick-buttons">
-                    <button class="quick-btn" onclick="setBridgePagePercent(25)">25%</button>
-                    <button class="quick-btn" onclick="setBridgePagePercent(50)">50%</button>
-                    <button class="quick-btn" onclick="setBridgePagePercent(75)">75%</button>
-                    <button class="quick-btn" onclick="setBridgePagePercent(100)">100%</button>
-                </div>
-                
-                <!-- Bridge Summary -->
-                <div class="info-box">
-                    <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                        <span>You Send:</span>
-                        <strong id="bridgePageAmountDisplay">0</strong> <span id="bridgePageTokenSymbol">USDC</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                        <span>You Receive (after fee):</span>
-                        <strong id="bridgePageOutput" style="color: var(--success);">0</strong> <span id="bridgePageTokenSymbolOut">USDC</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid var(--border);">
-                        <span style="color: var(--text-muted); font-size: 12px;">Destination:</span>
-                        <strong id="bridgePagePath" style="color: var(--primary);">ARC → INK</strong>
-                    </div>
-                </div>
-                
-                <!-- Bridge Execute Button -->
-                <button onclick="executeBridgePage()" style="width: 100%; padding: 15px; margin: 15px 0; background: var(--primary); color: black; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer;">
-                    🌉 Bridge Now
-                </button>
-                
-                <!-- Status Messages -->
-                <div id="bridgePageStatus"></div>
-                
-                <!-- Info Box -->
-                <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--primary); margin-top: 20px;">
-                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 8px;">ℹ️ Bridge Info</div>
-                    <div style="font-size: 12px; line-height: 1.8;">
-                        • Bridge lädt unabhängig von der Navigation<br>
-                        • Wähle Tokens und Chains aus<br>
-                        • Min amount: 0.01 tokens<br>
-                        <a href="https://testnet.arcscan.app/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: bold; margin-top: 10px; display: inline-block;">
-                            🔗 View on ARC Explorer →
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-        <div style="max-width:500px; margin:0 auto; padding:20px;">
-            <!-- Modal Header with Wallet Status -->
-            <div style="background: var(--bg-secondary); border: 2px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
-                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Wallet Status</div>
-                <div style="font-size: 14px; color: var(--primary); font-weight: bold; font-family: monospace; word-break: break-all;" id="bridgeWalletStatus">
-                    Not Connected
-                </div>
-            </div>
-            
-            <!-- Back Button -->
-            <button onclick="closeBridgeModal()" style="width:100%; padding:12px; margin-bottom:20px; background:#555; color:white; font-weight:bold; border:none; border-radius:8px; font-size:16px; cursor:pointer;">← Zurück zur Hauptseite</button>
-            
-            <!-- Bridge Card -->
-            <div class="card">
-                <h2>🌉 Bridge to Other Chains</h2>
-                
-                <!-- Token Selector -->
-                <div class="info-box"><strong>Select Token to Bridge:</strong></div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <button class="fee-btn active" onclick="selectBridgeToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
-                    <button class="fee-btn" onclick="selectBridgeToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
-                </div>
-                
-                <!-- Balance Display -->
-                <div class="balance-display" id="bridgeBalance"></div>
-                
-                <!-- From/To Chain Selection -->
-                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid var(--border);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                        <div style="flex: 1; text-align: center;">
-                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">FROM</div>
-                            <select id="bridgeFrom" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgeChains()">
-                                <option value="arc">🔵 ARC</option>
-                                <option value="ink">⚪ INK</option>
-                                <option value="giwa">🟣 GIWA</option>
-                            </select>
-                        </div>
-                        <div style="font-size: 24px;">→</div>
-                        <div style="flex: 1; text-align: center;">
-                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">TO</div>
-                            <select id="bridgeTo" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePath()">
-                                <option value="ink">⚪ INK</option>
-                                <option value="giwa">🟣 GIWA</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Amount Input -->
-                <div style="margin: 20px 0;">
-                    <label style="display: block; font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 14px;">💰 Amount to Bridge</label>
-                    <input type="number" id="bridgeAmount" placeholder="0.00" min="0" step="0.01" onchange="calcBridgeOutput()" style="width: 100%; padding: 15px; font-size: 18px; background: var(--bg-tertiary); border: 3px solid var(--primary); color: var(--text); border-radius: 8px;">
-                </div>
-                
-                <!-- Fee Selection -->
-                <div class="info-box"><strong>🔧 Bridge Fee:</strong></div>
-                <div class="fee-selector">
-                    <button class="fee-btn active" onclick="setBridgeModalFee(0.00025, this)">0.025%</button>
-                    <button class="fee-btn" onclick="setBridgeModalFee(0.0005, this)">0.050%</button>
-                    <button class="fee-btn" onclick="setBridgeModalFee(0.00075, this)">0.075%</button>
-                    <button class="fee-btn" onclick="setBridgeModalFee(0.001, this)">0.1%</button>
-                </div>
-                
-                <!-- Quick Percent Buttons -->
-                <div class="quick-buttons">
-                    <button class="quick-btn" onclick="setBridgeModalPercent(25)">25%</button>
-                    <button class="quick-btn" onclick="setBridgeModalPercent(50)">50%</button>
-                    <button class="quick-btn" onclick="setBridgeModalPercent(75)">75%</button>
-                    <button class="quick-btn" onclick="setBridgeModalPercent(100)">100%</button>
-                </div>
-                
-                <!-- Bridge Summary -->
-                <div class="info-box">
-                    <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                        <span>You Send:</span>
-                        <strong id="bridgeAmountDisplay">0</strong> <span id="bridgeTokenSymbol">USDC</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 8px 0;">
-                        <span>You Receive (after fee):</span>
-                        <strong id="bridgeOutput" style="color: var(--success);">0</strong> <span id="bridgeTokenSymbolOut">USDC</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid var(--border);">
-                        <span style="color: var(--text-muted); font-size: 12px;">Destination:</span>
-                        <strong id="bridgePath" style="color: var(--primary);">ARC → INK</strong>
-                    </div>
-                </div>
-                
-                <!-- Bridge Execute Button -->
-                <button onclick="executeModalBridge()" style="width: 100%; padding: 15px; margin: 15px 0; background: var(--primary); color: black; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer;">
-                    🌉 Bridge Now
-                </button>
-                
-                <!-- Status Messages -->
-                <div id="bridgeStatus"></div>
-                
-                <!-- Info Box -->
-                <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--primary); margin-top: 20px;">
-                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 8px;">ℹ️ Bridge Info</div>
-                    <div style="font-size: 12px; line-height: 1.8;">
-                        • Bridge lädt unabhängig von der Navigation<br>
-                        • Wähle Tokens und Chains aus<br>
-                        • Min amount: 0.01 tokens<br>
-                        <a href="https://testnet.arcscan.app/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: bold; margin-top: 10px; display: inline-block;">
-                            🔗 View on ARC Explorer →
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+</html>
 </body>
 </html>
