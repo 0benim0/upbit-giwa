@@ -774,9 +774,9 @@
         }
 
         function switchTab(chain, tab) {
-            // Special handling for bridge tab - opens modal instead
+            // Special handling for bridge tab - opens bridge page instead
             if (tab === 'bridge') {
-                openBridgeModal();
+                showBridgePage();
                 return;
             }
             
@@ -1343,45 +1343,242 @@
         // Bridge Modal Funktionen
         let bridgeModalFee = 0.00025;
 
-        function openBridgeModal() {
-            // Check if wallet is connected
-            if (!userAddress) {
-                alert('⚠️ Please connect your wallet first!');
-                return;
-            }
+        // ============= PAGE NAVIGATION =============
+        function showBridgePage() {
+            document.getElementById('bridgePage').style.display = 'block';
+            document.body.style.overflow = 'hidden';
             
-            console.log('🌉 Opening Bridge Modal...');
-            console.log('   Wallet:', userAddress);
-            console.log('   Provider:', provider ? 'Connected' : 'Not connected');
+            // Update URL
+            window.history.pushState({ page: 'bridge' }, 'Bridge', '/bridge');
             
-            // Update wallet status in modal
-            const walletStatusEl = document.getElementById('bridgeWalletStatus');
-            if (walletStatusEl) {
-                walletStatusEl.textContent = userAddress;
-                walletStatusEl.style.color = 'var(--success)';
-            }
+            console.log('🌉 Bridge Page opened');
             
-            document.getElementById('bridgeModal').style.display = 'block';
-            
-            // Initialize token selection
-            selectedBridgeToken = 'usdc';
-            
-            // Load balances and update chains
-            loadBalances().then(() => {
-                console.log('✅ Balances loaded');
-                updateBridgeChains();
-            }).catch(err => {
-                console.error('Error loading balances:', err);
-                updateBridgeChains();
-            });
-            
-            console.log('🌉 Bridge Modal opened');
+            // Initialize bridge on next tick
+            setTimeout(() => {
+                if (!userAddress) {
+                    alert('⚠️ Please connect your wallet first!');
+                    showMainPage();
+                    return;
+                }
+                
+                // Load bridge content
+                loadBridgePageContent();
+            }, 100);
         }
 
-        function closeBridgeModal() {
-            document.getElementById('bridgeModal').style.display = 'none';
-            console.log('🌉 Bridge Modal closed');
+        function showMainPage() {
+            document.getElementById('bridgePage').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            // Update URL
+            window.history.pushState({ page: 'main' }, 'UPBIT', '/');
+            
+            console.log('← Back to main page');
         }
+
+        function loadBridgePageContent() {
+            const bridgePage = document.getElementById('bridgePage');
+            if (!bridgePage.innerHTML) return;
+            
+            // Initialize bridge UI
+            selectedBridgeToken = 'usdc';
+            
+            // Load balances
+            loadBalances().then(() => {
+                console.log('✅ Bridge balances loaded');
+                updateBridgePageChains();
+            }).catch(err => {
+                console.error('Error loading bridge balances:', err);
+                updateBridgePageChains();
+            });
+        }
+
+        function updateBridgePageChains() {
+            const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
+            selectedBridgeChain = fromChain;
+            
+            // Update TO dropdown
+            const toSelect = document.getElementById('bridgeTo');
+            const allChains = ['arc', 'ink', 'giwa'];
+            const availableChains = allChains.filter(c => c !== fromChain);
+            
+            toSelect.innerHTML = '';
+            availableChains.forEach(c => {
+                const emoji = { 'arc': '🔵', 'ink': '⚪', 'giwa': '🟣' };
+                const name = { 'arc': 'ARC', 'ink': 'INK', 'giwa': 'GIWA' };
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = emoji[c] + ' ' + name[c];
+                toSelect.appendChild(opt);
+            });
+            
+            updateBridgePageBalance();
+            updateBridgePagePath();
+            calcBridgePageOutput();
+        }
+
+        function updateBridgePageBalance() {
+            const display = (balance, decimals = 18) => {
+                try {
+                    return (Number(balance) / (10 ** decimals)).toFixed(4);
+                } catch (e) {
+                    return '0';
+                }
+            };
+            
+            const balanceEl = document.getElementById('bridgePageBalance');
+            if (balanceEl) {
+                if (selectedBridgeToken === 'usdc') {
+                    const usdcBalance = display(balances.arc.usdc, 6);
+                    balanceEl.innerHTML = `<div class="balance-item"><span>💵 USDC Balance:</span> <strong>${usdcBalance} USDC</strong></div>`;
+                } else {
+                    const eurcBalance = display(balances.arc.eurc, 6);
+                    balanceEl.innerHTML = `<div class="balance-item"><span>🪙 EURC Balance:</span> <strong>${eurcBalance} EURC</strong></div>`;
+                }
+            }
+        }
+
+        function updateBridgePagePath() {
+            const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
+            const toChain = document.getElementById('bridgeTo')?.value;
+            
+            const chainEmoji = {
+                'arc': '🔵 ARC',
+                'ink': '⚪ INK',
+                'giwa': '🟣 GIWA'
+            };
+            
+            if (toChain && document.getElementById('bridgePagePath')) {
+                document.getElementById('bridgePagePath').textContent = chainEmoji[fromChain] + ' → ' + chainEmoji[toChain];
+            }
+        }
+
+        function calcBridgePageOutput() {
+            const amount = parseFloat(document.getElementById('bridgePageAmount')?.value) || 0;
+            const fee = parseFloat(document.getElementById('bridgePageFee')?.value) || 0.00025;
+            const receive = amount * (1 - fee);
+            
+            if (document.getElementById('bridgePageAmountDisplay')) {
+                document.getElementById('bridgePageAmountDisplay').textContent = amount.toFixed(6);
+            }
+            if (document.getElementById('bridgePageOutput')) {
+                document.getElementById('bridgePageOutput').textContent = receive.toFixed(6);
+            }
+            
+            const tokenSymbol = selectedBridgeToken.toUpperCase();
+            if (document.getElementById('bridgePageTokenSymbol')) {
+                document.getElementById('bridgePageTokenSymbol').textContent = tokenSymbol;
+            }
+            if (document.getElementById('bridgePageTokenSymbolOut')) {
+                document.getElementById('bridgePageTokenSymbolOut').textContent = tokenSymbol;
+            }
+        }
+
+        function setBridgePageFee(fee, el) {
+            document.getElementById('bridgePageFee').value = fee;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            calcBridgePageOutput();
+        }
+
+        function setBridgePagePercent(pct) {
+            try {
+                let balance = 0;
+                
+                if (selectedBridgeToken === 'usdc') {
+                    balance = Number(balances.arc.usdc) / 1e6;
+                } else if (selectedBridgeToken === 'eurc') {
+                    balance = Number(balances.arc.eurc) / 1e6;
+                }
+                
+                const amount = (balance * pct / 100).toFixed(6);
+                const amountInput = document.getElementById('bridgePageAmount');
+                if (amountInput) {
+                    amountInput.value = amount;
+                }
+                calcBridgePageOutput();
+            } catch (e) {
+                console.error('setBridgePagePercent error:', e);
+            }
+        }
+
+        async function executeBridgePage() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'bridgePageStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', 'bridgePageStatus');
+            
+            const amount = parseFloat(document.getElementById('bridgePageAmount')?.value) || 0;
+            if (!amount) return showStatus('error', 'Enter amount!', 'bridgePageStatus');
+            if (amount < 0.01) return showStatus('error', 'Min amount: 0.01 tokens', 'bridgePageStatus');
+            
+            const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
+            const toChain = document.getElementById('bridgeTo')?.value;
+            const tokenSymbol = selectedBridgeToken.toUpperCase();
+            
+            showStatus('loading', `Initiating bridge to ${toChain.toUpperCase()}...`, 'bridgePageStatus');
+            
+            try {
+                let tokenAddress;
+                let bridgeAddress;
+                
+                if (fromChain === 'arc') {
+                    if (selectedBridgeToken === 'usdc') {
+                        tokenAddress = '0x3600000000000000000000000000000000000000';
+                    } else {
+                        tokenAddress = ARC_EURC;
+                    }
+                    bridgeAddress = ARC_BRIDGE_ADDRESS;
+                } else if (fromChain === 'ink') {
+                    tokenAddress = INK_USDC;
+                    bridgeAddress = INK_BRIDGE_ADDRESS;
+                } else if (fromChain === 'giwa') {
+                    tokenAddress = GIWA_NFT_ADDRESS;
+                    bridgeAddress = GIWA_BRIDGE_ADDRESS;
+                }
+                
+                const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                const amountInDecimals = ethers.parseUnits(amount.toString(), 6);
+                
+                console.log('🌉 Bridge Page - Executing Bridge');
+                console.log('   From:', fromChain.toUpperCase());
+                console.log('   To:', toChain.toUpperCase());
+                console.log('   Amount:', amount, tokenSymbol);
+                
+                showStatus('loading', `Sending ${amount} ${tokenSymbol} to bridge contract...`, 'bridgePageStatus');
+                const bridgeTx = await token.transfer(bridgeAddress, amountInDecimals);
+                await bridgeTx.wait();
+                
+                stats.bridges++;
+                completedTasks['Complete Bridge'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                
+                showStatus('success', `✅ Bridge initiated! ${amount} ${tokenSymbol} locked.\n\nTokens will arrive on ${toChain.toUpperCase()} shortly.`, 'bridgePageStatus');
+                document.getElementById('bridgePageAmount').value = '';
+                calcBridgePageOutput();
+                await loadBalances();
+            } catch (error) {
+                console.error('Bridge Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 120), 'bridgePageStatus');
+            }
+        }
+
+        // Handle browser back button
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page === 'bridge') {
+                showBridgePage();
+            } else {
+                showMainPage();
+            }
+        });
+
+        // Initialize page on load
+        window.addEventListener('load', () => {
+            const path = window.location.pathname;
+            if (path === '/bridge') {
+                showBridgePage();
+            }
+        });
 
         function updateBridgeChains() {
             const fromChain = document.getElementById('bridgeFrom')?.value || 'arc';
@@ -1597,8 +1794,119 @@
             renderTasks();
         }
     </script>
-    <!-- BRIDGE MODAL PAGE -->
-    <div id="bridgeModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:1000; overflow-y:auto;">
+    <!-- BRIDGE PAGE (replaces modal) -->
+    <div id="bridgePage" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:1000; overflow-y:auto;">
+        <div style="max-width:500px; margin:0 auto; padding:20px;">
+            <!-- Wallet Status Header -->
+            <div style="background: var(--bg-secondary); border: 2px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Wallet Status</div>
+                <div style="font-size: 14px; color: var(--success); font-weight: bold; font-family: monospace; word-break: break-all;" id="bridgeWalletStatus">
+                    Connecting...
+                </div>
+            </div>
+            
+            <!-- Back Button -->
+            <button onclick="showMainPage()" style="width:100%; padding:12px; margin-bottom:20px; background:#555; color:white; font-weight:bold; border:none; border-radius:8px; font-size:16px; cursor:pointer;">← Zurück zur Hauptseite</button>
+            
+            <!-- Bridge Card -->
+            <div class="card">
+                <h2>🌉 Bridge to Other Chains</h2>
+                
+                <!-- Token Selector -->
+                <div class="info-box"><strong>Select Token to Bridge:</strong></div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="fee-btn active" onclick="selectBridgeToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
+                    <button class="fee-btn" onclick="selectBridgeToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
+                </div>
+                
+                <!-- Balance Display -->
+                <div class="balance-display" id="bridgePageBalance"></div>
+                
+                <!-- From/To Chain Selection -->
+                <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid var(--border);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <div style="flex: 1; text-align: center;">
+                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">FROM</div>
+                            <select id="bridgeFrom" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePageChains()">
+                                <option value="arc">🔵 ARC</option>
+                                <option value="ink">⚪ INK</option>
+                                <option value="giwa">🟣 GIWA</option>
+                            </select>
+                        </div>
+                        <div style="font-size: 24px;">→</div>
+                        <div style="flex: 1; text-align: center;">
+                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">TO</div>
+                            <select id="bridgeTo" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePagePath(); calcBridgePageOutput()">
+                                <option value="ink">⚪ INK</option>
+                                <option value="giwa">🟣 GIWA</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Amount Input -->
+                <div style="margin: 20px 0;">
+                    <label style="display: block; font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 14px;">💰 Amount to Bridge</label>
+                    <input type="number" id="bridgePageAmount" placeholder="0.00" min="0" step="0.01" onchange="calcBridgePageOutput()" style="width: 100%; padding: 15px; font-size: 18px; background: var(--bg-tertiary); border: 3px solid var(--primary); color: var(--text); border-radius: 8px;">
+                </div>
+                
+                <!-- Fee Selection -->
+                <div class="info-box"><strong>🔧 Bridge Fee:</strong></div>
+                <div class="fee-selector">
+                    <button class="fee-btn active" onclick="setBridgePageFee(0.00025, this)">0.025%</button>
+                    <button class="fee-btn" onclick="setBridgePageFee(0.0005, this)">0.050%</button>
+                    <button class="fee-btn" onclick="setBridgePageFee(0.00075, this)">0.075%</button>
+                    <button class="fee-btn" onclick="setBridgePageFee(0.001, this)">0.1%</button>
+                </div>
+                <input type="hidden" id="bridgePageFee" value="0.00025">
+                
+                <!-- Quick Percent Buttons -->
+                <div class="quick-buttons">
+                    <button class="quick-btn" onclick="setBridgePagePercent(25)">25%</button>
+                    <button class="quick-btn" onclick="setBridgePagePercent(50)">50%</button>
+                    <button class="quick-btn" onclick="setBridgePagePercent(75)">75%</button>
+                    <button class="quick-btn" onclick="setBridgePagePercent(100)">100%</button>
+                </div>
+                
+                <!-- Bridge Summary -->
+                <div class="info-box">
+                    <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                        <span>You Send:</span>
+                        <strong id="bridgePageAmountDisplay">0</strong> <span id="bridgePageTokenSymbol">USDC</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                        <span>You Receive (after fee):</span>
+                        <strong id="bridgePageOutput" style="color: var(--success);">0</strong> <span id="bridgePageTokenSymbolOut">USDC</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid var(--border);">
+                        <span style="color: var(--text-muted); font-size: 12px;">Destination:</span>
+                        <strong id="bridgePagePath" style="color: var(--primary);">ARC → INK</strong>
+                    </div>
+                </div>
+                
+                <!-- Bridge Execute Button -->
+                <button onclick="executeBridgePage()" style="width: 100%; padding: 15px; margin: 15px 0; background: var(--primary); color: black; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer;">
+                    🌉 Bridge Now
+                </button>
+                
+                <!-- Status Messages -->
+                <div id="bridgePageStatus"></div>
+                
+                <!-- Info Box -->
+                <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--primary); margin-top: 20px;">
+                    <div style="color: var(--primary); font-weight: bold; margin-bottom: 8px;">ℹ️ Bridge Info</div>
+                    <div style="font-size: 12px; line-height: 1.8;">
+                        • Bridge lädt unabhängig von der Navigation<br>
+                        • Wähle Tokens und Chains aus<br>
+                        • Min amount: 0.01 tokens<br>
+                        <a href="https://testnet.arcscan.app/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: bold; margin-top: 10px; display: inline-block;">
+                            🔗 View on ARC Explorer →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
         <div style="max-width:500px; margin:0 auto; padding:20px;">
             <!-- Modal Header with Wallet Status -->
             <div style="background: var(--bg-secondary); border: 2px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
