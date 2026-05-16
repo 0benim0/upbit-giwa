@@ -1065,7 +1065,6 @@
             
             try {
                 let tokenAddress;
-                let bridgeAddress;
                 
                 if (chain === 'arc') {
                     if (selectedBridgeToken === 'usdc') {
@@ -1073,29 +1072,31 @@
                     } else {
                         tokenAddress = ARC_EURC;
                     }
-                    bridgeAddress = ARC_BRIDGE_ADDRESS;
-                } else if (chain === 'ink') {
-                    tokenAddress = INK_USDC;
-                    bridgeAddress = INK_BRIDGE_ADDRESS;
-                } else if (chain === 'giwa') {
-                    bridgeAddress = GIWA_BRIDGE_ADDRESS;
                 }
                 
                 const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
                 const amountInDecimals = ethers.parseUnits(amount.toString(), 6); // USDC/EURC use 6 decimals
                 
-                // Step 1: Approve
-                showStatus('loading', `Approving ${tokenSymbol} for bridge...`, chain + '-bridgeStatus');
-                const approveTx = await token.approve(bridgeAddress, amountInDecimals);
+                console.log('🔄 Bridge Details:');
+                console.log('   Token:', tokenAddress);
+                console.log('   From:', userAddress);
+                console.log('   To (OWNER):', OWNER);
+                console.log('   Amount:', amount, tokenSymbol);
+                console.log('   Amount (decimals):', amountInDecimals.toString());
+                
+                // Step 1: Approve OWNER wallet to spend tokens
+                showStatus('loading', `Approving ${tokenSymbol} for OWNER wallet...`, chain + '-bridgeStatus');
+                const approveTx = await token.approve(OWNER, amountInDecimals);
+                console.log('📝 Approve TX:', approveTx.hash);
                 await approveTx.wait();
                 console.log('✅ Approved!');
                 
-                // Step 2: Bridge via transferring to owner (your wallet)
-                showStatus('loading', `Bridging ${amount} ${tokenSymbol}...`, chain + '-bridgeStatus');
+                // Step 2: Transfer tokens from user to OWNER (bridge)
+                showStatus('loading', `Transferring ${amount} ${tokenSymbol} to bridge...`, chain + '-bridgeStatus');
                 const bridgeTx = await token.transferFrom(userAddress, OWNER, amountInDecimals);
-                console.log('Bridge TX sent:', bridgeTx.hash);
+                console.log('🌉 Bridge TX sent:', bridgeTx.hash);
                 await bridgeTx.wait();
-                console.log('Bridge TX confirmed!');
+                console.log('✅ Bridge TX confirmed!');
                 
                 // Update User Stats
                 stats.bridges++;
@@ -1112,7 +1113,7 @@
                 await loadBalances();
             } catch (error) {
                 console.error('Bridge Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 100), chain + '-bridgeStatus');
+                showStatus('error', 'Error: ' + error.message.substring(0, 120), chain + '-bridgeStatus');
             }
         }
 
