@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge - UPBIT DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff; --bg: #0a0e27; --bg-secondary: #141b3a;
+            --bg-tertiary: #1a2847; --text: #e8e8e8; --text-muted: #a0a0a0;
+            --accent: #7c3aed; --success: #10b981; --danger: #ef4444;
+            --border: #2a3f5f;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #0f1535 100%);
+            color: var(--text); min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, rgba(20, 27, 58, 0.9), rgba(26, 40, 71, 0.9));
+            border-bottom: 2px solid var(--primary);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        select, button {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover:not(:disabled) {
+            background: var(--primary);
+            color: var(--bg);
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .wallet-btn {
+            background: var(--success);
+            border: 2px solid var(--success);
+            color: white;
+        }
+        .wallet-btn:hover { background: rgba(16, 185, 129, 0.8); }
+        .wallet-info {
+            background: var(--bg-secondary);
+            border: 2px solid var(--primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        main {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .info-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .fee-selector, .quick-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .fee-btn, .quick-btn {
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .fee-btn:hover, .quick-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .fee-btn.active {
+            background: var(--primary);
+            color: var(--bg);
+            border-color: var(--primary);
+        }
+        input[type="number"] {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+        }
+        .balance-display {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--primary);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        .status.loading {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .back-btn {
+            background: #555;
+            border: 2px solid #555;
+            color: white;
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background: #777;
+            border-color: #777;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">🌉 Bridge</div>
+            <div class="header-controls">
+                <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Back Button -->
+        <a href="/index.html" class="back-btn">← Zurück zur Hauptseite</a>
+
+        <!-- Wallet Status -->
+        <div style="background: var(--bg-secondary); border: 2px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Wallet Status</div>
+            <div style="font-size: 14px; color: var(--success); font-weight: bold; font-family: monospace; word-break: break-all;" id="walletStatus">
+                Not Connected
+            </div>
+        </div>
+
+        <!-- Bridge Card -->
+        <div class="card">
+            <h2>🌉 Bridge to Other Chains</h2>
+            
+            <!-- Token Selector -->
+            <div class="info-box"><strong>Select Token to Bridge:</strong></div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="fee-btn active" onclick="selectToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
+                <button class="fee-btn" onclick="selectToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
+            </div>
+            
+            <!-- Balance Display -->
+            <div class="balance-display" id="balanceDisplay"></div>
+            
+            <!-- From/To Chain Selection -->
+            <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid var(--border);">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">FROM</div>
+                        <select id="fromChain" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateChains()">
+                            <option value="arc">🔵 ARC</option>
+                            <option value="ink">⚪ INK</option>
+                            <option value="giwa">🟣 GIWA</option>
+                        </select>
+                    </div>
+                    <div style="font-size: 24px;">→</div>
+                    <div style="flex: 1; text-align: center;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">TO</div>
+                        <select id="toChain" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updatePath(); calcOutput()">
+                            <option value="ink">⚪ INK</option>
+                            <option value="giwa">🟣 GIWA</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Amount Input -->
+            <div style="margin: 20px 0;">
+                <label style="display: block; font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 14px;">💰 Amount to Bridge</label>
+                <input type="number" id="amount" placeholder="0.00" min="0" step="0.01" onchange="calcOutput()" oninput="calcOutput()">
+            </div>
+            
+            <!-- Fee Selection -->
+            <div class="info-box"><strong>🔧 Bridge Fee:</strong></div>
+            <div class="fee-selector">
+                <button class="fee-btn active" onclick="setFee(0.00025, this)">0.025%</button>
+                <button class="fee-btn" onclick="setFee(0.0005, this)">0.050%</button>
+                <button class="fee-btn" onclick="setFee(0.00075, this)">0.075%</button>
+                <button class="fee-btn" onclick="setFee(0.001, this)">0.1%</button>
+            </div>
+            <input type="hidden" id="feeValue" value="0.00025">
+            
+            <!-- Quick Percent Buttons -->
+            <div class="quick-buttons">
+                <button class="quick-btn" onclick="setPercent(25)">25%</button>
+                <button class="quick-btn" onclick="setPercent(50)">50%</button>
+                <button class="quick-btn" onclick="setPercent(75)">75%</button>
+                <button class="quick-btn" onclick="setPercent(100)">100%</button>
+            </div>
+            
+            <!-- Bridge Summary -->
+            <div class="info-box">
+                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>You Send:</span>
+                    <strong><span id="amountDisplay">0</span> <span id="tokenSymbol">USDC</span></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>You Receive (after fee):</span>
+                    <strong style="color: var(--success);"><span id="outputAmount">0</span> <span id="tokenSymbolOut">USDC</span></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid var(--border);">
+                    <span style="color: var(--text-muted); font-size: 12px;">Destination:</span>
+                    <strong style="color: var(--primary);" id="pathDisplay">ARC → INK</strong>
+                </div>
+            </div>
+            
+            <!-- Bridge Execute Button -->
+            <button onclick="executeBridge()" style="width: 100%; padding: 15px; margin: 15px 0; background: var(--primary); color: black; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer;">
+                🌉 Bridge Now
+            </button>
+            
+            <!-- Status Messages -->
+            <div id="status"></div>
+            
+            <!-- Info Box -->
+            <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--primary); margin-top: 20px;">
+                <div style="color: var(--primary); font-weight: bold; margin-bottom: 8px;">ℹ️ Bridge Info</div>
+                <div style="font-size: 12px; line-height: 1.8;">
+                    • Bridge lädt unabhängig von der Navigation<br>
+                    • Wähle Tokens und Chains aus<br>
+                    • Min amount: 0.01 tokens<br>
+                    <a href="https://testnet.arcscan.app/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: bold; margin-top: 10px; display: inline-block;">
+                        🔗 View on ARC Explorer →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============= GLOBAL STATE =============
+        let provider, signer, userAddress;
+        let selectedToken = 'usdc';
+        let currentFee = 0.00025;
+        let balances = { arc: { usdc: 0n, eurc: 0n }, ink: { usdc: 0n }, giwa: { eth: 0n } };
+
+        // Contract addresses
+        const ARC_USDC = '0x3600000000000000000000000000000000000000';
+        const ARC_EURC = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+        const INK_USDC = '0xFabab97dCE620294D2B0b0e46C68964e326300Ac';
+        const ARC_BRIDGE = '0xFcfe1D1BF3083ACf627d04c2Ca0cE0B43335fC2e';
+        const INK_BRIDGE = '0x3422A8c40bADe21DB15FfB73a839aE25DC5A3f71';
+        const GIWA_BRIDGE = '0x56D390B0dB9fadEd9eeDD8Aab2b4a880FaF4435D';
+
+        const ERC20_ABI = ['function transfer(address to, uint256 amount) returns (bool)', 'function balanceOf(address account) returns (uint256)'];
+
+        const RPC_URLS = {
+            arc: 'https://rpc.testnet.arc.network',
+            ink: 'https://rpc-sepolia.inkonchain.com',
+            giwa: 'https://sepolia-rpc.giwa.io'
+        };
+
+        const CHAIN_IDS = {
+            arc: '5042002',
+            ink: '57073',
+            giwa: '11155420'
+        };
+
+        // ============= WALLET CONNECTION =============
+        async function connectWallet() {
+            try {
+                if (!window.ethereum) {
+                    alert('Please install MetaMask!');
+                    return;
+                }
+
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAddress = accounts[0];
+                
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+
+                updateWalletUI();
+                await loadBalances();
+                updateChains();
+
+                console.log('✅ Wallet connected:', userAddress);
+            } catch (error) {
+                console.error('Wallet connection error:', error);
+                alert('Failed to connect wallet: ' + error.message);
+            }
+        }
+
+        function updateWalletUI() {
+            const walletBtn = document.getElementById('walletBtn');
+            const walletStatus = document.getElementById('walletStatus');
+
+            if (userAddress) {
+                walletBtn.textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
+                walletBtn.style.background = 'var(--success)';
+                walletStatus.textContent = userAddress;
+                walletStatus.style.color = 'var(--success)';
+            } else {
+                walletBtn.textContent = 'Connect Wallet';
+                walletBtn.style.background = 'var(--success)';
+                walletStatus.textContent = 'Not Connected';
+                walletStatus.style.color = '#ff0000';
+            }
+        }
+
+        // ============= BALANCE LOADING =============
+        async function loadBalances() {
+            if (!userAddress) return;
+
+            try {
+                console.log('Loading balances...');
+
+                // ARC USDC
+                const arcProvider = new ethers.JsonRpcProvider(RPC_URLS.arc);
+                const arcUsdcContract = new ethers.Contract(ARC_USDC, ERC20_ABI, arcProvider);
+                balances.arc.usdc = await arcUsdcContract.balanceOf(userAddress);
+
+                // ARC EURC
+                const arcEurcContract = new ethers.Contract(ARC_EURC, ERC20_ABI, arcProvider);
+                balances.arc.eurc = await arcEurcContract.balanceOf(userAddress);
+
+                // INK USDC
+                const inkProvider = new ethers.JsonRpcProvider(RPC_URLS.ink);
+                const inkUsdcContract = new ethers.Contract(INK_USDC, ERC20_ABI, inkProvider);
+                balances.ink.usdc = await inkUsdcContract.balanceOf(userAddress);
+
+                console.log('✅ Balances loaded:', {
+                    'ARC USDC': (Number(balances.arc.usdc) / 1e6).toFixed(4),
+                    'ARC EURC': (Number(balances.arc.eurc) / 1e6).toFixed(4),
+                    'INK USDC': (Number(balances.ink.usdc) / 1e6).toFixed(4)
+                });
+
+                updateBalanceDisplay();
+            } catch (error) {
+                console.error('Error loading balances:', error);
+            }
+        }
+
+        function updateBalanceDisplay() {
+            const display = document.getElementById('balanceDisplay');
+            if (selectedToken === 'usdc') {
+                const balance = (Number(balances.arc.usdc) / 1e6).toFixed(4);
+                display.innerHTML = `<div><span>💵 USDC Balance:</span> <strong>${balance} USDC</strong></div>`;
+            } else {
+                const balance = (Number(balances.arc.eurc) / 1e6).toFixed(4);
+                display.innerHTML = `<div><span>🪙 EURC Balance:</span> <strong>${balance} EURC</strong></div>`;
+            }
+        }
+
+        // ============= UI FUNCTIONS =============
+        function selectToken(token, el) {
+            selectedToken = token;
+            el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            updateBalanceDisplay();
+            calcOutput();
+        }
+
+        function updateChains() {
+            const fromChain = document.getElementById('fromChain').value;
+            const toSelect = document.getElementById('toChain');
+            
+            const chains = ['arc', 'ink', 'giwa'];
+            const available = chains.filter(c => c !== fromChain);
+            
+            toSelect.innerHTML = '';
+            available.forEach(c => {
+                const emoji = { 'arc': '🔵', 'ink': '⚪', 'giwa': '🟣' };
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = emoji[c] + ' ' + (c === 'arc' ? 'ARC' : c === 'ink' ? 'INK' : 'GIWA');
+                toSelect.appendChild(opt);
+            });
+
+            updatePath();
+            calcOutput();
+        }
+
+        function updatePath() {
+            const from = document.getElementById('fromChain').value;
+            const to = document.getElementById('toChain').value;
+            const emoji = { 'arc': '🔵 ARC', 'ink': '⚪ INK', 'giwa': '🟣 GIWA' };
+            document.getElementById('pathDisplay').textContent = emoji[from] + ' → ' + emoji[to];
+        }
+
+        function calcOutput() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const receive = amount * (1 - currentFee);
+            
+            document.getElementById('amountDisplay').textContent = amount.toFixed(6);
+            document.getElementById('outputAmount').textContent = receive.toFixed(6);
+            
+            const symbol = selectedToken.toUpperCase();
+            document.getElementById('tokenSymbol').textContent = symbol;
+            document.getElementById('tokenSymbolOut').textContent = symbol;
+        }
+
+        function setFee(fee, el) {
+            currentFee = fee;
+            el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            calcOutput();
+        }
+
+        function setPercent(pct) {
+            let balance = 0;
+            if (selectedToken === 'usdc') {
+                balance = Number(balances.arc.usdc) / 1e6;
+            } else {
+                balance = Number(balances.arc.eurc) / 1e6;
+            }
+            
+            const amount = (balance * pct / 100).toFixed(6);
+            document.getElementById('amount').value = amount;
+            calcOutput();
+        }
+
+        function showStatus(type, msg) {
+            const statusEl = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = msg;
+            statusEl.innerHTML = '';
+            statusEl.appendChild(div);
+            if (type !== 'loading') setTimeout(() => div.remove(), 5000);
+        }
+
+        async function executeBridge() {
+            if (!userAddress) {
+                alert('Please connect wallet first!');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            if (!amount) {
+                showStatus('error', 'Enter amount!');
+                return;
+            }
+            if (amount < 0.01) {
+                showStatus('error', 'Min amount: 0.01 tokens');
+                return;
+            }
+
+            const from = document.getElementById('fromChain').value;
+            const to = document.getElementById('toChain').value;
+
+            showStatus('loading', `Initiating bridge to ${to.toUpperCase()}...`);
+
+            try {
+                let tokenAddress, bridgeAddress;
+
+                if (from === 'arc') {
+                    tokenAddress = selectedToken === 'usdc' ? ARC_USDC : ARC_EURC;
+                    bridgeAddress = ARC_BRIDGE;
+                } else if (from === 'ink') {
+                    tokenAddress = INK_USDC;
+                    bridgeAddress = INK_BRIDGE;
+                } else {
+                    tokenAddress = GIWA_BRIDGE;
+                    bridgeAddress = GIWA_BRIDGE;
+                }
+
+                const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                const amountInDecimals = ethers.parseUnits(amount.toString(), 6);
+
+                showStatus('loading', `Sending ${amount} ${selectedToken.toUpperCase()} to bridge contract...`);
+                const tx = await token.transfer(bridgeAddress, amountInDecimals);
+                await tx.wait();
+
+                showStatus('success', `✅ Bridge initiated! ${amount} ${selectedToken.toUpperCase()} locked.\n\nTokens will arrive on ${to.toUpperCase()} shortly.`);
+                document.getElementById('amount').value = '';
+                calcOutput();
+                await loadBalances();
+            } catch (error) {
+                console.error('Bridge error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 100));
+            }
+        }
+
+        // ============= INITIALIZATION =============
+        window.addEventListener('load', () => {
+            updateWalletUI();
+        });
+
+        // Handle wallet connection changes
+        window.ethereum?.on('accountsChanged', (accounts) => {
+            if (accounts.length === 0) {
+                userAddress = null;
+            } else {
+                userAddress = accounts[0];
+                loadBalances();
+            }
+            updateWalletUI();
+        });
+    </script>
+</body>
+</html>
