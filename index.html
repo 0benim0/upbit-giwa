@@ -8,7 +8,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #d4af37; --bg: #0a0e27; --bg-secondary: #141b3a;
+            --primary: #00d4ff; --bg: #0a0e27; --bg-secondary: #141b3a;
             --bg-tertiary: #1a2847; --text: #e8e8e8; --text-muted: #a0a0a0;
             --accent: #7c3aed; --success: #10b981; --danger: #ef4444;
             --border: #2a3f5f; --task-blue: #00d4ff;
@@ -396,14 +396,18 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                             <div style="flex: 1; text-align: center;">
                                 <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">FROM</div>
-                                <div style="font-size: 18px; font-weight: bold; color: var(--primary);">🔵 ARC</div>
+                                <select id="arc-bridgeFrom" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgeChains('arc')">
+                                    <option value="arc">🔵 ARC</option>
+                                    <option value="ink">⚪ INK</option>
+                                    <option value="giwa">🟣 GIWA</option>
+                                </select>
                             </div>
                             <div style="font-size: 24px;">→</div>
                             <div style="flex: 1; text-align: center;">
                                 <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">TO</div>
-                                <select id="arc-bridgeDestination" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePath('arc')">
-                                    <option value="giwa">🟣 GIWA</option>
+                                <select id="arc-bridgeTo" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePath('arc')">
                                     <option value="ink">⚪ INK</option>
+                                    <option value="giwa">🟣 GIWA</option>
                                 </select>
                             </div>
                         </div>
@@ -611,6 +615,7 @@
         let provider = null;
         let signer = null;
         let selectedBridgeToken = 'usdc';  // Für ARC Bridge Token Selection
+        let selectedBridgeChain = 'arc';   // Für Bridge FROM Chain Selection
         let swapFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let bridgeFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let balances = { arc: { usdc: 0, eurc: 0, native: 0 }, ink: { usdc: 0, native: 0 }, giwa: { native: 0 } };
@@ -1019,15 +1024,48 @@
         }
 
         function updateBridgePath(chain) {
-            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            const fromChain = document.getElementById(chain + '-bridgeFrom')?.value || 'arc';
+            const toChain = document.getElementById(chain + '-bridgeTo')?.value;
+            
             const chainEmoji = {
                 'arc': '🔵 ARC',
                 'ink': '⚪ INK',
                 'giwa': '🟣 GIWA'
             };
-            if (destination && document.getElementById(chain + '-bridgePath')) {
-                document.getElementById(chain + '-bridgePath').textContent = chainEmoji['arc'] + ' → ' + chainEmoji[destination];
+            
+            if (toChain && document.getElementById(chain + '-bridgePath')) {
+                document.getElementById(chain + '-bridgePath').textContent = chainEmoji[fromChain] + ' → ' + chainEmoji[toChain];
             }
+        }
+
+        function updateBridgeChains(chain) {
+            // Get selected FROM chain
+            const fromChain = document.getElementById(chain + '-bridgeFrom')?.value || 'arc';
+            selectedBridgeChain = fromChain;
+            
+            console.log(`Bridge FROM chain selected: ${fromChain}`);
+            
+            // Update TO dropdown - remove selected chain from options
+            const toSelect = document.getElementById(chain + '-bridgeTo');
+            const allChains = ['arc', 'ink', 'giwa'];
+            const availableChains = allChains.filter(c => c !== fromChain);
+            
+            toSelect.innerHTML = '';
+            availableChains.forEach(c => {
+                const emoji = { 'arc': '🔵', 'ink': '⚪', 'giwa': '🟣' };
+                const name = { 'arc': 'ARC', 'ink': 'INK', 'giwa': 'GIWA' };
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = emoji[c] + ' ' + name[c];
+                toSelect.appendChild(opt);
+            });
+            
+            // Auto-switch wallet to FROM chain
+            selectChain(fromChain);
+            
+            updateBridgePath(chain);
+            updateBalanceDisplay();
+            calcBridgeOutput(chain);
         }
 
         function setBridgePercent(pct, chain) {
@@ -1062,32 +1100,41 @@
             if (!amount) return showStatus('error', 'Enter amount!', chain + '-bridgeStatus');
             if (amount < 0.01) return showStatus('error', 'Min amount: 0.01 tokens', chain + '-bridgeStatus');
             
-            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            const fromChain = document.getElementById(chain + '-bridgeFrom')?.value || 'arc';
+            const toChain = document.getElementById(chain + '-bridgeTo')?.value;
             const tokenSymbol = selectedBridgeToken.toUpperCase();
-            showStatus('loading', `Initiating bridge to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
+            showStatus('loading', `Initiating bridge to ${toChain.toUpperCase()}...`, chain + '-bridgeStatus');
             
             try {
                 let tokenAddress;
                 let bridgeAddress;
                 
-                if (chain === 'arc') {
+                // Determine token and bridge address based on FROM chain
+                if (fromChain === 'arc') {
                     if (selectedBridgeToken === 'usdc') {
                         tokenAddress = '0x3600000000000000000000000000000000000000';
                     } else {
                         tokenAddress = ARC_EURC;
                     }
                     bridgeAddress = ARC_BRIDGE_ADDRESS;
+                } else if (fromChain === 'ink') {
+                    tokenAddress = INK_USDC;
+                    bridgeAddress = INK_BRIDGE_ADDRESS;
+                } else if (fromChain === 'giwa') {
+                    tokenAddress = GIWA_NFT_ADDRESS; // Adjust as needed
+                    bridgeAddress = GIWA_BRIDGE_ADDRESS;
                 }
                 
                 const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-                const amountInDecimals = ethers.parseUnits(amount.toString(), 6); // USDC/EURC use 6 decimals
+                const amountInDecimals = ethers.parseUnits(amount.toString(), 6); // Most use 6 decimals
                 
                 console.log('🌉 Bridge Protocol - Tokens to Smart Contract:');
+                console.log('   From Chain:', fromChain.toUpperCase());
+                console.log('   To Chain:', toChain.toUpperCase());
                 console.log('   Token:', tokenAddress);
                 console.log('   From (User):', userAddress);
                 console.log('   To (Bridge SC):', bridgeAddress);
                 console.log('   Amount:', amount, tokenSymbol);
-                console.log('   Destination Chain:', destination.toUpperCase());
                 
                 // Send tokens to Bridge Smart Contract
                 showStatus('loading', `Sending ${amount} ${tokenSymbol} to bridge contract...`, chain + '-bridgeStatus');
@@ -1103,7 +1150,7 @@
                 renderTasks();
                 updateProfile();
                 
-                showStatus('success', `✅ Bridge initiated! ${amount} ${tokenSymbol} locked.\n\nTokens will arrive on ${destination.toUpperCase()} shortly.`, chain + '-bridgeStatus');
+                showStatus('success', `✅ Bridge initiated! ${amount} ${tokenSymbol} locked.\n\nTokens will arrive on ${toChain.toUpperCase()} shortly.`, chain + '-bridgeStatus');
                 if (document.getElementById(chain + '-bridgeAmount')) {
                     document.getElementById(chain + '-bridgeAmount').value = '';
                 }
