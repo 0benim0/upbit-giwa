@@ -1345,25 +1345,35 @@
 
         // ============= PAGE NAVIGATION =============
         function showBridgePage() {
+            // Check wallet first
+            if (!userAddress) {
+                alert('⚠️ Please connect your wallet first!');
+                return;
+            }
+            
+            console.log('🌉 Bridge Page opening...');
+            console.log('   Wallet:', userAddress);
+            console.log('   Provider:', provider ? 'Connected' : 'Not connected');
+            
+            // Show page
             document.getElementById('bridgePage').style.display = 'block';
             document.body.style.overflow = 'hidden';
             
             // Update URL
             window.history.pushState({ page: 'bridge' }, 'Bridge', '/bridge');
             
-            console.log('🌉 Bridge Page opened');
+            // Update wallet status IMMEDIATELY
+            const walletStatusEl = document.getElementById('bridgeWalletStatus');
+            if (walletStatusEl && userAddress) {
+                walletStatusEl.textContent = userAddress;
+                walletStatusEl.style.color = 'var(--success)';
+                console.log('✅ Wallet status updated:', userAddress);
+            }
             
-            // Initialize bridge on next tick
-            setTimeout(() => {
-                if (!userAddress) {
-                    alert('⚠️ Please connect your wallet first!');
-                    showMainPage();
-                    return;
-                }
-                
-                // Load bridge content
-                loadBridgePageContent();
-            }, 100);
+            // Load bridge content
+            loadBridgePageContent();
+            
+            console.log('✅ Bridge Page opened');
         }
 
         function showMainPage() {
@@ -1378,17 +1388,36 @@
 
         function loadBridgePageContent() {
             const bridgePage = document.getElementById('bridgePage');
-            if (!bridgePage.innerHTML) return;
+            if (!bridgePage) {
+                console.error('Bridge page container not found');
+                return;
+            }
+            
+            console.log('📊 Loading Bridge Page Content');
+            console.log('   userAddress:', userAddress);
+            console.log('   provider:', provider ? 'Available' : 'Not available');
+            console.log('   signer:', signer ? 'Available' : 'Not available');
+            
+            // Ensure wallet status is shown
+            const walletStatusEl = document.getElementById('bridgeWalletStatus');
+            if (walletStatusEl && userAddress) {
+                walletStatusEl.textContent = userAddress;
+                walletStatusEl.style.color = 'var(--success)';
+            }
             
             // Initialize bridge UI
             selectedBridgeToken = 'usdc';
+            console.log('✓ Token set to USDC');
             
             // Load balances
+            console.log('⏳ Loading balances...');
             loadBalances().then(() => {
-                console.log('✅ Bridge balances loaded');
+                console.log('✅ Bridge balances loaded successfully');
+                console.log('   ARC USDC:', balances.arc.usdc?.toString());
+                console.log('   ARC EURC:', balances.arc.eurc?.toString());
                 updateBridgePageChains();
             }).catch(err => {
-                console.error('Error loading bridge balances:', err);
+                console.error('❌ Error loading bridge balances:', err);
                 updateBridgePageChains();
             });
         }
