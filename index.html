@@ -845,6 +845,7 @@
                 
                 setTimeout(async () => {
                     await loadBalances();
+                    updateBalanceDisplay();
                     await updateGiwaNFTSupply();
                     await updateGiwaDeployCounter();
                 }, 500);
@@ -1073,9 +1074,9 @@
                 
                 if (chain === 'arc') {
                     if (selectedBridgeToken === 'usdc') {
-                        balance = Number(balances.arc.usdc) / 1e6;
+                        balance = parseFloat(balances.arc.usdc.toString()) / 1e6;
                     } else if (selectedBridgeToken === 'eurc') {
-                        balance = Number(balances.arc.eurc) / 1e6;
+                        balance = parseFloat(balances.arc.eurc.toString()) / 1e6;
                     }
                 }
                 
@@ -1420,9 +1421,9 @@
             try {
                 let balance = 0;
                 if (selectedBridgeTokenINK === 'eth') {
-                    balance = Number(balances.ink.native) / 1e18;
+                    balance = parseFloat(balances.ink.native.toString()) / 1e18;
                 } else if (selectedBridgeTokenINK === 'usdc') {
-                    balance = Number(balances.ink.usdc) / 1e6;
+                    balance = parseFloat(balances.ink.usdc.toString()) / 1e6;
                 }
                 const amount = (balance * pct / 100).toFixed(6);
                 const amountInput = document.getElementById(chain + '-bridgeAmount');
@@ -1530,7 +1531,7 @@
 
         function setBridgePercentGIWA(pct, chain) {
             try {
-                let balance = Number(balances.giwa.native) / 1e18;
+                let balance = parseFloat(balances.giwa.native.toString()) / 1e18;
                 const amount = (balance * pct / 100).toFixed(6);
                 const amountInput = document.getElementById(chain + '-bridgeAmount');
                 if (amountInput) amountInput.value = amount;
