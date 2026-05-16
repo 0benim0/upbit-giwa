@@ -377,6 +377,89 @@
             </div>
             
             <!-- BRIDGE -->
+            <div id="arc-bridge" class="tab-content">
+                <div class="card">
+                    <h2>🌉 Bridge to Other Chains</h2>
+                    
+                    <!-- Balance Display -->
+                    <div class="balance-display" id="arc-bridgeBalance"></div>
+                    
+                    <!-- From/To Chain Selection -->
+                    <div style="background: var(--bg-tertiary); padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid var(--border);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <div style="flex: 1; text-align: center;">
+                                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">FROM</div>
+                                <div style="font-size: 18px; font-weight: bold; color: var(--primary);">🔵 ARC</div>
+                            </div>
+                            <div style="font-size: 24px;">→</div>
+                            <div style="flex: 1; text-align: center;">
+                                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">TO</div>
+                                <select id="arc-bridgeDestination" style="width: 100%; padding: 8px; background: var(--bg-secondary); border: 2px solid var(--primary); color: var(--primary); border-radius: 6px; font-weight: bold;" onchange="updateBridgePath('arc')">
+                                    <option value="giwa">🟣 GIWA</option>
+                                    <option value="ink">⚪ INK</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Amount Input -->
+                    <div class="input-group">
+                        <input type="number" id="arc-bridgeAmount" placeholder="Enter amount (ETH)" min="0" step="0.0001" onchange="calcBridgeOutput('arc')">
+                    </div>
+                    
+                    <!-- Fee Selection -->
+                    <div class="info-box"><strong>🔧 Bridge Fee:</strong></div>
+                    <div class="fee-selector">
+                        <button class="fee-btn active" onclick="setBridgeFee(0.00025, this, 'arc')">0.025%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.0005, this, 'arc')">0.050%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.00075, this, 'arc')">0.075%</button>
+                        <button class="fee-btn" onclick="setBridgeFee(0.001, this, 'arc')">0.1%</button>
+                    </div>
+                    
+                    <!-- Quick Percent Buttons -->
+                    <div class="quick-buttons">
+                        <button class="quick-btn" onclick="setBridgePercent(25, 'arc')">25%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(50, 'arc')">50%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(75, 'arc')">75%</button>
+                        <button class="quick-btn" onclick="setBridgePercent(100, 'arc')">100%</button>
+                    </div>
+                    
+                    <!-- Bridge Summary -->
+                    <div class="info-box">
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                            <span>You Send:</span>
+                            <strong id="arc-bridgeAmountDisplay">0</strong> ETH
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                            <span>You Receive (after fee):</span>
+                            <strong id="arc-bridgeOutput" style="color: var(--success);">0</strong> ETH
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid var(--border);">
+                            <span style="color: var(--text-muted); font-size: 12px;">Destination:</span>
+                            <strong id="arc-bridgePath" style="color: var(--task-blue);">ARC → GIWA</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Bridge Execute Button -->
+                    <button onclick="executeBridge('arc')" style="width: 100%; padding: 15px; margin: 15px 0; background: var(--task-blue); color: black; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer;">
+                        🌉 Bridge Now - Sign TX
+                    </button>
+                    
+                    <!-- Status Messages -->
+                    <div id="arc-bridgeStatus"></div>
+                    
+                    <!-- Info Box -->
+                    <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--task-blue); margin-top: 20px;">
+                        <div style="color: var(--task-blue); font-weight: bold; margin-bottom: 8px;">ℹ️ Bridge Info</div>
+                        <div style="font-size: 12px; line-height: 1.6;">
+                            • Bridges are instant on testnet<br>
+                            • Your wallet receives bridged tokens<br>
+                            • Fees go to: <span style="font-family: monospace; font-size: 10px;">0x784369...97ca4C3</span><br>
+                            • Min amount: 0.001 ETH
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <!-- NFT -->
             <div id="arc-nft" class="tab-content">
@@ -474,6 +557,38 @@
             'function decimals() view returns (uint8)'
         ];
 
+        // Smart Contract Addresses
+        const ARC_BRIDGE_ADDRESS = '0xFcfe1D1BF3083ACf627d04c2Ca0cE0B43335fC2e';
+        const INK_BRIDGE_ADDRESS = '0x3422A8c40bADe21DB15FfB73a839aE25DC5A3f71';
+        const GIWA_BRIDGE_ADDRESS = '0x56D390B0dB9fadEd9eeDD8Aab2b4a880FaF4435D';
+        const GIWA_NFT_ADDRESS = '0xd97A1aAD3dbD174e75aceeFf8aFa37A7C8264C14';
+        const GIWA_GM_ADDRESS = '0x2f1a98E6F2BCaBd1B1c5B16483e7d93c478dfff3';
+        const GIWA_DEPLOY_ADDRESS = '0xa71208Fd462c499bEd8F4F551cBBe2e96503ffCF';
+
+        const BRIDGE_ABI = [
+            'function bridgeToken(uint256 selectedFee) public payable'
+        ];
+
+        const NFT_ABI = [
+            'function mintNFT(string memory nftName) public payable',
+            'function totalMinted() public view returns (uint256)',
+            'function getRemainingSupply() public view returns (uint256)',
+            'function userMintCount(address user) public view returns (uint256)'
+        ];
+
+        const GM_ABI = [
+            'function sayGM() public payable',
+            'function userStreak(address user) public view returns (uint256)',
+            'function totalGMCheckIns() public view returns (uint256)',
+            'function hasCheckedInToday(address user) public view returns (bool)'
+        ];
+
+        const DEPLOY_ABI = [
+            'function deployProject(string memory projectName) public payable',
+            'function totalDeployments() public view returns (uint256)',
+            'function userDeployCount(address user) public view returns (uint256)'
+        ];
+
         let currentChain = 'arc';
         let userAddress = null;
         let provider = null;
@@ -485,7 +600,7 @@
         let completedTasks = {};
 
         const ARC_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
-        const INK_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
+        const INK_TABS = ['faucet', 'swap', 'nft', 'gm', 'tasks', 'badge', 'profile'];
         const GIWA_TABS = ['faucet', 'nft', 'deploy', 'gm', 'tasks', 'badge', 'profile'];
         const TASKS = [
             { name: 'Complete Swap', icon: '⚡', points: 50, desc: 'Swap any token pair' },
@@ -678,7 +793,6 @@
                     await loadBalances();
                     await updateGiwaNFTSupply();
                     await updateGiwaDeployCounter();
-                    await loadBridgeBalance();
                 }, 500);
             } catch (error) {
                 console.error('Wallet error:', error);
@@ -698,6 +812,7 @@
                 const nativeBal = await provider.getBalance(userAddress);
                 balances.arc.native = nativeBal;
                 balances.ink.native = nativeBal;
+                balances.giwa.native = nativeBal;
                 
                 // ARC Token Balances
                 try {
@@ -750,17 +865,12 @@
             
             const arcBridgeEl = document.getElementById('arc-bridgeBalance');
             if (arcBridgeEl) {
-                arcBridgeEl.innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.arc.native)}</strong></div>`;
+                arcBridgeEl.innerHTML = `<div class="balance-item"><span>🔵 ARC Native Balance:</span> <strong>${display(balances.arc.native)} ETH</strong></div>`;
             }
             
             const inkSwapEl = document.getElementById('ink-swapBalance');
             if (inkSwapEl) {
                 inkSwapEl.innerHTML = `<div class="balance-item"><span>USDC:</span> <strong>${display(balances.ink.usdc, 6)}</strong></div>`;
-            }
-            
-            const inkBridgeEl = document.getElementById('ink-bridgeBalance');
-            if (inkBridgeEl) {
-                inkBridgeEl.innerHTML = `<div class="balance-item"><span>Native:</span> <strong>${display(balances.ink.native)}</strong></div>`;
             }
             
             console.log('Balances updated on screen');
@@ -849,6 +959,7 @@
             }
         }
 
+        // ========== ARC BRIDGE FUNCTIONS ==========
         function setBridgeFee(fee, el, chain) {
             bridgeFee[chain] = fee;
             el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
@@ -868,20 +979,14 @@
         }
 
         function updateBridgePath(chain) {
-            const src = document.getElementById(chain + '-bridgeSource')?.value;
-            const dst = document.getElementById(chain + '-bridgeDest')?.value;
-            if (src && dst && document.getElementById(chain + '-bridgePath')) {
-                document.getElementById(chain + '-bridgePath').textContent = src.toUpperCase() + ' → ' + dst.toUpperCase();
-            }
-        }
-
-        function reverseBridgeChains(chain) {
-            const src = document.getElementById(chain + '-bridgeSource')?.value;
-            const dst = document.getElementById(chain + '-bridgeDest')?.value;
-            if (src && dst) {
-                document.getElementById(chain + '-bridgeSource').value = dst;
-                document.getElementById(chain + '-bridgeDest').value = src;
-                updateBridgePath(chain);
+            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            const chainEmoji = {
+                'arc': '🔵 ARC',
+                'ink': '⚪ INK',
+                'giwa': '🟣 GIWA'
+            };
+            if (destination && document.getElementById(chain + '-bridgePath')) {
+                document.getElementById(chain + '-bridgePath').textContent = chainEmoji['arc'] + ' → ' + chainEmoji[destination];
             }
         }
 
@@ -902,258 +1007,58 @@
 
         async function executeBridge(chain) {
             if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-bridgeStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', chain + '-bridgeStatus');
+            
             const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
             if (!amount) return showStatus('error', 'Enter amount!', chain + '-bridgeStatus');
+            if (amount < 0.001) return showStatus('error', 'Min amount: 0.001 ETH', chain + '-bridgeStatus');
             
-            showStatus('loading', 'Sign transaction in wallet...', chain + '-bridgeStatus');
+            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            showStatus('loading', `Bridging ${amount} ETH to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
+            
             try {
-                const amountEthers = ethers.parseEther(amount.toString());
-                const tx = await signer.sendTransaction({ to: OWNER, value: amountEthers });
-                await tx.wait();
+                let bridgeAddress;
+                if (chain === 'arc') {
+                    bridgeAddress = ARC_BRIDGE_ADDRESS;
+                } else if (chain === 'ink') {
+                    bridgeAddress = INK_BRIDGE_ADDRESS;
+                } else if (chain === 'giwa') {
+                    bridgeAddress = GIWA_BRIDGE_ADDRESS;
+                }
                 
+                const bridgeContract = new ethers.Contract(bridgeAddress, BRIDGE_ABI, signer);
+                const feeInBasisPoints = Math.round(bridgeFee[chain] * 10000);
+                
+                // Call smart contract bridgeToken function with ETH value
+                const tx = await bridgeContract.bridgeToken(feeInBasisPoints, {
+                    value: ethers.parseEther(amount.toString())
+                });
+                
+                console.log('Bridge TX sent:', tx.hash);
+                showStatus('loading', 'Waiting for confirmation...', chain + '-bridgeStatus');
+                await tx.wait();
+                console.log('Bridge TX confirmed!');
+                
+                // Update User Stats
                 stats.bridges++;
                 completedTasks['Complete Bridge'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
-                showStatus('success', '✅ Bridge completed!', chain + '-bridgeStatus');
+                
+                showStatus('success', `✅ Bridged ${amount} ETH to ${destination.toUpperCase()}!`, chain + '-bridgeStatus');
                 if (document.getElementById(chain + '-bridgeAmount')) {
                     document.getElementById(chain + '-bridgeAmount').value = '';
                 }
                 calcBridgeOutput(chain);
                 await loadBalances();
             } catch (error) {
+                console.error('Bridge Error:', error);
                 showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-bridgeStatus');
             }
         }
 
-        // GIWA NFT Smart Contract
-        const GIWA_NFT_ADDRESS = '0xd97A1aAD3dbD174e75aceeFf8aFa37A7C8264C14';
-        const NFT_ABI = [
-            'function mintNFT(string memory nftName) public payable',
-            'function totalMinted() public view returns (uint256)',
-            'function getRemainingSupply() public view returns (uint256)',
-            'function userMintCount(address user) public view returns (uint256)'
-        ];
-
-        // GIWA Bridge Smart Contract
-        const GIWA_BRIDGE_ADDRESS = '0x56D390B0dB9fadEd9eeDD8Aab2b4a880FaF4435D';
-        const BRIDGE_ABI = [
-            'function bridgeToken(uint256 selectedFee) public payable',
-            'function totalBridged() public view returns (uint256)',
-            'function userBridgeCount(address user) public view returns (uint256)'
-        ];
-
-        // GIWA GM Smart Contract
-        const GIWA_GM_ADDRESS = '0x2f1a98E6F2BCaBd1B1c5B16483e7d93c478dfff3';
-        const GM_ABI = [
-            'function sayGM() public payable',
-            'function userStreak(address user) public view returns (uint256)',
-            'function totalGMCheckIns() public view returns (uint256)',
-            'function hasCheckedInToday(address user) public view returns (bool)'
-        ];
-
-        // GIWA Deploy Hub Smart Contract
-        const GIWA_DEPLOY_ADDRESS = '0xa71208Fd462c499bEd8F4F551cBBe2e96503ffCF';
-        const DEPLOY_ABI = [
-            'function deployProject(string memory projectName) public payable',
-            'function totalDeployments() public view returns (uint256)',
-            'function userDeployCount(address user) public view returns (uint256)'
-        ];
-
-        // ARC Bridge Smart Contract
-        const ARC_BRIDGE_ADDRESS = '0xFcfe1D1BF3083ACf627d04c2Ca0cE0B43335fC2e';
-        const ARC_BRIDGE_ABI = [
-            'function bridgeToken(uint256 selectedFee) public payable',
-            'function totalBridged() public view returns (uint256)',
-            'function userBridgeCount(address user) public view returns (uint256)'
-        ];
-
-        // INK Bridge Smart Contract
-        const INK_BRIDGE_ADDRESS = '0x3422A8c40bADe21DB15FfB73a839aE25DC5A3f71';
-        const INK_BRIDGE_ABI = [
-            'function bridgeToken(uint256 selectedFee) public payable',
-            'function totalBridged() public view returns (uint256)',
-            'function userBridgeCount(address user) public view returns (uint256)'
-        ];
-
-        async function bridgeTokenGiwa() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-bridgeStatus');
-            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-bridgeStatus');
-            
-            const amount = document.getElementById('giwa-bridgeAmount').value;
-            const feeOption = document.getElementById('giwa-bridgeFee').value;
-            
-            if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'giwa-bridgeStatus');
-            
-            showStatus('loading', 'Bridging...', 'giwa-bridgeStatus');
-            try {
-                const bridgeContract = new ethers.Contract(GIWA_BRIDGE_ADDRESS, BRIDGE_ABI, signer);
-                
-                // Convert fee option to basis points (25 = 0.025%, 50 = 0.050%, etc.)
-                const feeInBasisPoints = parseInt(feeOption);
-                
-                // Call smart contract bridgeToken function
-                const tx = await bridgeContract.bridgeToken(feeInBasisPoints, {
-                    value: ethers.parseEther(amount)
-                });
-                
-                console.log('Bridge TX sent:', tx.hash);
-                await tx.wait();
-                console.log('Bridge TX confirmed!');
-                
-                // Update User Stats
-                stats.bridges++;
-                
-                // Auto-complete Task
-                completedTasks['Complete Bridge'] = true;
-                
-                saveStats();
-                renderTasks();
-                updateProfile();
-                
-                // Get updated counter from contract
-                const totalBridged = await bridgeContract.totalBridged();
-                showStatus('success', `✅ Bridged ${amount} ETH! (Total: ${totalBridged.toString()})`, 'giwa-bridgeStatus');
-                
-                document.getElementById('giwa-bridgeAmount').value = '';
-            } catch (error) {
-                console.error('Bridge Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-bridgeStatus');
-            }
-        }
-
-        function setBridgePercent(pct, chain) {
-            if (chain === 'giwa') {
-                const el = document.getElementById('giwa-bridgeAmount');
-                if (userAddress && balances.nativeBalance) {
-                    const pctValue = (balances.nativeBalance * pct) / 100;
-                    el.value = (pctValue / 1e18).toFixed(4);
-                }
-            }
-        }
-
-        function setBridgeFee(fee, chain) {
-            if (chain === 'giwa') {
-                console.log(`Bridge fee set to ${fee} basis points`);
-            }
-        }
-
-        async function deployProjectGiwa() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-deployStatus');
-            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-deployStatus');
-            
-            const projectName = document.getElementById('giwa-projectName').value;
-            if (!projectName || projectName.trim() === '') return showStatus('error', 'Enter project name!', 'giwa-deployStatus');
-            
-            showStatus('loading', 'Deploying...', 'giwa-deployStatus');
-            try {
-                const deployContract = new ethers.Contract(GIWA_DEPLOY_ADDRESS, DEPLOY_ABI, signer);
-                
-                // Call smart contract deployProject function
-                const tx = await deployContract.deployProject(projectName, {
-                    value: ethers.parseEther('0.0001')
-                });
-                
-                console.log('Deploy TX sent:', tx.hash);
-                await tx.wait();
-                console.log('Deploy TX confirmed!');
-                
-                // Update User Stats
-                stats.deploys = (stats.deploys || 0) + 1;
-                
-                // Auto-complete Deploy Task
-                completedTasks['Deploy Project'] = true;
-                
-                saveStats();
-                renderTasks();
-                updateProfile();
-                updateGiwaDeployCounter();
-                
-                // Get updated counter from contract
-                const totalDeployments = await deployContract.totalDeployments();
-                showStatus('success', `🚀 Deployed "${projectName}"! (Total: ${totalDeployments.toString()})`, 'giwa-deployStatus');
-                
-                document.getElementById('giwa-projectName').value = '';
-            } catch (error) {
-                console.error('Deploy Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-deployStatus');
-            }
-        }
-
-        // GIWA Bridge Functions - SIMPLE!
-        async function giwaBridgeLoadBalance() {
-            try {
-                if (!userAddress || !provider) return;
-                const balance = await provider.getBalance(userAddress);
-                const balanceETH = parseFloat(balance.toString()) / 1e18;
-                document.getElementById('giwa-bridge-balance').textContent = balanceETH.toFixed(4);
-                window.giwaBridgeBalanceRaw = balance;
-                console.log('Bridge Balance loaded:', balanceETH.toFixed(4), 'ETH');
-            } catch (error) {
-                console.error('Error loading bridge balance:', error);
-            }
-        }
-
-        function giwaBridgePercent(pct) {
-            if (!window.giwaBridgeBalanceRaw) {
-                alert('Balance not loaded!');
-                return;
-            }
-            const pctValue = (window.giwaBridgeBalanceRaw * pct) / 100;
-            const ethAmount = (pctValue / 1e18).toFixed(4);
-            document.getElementById('giwa-bridge-amount').value = ethAmount;
-        }
-
-        async function giwaBridgeExecute() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-bridge-status');
-            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-bridge-status');
-            
-            const amount = document.getElementById('giwa-bridge-amount').value;
-            const toChain = document.getElementById('giwa-bridge-to').value;
-            const feeOption = document.getElementById('giwa-bridge-fee').value;
-            
-            if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'giwa-bridge-status');
-            
-            showStatus('loading', `Bridging to ${toChain.toUpperCase()}...`, 'giwa-bridge-status');
-            try {
-                const bridgeContract = new ethers.Contract(GIWA_BRIDGE_ADDRESS, BRIDGE_ABI, signer);
-                const tx = await bridgeContract.bridgeToken(parseInt(feeOption), {
-                    value: ethers.parseEther(amount)
-                });
-                
-                await tx.wait();
-                
-                stats.bridges++;
-                completedTasks['Complete Bridge'] = true;
-                saveStats();
-                renderTasks();
-                updateProfile();
-                
-                showStatus('success', `✅ Bridged ${amount} ETH to ${toChain.toUpperCase()}!`, 'giwa-bridge-status');
-                document.getElementById('giwa-bridge-amount').value = '';
-                giwaBridgeLoadBalance();
-            } catch (error) {
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-bridge-status');
-            }
-        }
-
-        async function updateGiwaDeployCounter() {
-            try {
-                if (!provider) return;
-                
-                const deployContract = new ethers.Contract(GIWA_DEPLOY_ADDRESS, DEPLOY_ABI, provider);
-                const totalDeployments = await deployContract.totalDeployments();
-                
-                const el = document.getElementById('giwa-deployCounter');
-                if (el) {
-                    el.textContent = `Deployments: ${totalDeployments.toString()}`;
-                }
-            } catch (error) {
-                console.error('Error reading deploy counter:', error);
-            }
-        }
-
+        // ========== GIWA NFT FUNCTIONS ==========
         async function mintNFTGiwa() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-nftStatus');
             if (!signer) return showStatus('error', 'Signer not available!', 'giwa-nftStatus');
@@ -1161,11 +1066,7 @@
             showStatus('loading', 'Minting NFT...', 'giwa-nftStatus');
             try {
                 const nftName = document.getElementById('giwa-nftName')?.value || 'Checkmate';
-                
-                // Create contract instance
                 const nftContract = new ethers.Contract(GIWA_NFT_ADDRESS, NFT_ABI, signer);
-                
-                // Call smart contract mintNFT function
                 const tx = await nftContract.mintNFT(nftName, { 
                     value: ethers.parseEther('0.0001')
                 });
@@ -1174,23 +1075,13 @@
                 await tx.wait();
                 console.log('NFT TX confirmed!');
                 
-                // Update User Stats
                 stats.nfts++;
-                
-                // Auto-complete Task if first mint today
-                const today = new Date().toDateString();
-                const lastNftMintDay = localStorage.getItem('lastNftMintDay');
-                if (lastNftMintDay !== today) {
-                    completedTasks['Mint NFT'] = true;
-                    localStorage.setItem('lastNftMintDay', today);
-                }
-                
+                completedTasks['Mint NFT'] = true;
                 saveStats();
                 renderTasks();
                 updateProfile();
                 updateGiwaNFTSupply();
                 
-                // Get updated counter from contract
                 const totalMinted = await nftContract.totalMinted();
                 showStatus('success', `✅ Minted: ${nftName} NFT! (Total: ${totalMinted.toString()}/9999)`, 'giwa-nftStatus');
                 document.getElementById('giwa-nftName').value = 'Checkmate';
@@ -1203,10 +1094,8 @@
         async function updateGiwaNFTSupply() {
             try {
                 if (!provider) return;
-                
                 const nftContract = new ethers.Contract(GIWA_NFT_ADDRESS, NFT_ABI, provider);
                 const totalMinted = await nftContract.totalMinted();
-                
                 const el = document.getElementById('giwa-nftSupply');
                 if (el) {
                     el.innerHTML = `Checkmate NFT<br><span style="font-size:32px;">${totalMinted.toString()} / 9999</span> Minted`;
@@ -1216,7 +1105,56 @@
             }
         }
 
-        // GIWA GM Functions
+        // ========== GIWA DEPLOY FUNCTIONS ==========
+        async function deployProjectGiwa() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-deployStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', 'giwa-deployStatus');
+            
+            const projectName = document.getElementById('giwa-projectName').value;
+            if (!projectName || projectName.trim() === '') return showStatus('error', 'Enter project name!', 'giwa-deployStatus');
+            
+            showStatus('loading', 'Deploying...', 'giwa-deployStatus');
+            try {
+                const deployContract = new ethers.Contract(GIWA_DEPLOY_ADDRESS, DEPLOY_ABI, signer);
+                const tx = await deployContract.deployProject(projectName, {
+                    value: ethers.parseEther('0.0001')
+                });
+                
+                console.log('Deploy TX sent:', tx.hash);
+                await tx.wait();
+                console.log('Deploy TX confirmed!');
+                
+                stats.deploys = (stats.deploys || 0) + 1;
+                completedTasks['Deploy Project'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                updateGiwaDeployCounter();
+                
+                const totalDeployments = await deployContract.totalDeployments();
+                showStatus('success', `🚀 Deployed "${projectName}"! (Total: ${totalDeployments.toString()})`, 'giwa-deployStatus');
+                document.getElementById('giwa-projectName').value = '';
+            } catch (error) {
+                console.error('Deploy Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'giwa-deployStatus');
+            }
+        }
+
+        async function updateGiwaDeployCounter() {
+            try {
+                if (!provider) return;
+                const deployContract = new ethers.Contract(GIWA_DEPLOY_ADDRESS, DEPLOY_ABI, provider);
+                const totalDeployments = await deployContract.totalDeployments();
+                const el = document.getElementById('giwa-deployCounter');
+                if (el) {
+                    el.textContent = `Deployments: ${totalDeployments.toString()}`;
+                }
+            } catch (error) {
+                console.error('Error reading deploy counter:', error);
+            }
+        }
+
+        // ========== GIWA GM FUNCTIONS ==========
         async function gmCheckInGiwa() {
             if (!userAddress) return showStatus('error', 'Connect wallet!', 'giwa-gmStatus');
             if (!signer) return showStatus('error', 'Signer not available!', 'giwa-gmStatus');
@@ -1224,8 +1162,6 @@
             showStatus('loading', 'Checking in...', 'giwa-gmStatus');
             try {
                 const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, signer);
-                
-                // Call smart contract sayGM function
                 const tx = await gmContract.sayGM({ 
                     value: ethers.parseEther('0.0001')
                 });
@@ -1234,10 +1170,7 @@
                 await tx.wait();
                 console.log('GM TX confirmed!');
                 
-                // Get updated streak from contract
                 const userStreak = await gmContract.userStreak(userAddress);
-                
-                // Update local stats
                 completedTasks['Daily GM'] = true;
                 saveStats();
                 renderTasks();
@@ -1256,234 +1189,32 @@
             const now = new Date();
             const hour = now.getHours();
             
-            // Hide all first
             document.getElementById('giwa-gmMorning').style.display = 'none';
             document.getElementById('giwa-gmDay').style.display = 'none';
             document.getElementById('giwa-gmSunset').style.display = 'none';
             document.getElementById('giwa-gmNight').style.display = 'none';
             
-            // Show based on time
             if (hour >= 6 && hour < 12) {
-                // Morning: Sun behind cloud
                 document.getElementById('giwa-gmMorning').style.display = 'block';
             } else if (hour >= 12 && hour < 18) {
-                // Noon-Evening: Shining sun
                 document.getElementById('giwa-gmDay').style.display = 'block';
             } else if (hour >= 18 && hour < 20) {
-                // Sunset
                 document.getElementById('giwa-gmSunset').style.display = 'block';
             } else {
-                // Night: Moon with stars
                 document.getElementById('giwa-gmNight').style.display = 'block';
             }
         }
 
-        function updateGmTimerCountdownGiwa() {
-            const now = new Date();
-            const tomorrow = new Date(now);
-            tomorrow.setHours(24, 0, 0, 0);
-            const diff = Math.max(0, Math.floor((tomorrow - now) / 1000));
-            
-            const h = Math.floor(diff / 3600);
-            const m = Math.floor((diff % 3600) / 60);
-            const s = diff % 60;
-            
-            const timerEl = document.getElementById('giwa-gmTimerCountdown');
-            if (timerEl) {
-                timerEl.textContent = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-                
-                // Green if not checked in today, Red if missed
-                const today = new Date().toDateString();
-                const readyEl = document.getElementById('giwa-gmStatusReady');
-                const missedEl = document.getElementById('giwa-gmStatusMissed');
-                
-                if (stats.lastGM === today) {
-                    if (readyEl) readyEl.style.display = 'none';
-                    if (missedEl) missedEl.style.display = 'none';
-                } else if (diff > 0 && diff < 3600) {
-                    // Last hour before reset - show as ready (green)
-                    if (readyEl) readyEl.style.display = 'block';
-                    if (missedEl) missedEl.style.display = 'none';
-                } else if (diff === 0) {
-                    // Reset time - red if not checked
-                    if (readyEl) readyEl.style.display = 'none';
-                    if (missedEl) missedEl.style.display = 'block';
-                } else {
-                    if (readyEl) readyEl.style.display = 'block';
-                    if (missedEl) missedEl.style.display = 'none';
-                }
-            }
-        }
-
-        // Start GM timers
-        updateGiwaMoonPhase();
-        updateGmTimerCountdownGiwa();
-        setInterval(updateGmTimerCountdownGiwa, 1000);
-        setInterval(updateGiwaMoonPhase, 60000);
-
-        // Bridge - Multi-Token Balance Loading
-        let bridgeCurrentChain = 'giwa';
-        let bridgeBalances = {}; // Store all balances
-        let bridgeSelectedToken = null; // Selected token for bridging
-
-        const bridgeChainInfo = {
-            'giwa': { 
-                name: '🟣 GIWA Sepolia', 
-                contract: GIWA_BRIDGE_ADDRESS, 
-                abi: BRIDGE_ABI,
-                tokens: [
-                    { address: null, name: 'ETH', decimals: 18 }
-                ]
-            },
-            'arc': { 
-                name: '🔵 ARC Testnet', 
-                contract: ARC_BRIDGE_ADDRESS, 
-                abi: ARC_BRIDGE_ABI,
-                tokens: [
-                    { address: '0x3600000000000000000000000000000000000000', name: 'USDC', decimals: 6 },
-                    { address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', name: 'EURC', decimals: 6 }
-                ]
-            },
-            'ink': { 
-                name: '⚪ INK Sepolia', 
-                contract: INK_BRIDGE_ADDRESS, 
-                abi: INK_BRIDGE_ABI,
-                tokens: [
-                    { address: null, name: 'ETH', decimals: 18 },
-                    { address: '0xFabab97dCE620294D2B0b0e46C68964e326300Ac', name: 'USDC', decimals: 6 }
-                ]
-            }
-        };
-
-        function getAvailableToChains(fromChain) {
-            const allChains = ['giwa', 'arc', 'ink'];
-            return allChains.filter(c => c !== fromChain);
-        }
-
-        async function updateBridgeFromChain(chain) {
-            bridgeCurrentChain = chain;
-            console.log(`Bridge From Chain: ${chain}`);
-
-            // Update To Chain options
-            const toChains = getAvailableToChains(chain);
-            const toSelect = document.getElementById('bridge-toChain');
-            toSelect.innerHTML = '';
-            toChains.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = bridgeChainInfo[c].name;
-                toSelect.appendChild(opt);
-            });
-
-            // Load balances for all tokens on this chain
-            await loadBridgeBalance();
-        }
-
-        async function loadBridgeBalance() {
-            try {
-                if (!userAddress || !provider) return;
-                
-                const chainTokens = bridgeChainInfo[bridgeCurrentChain].tokens;
-                const balanceDisplay = document.getElementById('bridge-balanceDisplay');
-                balanceDisplay.innerHTML = '';
-                bridgeBalances = {};
-                
-                for (const token of chainTokens) {
-                    let balance;
-                    let balanceETH;
-                    
-                    if (token.address === null) {
-                        // Native ETH
-                        balance = await provider.getBalance(userAddress);
-                        balanceETH = parseFloat(balance.toString()) / (10 ** 18);
-                    } else {
-                        // ERC20 Token
-                        try {
-                            const tokenContract = new ethers.Contract(token.address, ERC20_ABI, provider);
-                            balance = await tokenContract.balanceOf(userAddress);
-                            balanceETH = parseFloat(balance.toString()) / (10 ** token.decimals);
-                        } catch (err) {
-                            console.error(`Error loading ${token.name} balance:`, err);
-                            balance = BigInt(0);
-                            balanceETH = 0;
-                        }
-                    }
-                    
-                    bridgeBalances[token.name] = { balance, decimals: token.decimals };
-                    
-                    // Add to display
-                    const balanceEl = document.createElement('div');
-                    balanceEl.style.cssText = 'font-size:16px; color:var(--task-blue); font-weight:bold; margin:5px 0; cursor:pointer; padding:8px; border-radius:6px; background:rgba(0,212,255,0.05);';
-                    balanceEl.textContent = `${token.name}: ${balanceETH.toFixed(4)}`;
-                    balanceEl.onclick = () => selectBridgeToken(token.name);
-                    balanceDisplay.appendChild(balanceEl);
-                }
-                
-                // Select first token by default
-                if (chainTokens.length > 0) {
-                    selectBridgeToken(chainTokens[0].name);
-                }
-                
-                console.log(`Bridge Balances (${bridgeCurrentChain}):`, bridgeBalances);
-            } catch (error) {
-                console.error('Error loading bridge balances:', error);
-            }
-        }
-
-        function selectBridgeToken(tokenName) {
-            bridgeSelectedToken = tokenName;
-            console.log(`Selected token for bridge: ${tokenName}`);
-        }
-
-        function bridgePercent(pct) {
-            if (!bridgeSelectedToken || !bridgeBalances[bridgeSelectedToken]) {
-                alert('Select a token first!');
-                return;
-            }
-            const tokenData = bridgeBalances[bridgeSelectedToken];
-            const pctValue = (tokenData.balance * BigInt(pct)) / BigInt(100);
-            const amount = parseFloat(pctValue.toString()) / (10 ** tokenData.decimals);
-            document.getElementById('bridge-amount').value = amount.toFixed(4);
-        }
-
-        async function executeBridge() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'bridge-status');
-            if (!signer) return showStatus('error', 'Signer not available!', 'bridge-status');
-            if (!bridgeSelectedToken) return showStatus('error', 'Select a token!', 'bridge-status');
-
-            const fromChain = bridgeCurrentChain;
-            const toChain = document.getElementById('bridge-toChain').value;
-            const amount = document.getElementById('bridge-amount').value;
-            const feeOption = document.getElementById('bridge-fee').value;
-
-            if (!amount || parseFloat(amount) <= 0) return showStatus('error', 'Enter amount!', 'bridge-status');
-
-            showStatus('loading', `Bridging ${bridgeSelectedToken}...`, 'bridge-status');
-            
-            try {
-                const chainInfo = bridgeChainInfo[fromChain];
-                const bridgeContract = new ethers.Contract(chainInfo.contract, chainInfo.abi, signer);
-
-                const tx = await bridgeContract.bridgeToken(parseInt(feeOption), {
-                    value: ethers.parseEther(amount)
-                });
-
-                console.log('Bridge TX:', tx.hash);
-                await tx.wait();
-
-                stats.bridges++;
-                completedTasks['Complete Bridge'] = true;
-                saveStats();
-                renderTasks();
-                updateProfile();
-
-                showStatus('success', `✅ Bridged ${amount} ${bridgeSelectedToken}!\n${chainInfo.name} → ${bridgeChainInfo[toChain].name}`, 'bridge-status');
-                document.getElementById('bridge-amount').value = '';
-                await loadBridgeBalance();
-            } catch (error) {
-                console.error('Bridge Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'bridge-status');
-            }
+        // ========== UTILITY FUNCTIONS ==========
+        function showStatus(type, msg, id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = msg;
+            el.innerHTML = '';
+            el.appendChild(div);
+            if (type !== 'loading') setTimeout(() => div.remove(), 10000);
         }
 
         async function updateProfile() {
@@ -1498,29 +1229,8 @@
                 const nfts = document.getElementById(chain + '-profileNFTs');
                 if (nfts) nfts.textContent = stats.nfts;
                 const streak = document.getElementById(chain + '-profileStreak');
-                if (streak && chain === 'giwa' && userAddress && provider) {
-                    // Read streak from GIWA Smart Contract
-                    readGiwaStreakFromContract().then(streakVal => {
-                        if (streak) streak.textContent = streakVal;
-                    }).catch(() => {
-                        if (streak) streak.textContent = stats.gmStreak;
-                    });
-                } else if (streak) {
-                    streak.textContent = stats.gmStreak;
-                }
+                if (streak) streak.textContent = stats.gmStreak;
             });
-        }
-
-        async function readGiwaStreakFromContract() {
-            try {
-                if (!userAddress || !provider) return stats.gmStreak;
-                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, provider);
-                const userStreak = await gmContract.userStreak(userAddress);
-                return userStreak.toString();
-            } catch (error) {
-                console.error('Error reading streak from contract:', error);
-                return stats.gmStreak;
-            }
         }
 
         function saveStats() {
@@ -1536,191 +1246,6 @@
             updateProfile();
             renderTasks();
         }
-
-        // INK Swap Page Functions
-        let swapBalances = {};
-        let swapSelectedFromToken = 'eth';
-        let swapSelectedToToken = 'usdc';
-
-        function openInkSwapPage() {
-            document.getElementById('ink-swap-page').style.display = 'block';
-            updateSwapBalance();
-        }
-
-        function closeInkSwapPage() {
-            document.getElementById('ink-swap-page').style.display = 'none';
-        }
-
-        async function updateSwapBalance() {
-            try {
-                if (!userAddress || !provider) return;
-                
-                swapSelectedFromToken = document.getElementById('swap-fromToken').value;
-                let balance;
-                let balanceAmount;
-                let decimals;
-                
-                if (swapSelectedFromToken === 'eth') {
-                    // Native ETH
-                    balance = await provider.getBalance(userAddress);
-                    balanceAmount = parseFloat(balance.toString()) / 1e18;
-                    decimals = 18;
-                    swapBalances['eth'] = { balance, decimals };
-                    document.getElementById('swap-fromToken-label').textContent = 'ETH';
-                } else if (swapSelectedFromToken === 'usdc') {
-                    // USDC Token
-                    try {
-                        const usdcContract = new ethers.Contract('0xFabab97dCE620294D2B0b0e46C68964e326300Ac', ERC20_ABI, provider);
-                        balance = await usdcContract.balanceOf(userAddress);
-                        balanceAmount = parseFloat(balance.toString()) / 1e6;
-                        decimals = 6;
-                        swapBalances['usdc'] = { balance, decimals };
-                        document.getElementById('swap-fromToken-label').textContent = 'USDC';
-                    } catch (err) {
-                        console.error('Error loading USDC balance:', err);
-                        balanceAmount = 0;
-                    }
-                }
-                
-                document.getElementById('swap-fromBalance').textContent = balanceAmount.toFixed(4);
-                console.log(`Swap Balance (${swapSelectedFromToken}): ${balanceAmount.toFixed(4)}`);
-            } catch (error) {
-                console.error('Error updating swap balance:', error);
-            }
-        }
-
-        function setSwapPercent(pct) {
-            const tokenData = swapBalances[swapSelectedFromToken];
-            if (!tokenData) {
-                alert('Balance not loaded!');
-                return;
-            }
-            const pctValue = (tokenData.balance * BigInt(pct)) / BigInt(100);
-            const amount = parseFloat(pctValue.toString()) / (10 ** tokenData.decimals);
-            document.getElementById('swap-fromAmount').value = amount.toFixed(4);
-            calcSwapOutput();
-        }
-
-        function calcSwapOutput() {
-            const amount = document.getElementById('swap-fromAmount').value;
-            if (!amount || parseFloat(amount) <= 0) {
-                document.getElementById('swap-toAmount').value = '0.0';
-                return;
-            }
-            
-            // Simple swap calculation (1:1 for demo)
-            document.getElementById('swap-toAmount').value = amount;
-        }
-
-        async function executeInkSwap() {
-            if (!userAddress) return showStatus('error', 'Connect wallet!', 'swap-status');
-            if (!signer) return showStatus('error', 'Signer not available!', 'swap-status');
-            
-            const fromAmount = document.getElementById('swap-fromAmount').value;
-            const fromToken = swapSelectedFromToken;
-            const toToken = document.getElementById('swap-toToken').value;
-            
-            if (!fromAmount || parseFloat(fromAmount) <= 0) return showStatus('error', 'Enter amount!', 'swap-status');
-            if (fromToken === toToken) return showStatus('error', 'Select different tokens!', 'swap-status');
-            
-            showStatus('loading', `Swapping ${fromToken.toUpperCase()} to ${toToken.toUpperCase()}...`, 'swap-status');
-            
-            try {
-                // Simulate swap (in real app, would call DEX contract)
-                console.log(`Swap: ${fromAmount} ${fromToken} → ${toToken}`);
-                
-                await new Promise(r => setTimeout(r, 1000)); // Simulate TX
-                
-                stats.swaps++;
-                completedTasks['Complete Swap'] = true;
-                saveStats();
-                renderTasks();
-                updateProfile();
-                
-                showStatus('success', `✅ Swapped ${fromAmount} ${fromToken.toUpperCase()}!`, 'swap-status');
-                document.getElementById('swap-fromAmount').value = '';
-                document.getElementById('swap-toAmount').value = '';
-                await updateSwapBalance();
-            } catch (error) {
-                console.error('Swap Error:', error);
-                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'swap-status');
-            }
-        }
-
-        function showStatus(type, msg, id) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const div = document.createElement('div');
-            div.className = `status ${type}`;
-            div.textContent = msg;
-            el.innerHTML = '';
-            el.appendChild(div);
-            if (type !== 'loading') setTimeout(() => div.remove(), 10000);
-        }
     </script>
-
-    <!-- INK Swap Page (Opens when clicking Swap button) -->
-    <div id="ink-swap-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:1000; overflow-y:auto;">
-        <div style="max-width:500px; margin:0 auto; padding:20px;">
-            <!-- Back Button -->
-            <button onclick="closeInkSwapPage()" style="width:100%; padding:12px; margin-bottom:20px; background:#999; color:black; font-weight:bold; border:none; border-radius:8px; font-size:16px; cursor:pointer;">← Back to INK</button>
-            
-            <!-- Swap Card -->
-            <div class="card">
-                <h2>⚡ Swap on INK Sepolia</h2>
-                
-                <!-- From Token -->
-                <div class="input-group">
-                    <label>From Token</label>
-                    <select id="swap-fromToken" onchange="updateSwapBalance()" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
-                        <option value="eth">ETH (Native)</option>
-                        <option value="usdc">USDC</option>
-                    </select>
-                </div>
-                
-                <!-- From Balance -->
-                <div style="background:rgba(0,212,255,0.1); padding:12px; border-radius:8px; margin-bottom:15px;">
-                    <div style="font-size:12px; color:var(--text-muted);">Available Balance</div>
-                    <div style="font-size:18px; color:var(--task-blue); font-weight:bold;"><span id="swap-fromBalance">0.0000</span> <span id="swap-fromToken-label">ETH</span></div>
-                </div>
-                
-                <!-- From Amount -->
-                <div class="input-group">
-                    <label>Amount</label>
-                    <input type="number" id="swap-fromAmount" placeholder="0.1" step="0.0001" min="0" onchange="calcSwapOutput()">
-                </div>
-                
-                <!-- % Buttons -->
-                <div style="display:flex; gap:10px; margin:10px 0;">
-                    <button onclick="setSwapPercent(25)" class="percent-btn">25%</button>
-                    <button onclick="setSwapPercent(50)" class="percent-btn">50%</button>
-                    <button onclick="setSwapPercent(75)" class="percent-btn">75%</button>
-                    <button onclick="setSwapPercent(100)" class="percent-btn">100%</button>
-                </div>
-                
-                <!-- To Token -->
-                <div class="input-group">
-                    <label>To Token</label>
-                    <select id="swap-toToken" onchange="calcSwapOutput()" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
-                        <option value="eth">ETH (Native)</option>
-                        <option value="usdc">USDC</option>
-                    </select>
-                </div>
-                
-                <!-- To Amount (Output) -->
-                <div class="input-group">
-                    <label>You will receive</label>
-                    <input type="number" id="swap-toAmount" placeholder="0.0" step="0.0001" min="0" readonly style="background:#f0f0f0;">
-                </div>
-                
-                <!-- Swap Button -->
-                <button onclick="executeInkSwap()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Swap Now</button>
-                
-                <!-- Status -->
-                <div id="swap-status"></div>
-            </div>
-        </div>
-    </div>
-
 </body>
 </html>
