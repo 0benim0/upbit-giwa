@@ -1385,6 +1385,8 @@
             el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             updateBalanceDisplay();
+            // Clear amount input when token changes
+            document.getElementById('ink-bridgeAmount').value = '';
             calcBridgeOutputINK('ink');
         }
 
@@ -1495,6 +1497,8 @@
             el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             updateBalanceDisplay();
+            // Clear amount input when token changes
+            document.getElementById('giwa-bridgeAmount').value = '';
             calcBridgeOutputGIWA('giwa');
         }
 
