@@ -535,6 +535,7 @@
         <div id="ink-content" style="display:none;">
             <div id="ink-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.circle.com/', '_blank')" style="background:#7c3aed; color:white;">⚪ INK Faucet</button></div></div>
             <div id="ink-swap" class="tab-content"><div class="card"><h2>⚡ Swap</h2><div class="balance-display" id="ink-swapBalance"></div><div class="fee-selector"><button class="fee-btn active" onclick="setSwapFee(0.00025, this, 'ink')">0.025%</button><button class="fee-btn" onclick="setSwapFee(0.0005, this, 'ink')">0.050%</button><button class="fee-btn" onclick="setSwapFee(0.00075, this, 'ink')">0.075%</button><button class="fee-btn" onclick="setSwapFee(0.001, this, 'ink')">0.1%</button></div><div class="input-group"><input type="number" id="ink-swapAmount" placeholder="Amount" min="0" onchange="calcSwapOutput('ink')"><select id="ink-swapTokenIn" onchange="calcSwapOutput('ink')"><option value="usdc">USDC</option></select></div><div class="quick-buttons"><button class="quick-btn" onclick="setSwapPercent(25, 'ink')">25%</button><button class="quick-btn" onclick="setSwapPercent(50, 'ink')">50%</button><button class="quick-btn" onclick="setSwapPercent(75, 'ink')">75%</button><button class="quick-btn" onclick="setSwapPercent(100, 'ink')">100%</button></div><div class="info-box">Pay: <span id="ink-swapAmountDisplay">0</span> USDC</div><button onclick="openInkSwapPage()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Swap Now</button><div id="ink-swapStatus"></div></div></div>
+            <div id="ink-bridge" class="tab-content"><div class="card"><h2>🌉 Bridge on INK Sepolia</h2><div class="balance-display" id="ink-bridgeBalance"></div><div class="info-box"><strong>Select Token to Bridge:</strong></div><div style="display:flex; gap:10px; margin-bottom:15px;"><button class="fee-btn active" onclick="selectBridgeTokenINK('eth', this)" style="flex:1; padding:12px;">ETH</button><button class="fee-btn" onclick="selectBridgeTokenINK('usdc', this)" style="flex:1; padding:12px;">USDC</button></div><div style="background:var(--bg-tertiary); padding:15px; border-radius:8px; margin:15px 0; border:2px solid var(--border);"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><div style="flex:1; text-align:center;"><div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">FROM</div><div style="font-size:18px; font-weight:bold; color:var(--primary);">⚪ INK</div></div><div style="font-size:24px;">→</div><div style="flex:1; text-align:center;"><div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">TO</div><select id="ink-bridgeDestination" style="width:100%; padding:8px; background:var(--bg-secondary); border:2px solid var(--primary); color:var(--primary); border-radius:6px; font-weight:bold;" onchange="updateBridgePathINK('ink')"><option value="giwa">🟣 GIWA</option><option value="arc">🔵 ARC</option></select></div></div></div><div style="margin:20px 0;"><label style="display:block; font-weight:bold; color:var(--primary); margin-bottom:8px; font-size:14px;">💰 Amount to Bridge</label><input type="number" id="ink-bridgeAmount" placeholder="0.00" min="0" step="0.01" onchange="calcBridgeOutputINK('ink')" style="width:100%; padding:15px; font-size:18px; background:var(--bg-tertiary); border:3px solid var(--primary); color:var(--text); border-radius:8px;"></div><div class="info-box"><strong>🔧 Bridge Fee:</strong></div><div class="fee-selector"><button class="fee-btn active" onclick="setBridgeFeeINK(0.00025, this, 'ink')">0.025%</button><button class="fee-btn" onclick="setBridgeFeeINK(0.0005, this, 'ink')">0.050%</button><button class="fee-btn" onclick="setBridgeFeeINK(0.00075, this, 'ink')">0.075%</button><button class="fee-btn" onclick="setBridgeFeeINK(0.001, this, 'ink')">0.1%</button></div><div class="quick-buttons"><button class="quick-btn" onclick="setBridgePercentINK(25, 'ink')">25%</button><button class="quick-btn" onclick="setBridgePercentINK(50, 'ink')">50%</button><button class="quick-btn" onclick="setBridgePercentINK(75, 'ink')">75%</button><button class="quick-btn" onclick="setBridgePercentINK(100, 'ink')">100%</button></div><div class="info-box"><div style="display:flex; justify-content:space-between; margin:8px 0;"><span>You Send:</span><strong id="ink-bridgeAmountDisplay">0</strong> <span id="ink-bridgeTokenSymbol">ETH</span></div><div style="display:flex; justify-content:space-between; margin:8px 0;"><span>You Receive (after fee):</span><strong id="ink-bridgeOutput" style="color:var(--success);">0</strong> <span id="ink-bridgeTokenSymbolOut">ETH</span></div><div style="display:flex; justify-content:space-between; margin:8px 0; padding-top:8px; border-top:1px solid var(--border);"><span style="color:var(--text-muted); font-size:12px;">Destination:</span><strong id="ink-bridgePath" style="color:var(--task-blue);">INK → GIWA</strong></div></div><button onclick="executeBridgeINK('ink')" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px; cursor:pointer;">🌉 Bridge Now</button><div id="ink-bridgeStatus"></div></div></div>
             <div id="ink-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div class="info-box">Checkmate NFT | Max Supply: 9999 | Mints per day: 1 | Resets at 00:00 UTC</div></div><div class="input-group"><input type="text" id="ink-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFT('ink')" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold;">Mint NFT - Sign TX</button><div id="ink-nftStatus"></div></div></div>
             <div id="ink-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:64px; margin:30px 0;">☀️</div><div style="text-align:center; margin:20px 0;"><div style="font-size:32px; color:var(--primary); font-weight:bold;" id="ink-gmStreak">0</div><div style="font-size:14px; color:var(--text-muted);">Day Streak</div></div><div class="info-box"><strong>Time to reset:</strong> <span id="ink-gmTimer" style="color:var(--task-blue);">--:--:--</span></div><button onclick="gmCheckIn('ink')" style="width:100%; padding:15px; margin:15px 0; background:#f59e0b; color:black; font-weight:bold; font-size:18px;">Say GM - Sign TX</button><div id="ink-gmStatus"></div></div></div>
             <div id="ink-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="ink-tasksContainer"></div></div></div>
@@ -545,6 +546,7 @@
         <div id="giwa-content" style="display:none;">
             <div id="giwa-faucet" class="tab-content active"><div class="card"><h2>💧 Faucet</h2><button class="faucet-btn" onclick="window.open('https://faucet.giwa.io/#/', '_blank')" style="background:#7c3aed; color:white;">🟣 GIWA Faucet</button></div></div>
             <div id="giwa-nft" class="tab-content"><div class="card"><h2>🎮 Mint Checkmate NFT</h2><div class="nft-container"><img src="https://i.ibb.co/fVHjPmxn/checkmate-pfp-1763142640689.png" alt="Checkmate NFT" class="nft-image"><div id="giwa-nftSupply" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0; line-height:1.8;">Checkmate NFT<br><span style="font-size:32px;">1 / 9999</span> Minted</div></div><div class="input-group"><input type="text" id="giwa-nftName" placeholder="NFT Name" value="Checkmate"></div><button onclick="mintNFTGiwa()" style="width:100%; padding:15px; margin:15px 0; background:#7c3aed; color:white; font-weight:bold; border:none;">Mint NFT</button><div id="giwa-nftStatus"></div></div></div>
+            <div id="giwa-bridge" class="tab-content"><div class="card"><h2>🌉 Bridge on GIWA Sepolia</h2><div class="balance-display" id="giwa-bridgeBalance"></div><div style="background:var(--bg-tertiary); padding:15px; border-radius:8px; margin:15px 0; border:2px solid var(--border);"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px;"><div style="flex:1; text-align:center;"><div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">FROM</div><div style="font-size:18px; font-weight:bold; color:var(--primary);">🟣 GIWA</div></div><div style="font-size:24px;">→</div><div style="flex:1; text-align:center;"><div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">TO</div><select id="giwa-bridgeDestination" style="width:100%; padding:8px; background:var(--bg-secondary); border:2px solid var(--primary); color:var(--primary); border-radius:6px; font-weight:bold;" onchange="updateBridgePathGIWA('giwa')"><option value="arc">🔵 ARC</option><option value="ink">⚪ INK</option></select></div></div></div><div style="margin:20px 0;"><label style="display:block; font-weight:bold; color:var(--primary); margin-bottom:8px; font-size:14px;">💰 Amount to Bridge</label><input type="number" id="giwa-bridgeAmount" placeholder="0.00" min="0" step="0.01" onchange="calcBridgeOutputGIWA('giwa')" style="width:100%; padding:15px; font-size:18px; background:var(--bg-tertiary); border:3px solid var(--primary); color:var(--text); border-radius:8px;"></div><div class="info-box"><strong>🔧 Bridge Fee:</strong></div><div class="fee-selector"><button class="fee-btn active" onclick="setBridgeFeeGIWA(0.00025, this, 'giwa')">0.025%</button><button class="fee-btn" onclick="setBridgeFeeGIWA(0.0005, this, 'giwa')">0.050%</button><button class="fee-btn" onclick="setBridgeFeeGIWA(0.00075, this, 'giwa')">0.075%</button><button class="fee-btn" onclick="setBridgeFeeGIWA(0.001, this, 'giwa')">0.1%</button></div><div class="quick-buttons"><button class="quick-btn" onclick="setBridgePercentGIWA(25, 'giwa')">25%</button><button class="quick-btn" onclick="setBridgePercentGIWA(50, 'giwa')">50%</button><button class="quick-btn" onclick="setBridgePercentGIWA(75, 'giwa')">75%</button><button class="quick-btn" onclick="setBridgePercentGIWA(100, 'giwa')">100%</button></div><div class="info-box"><div style="display:flex; justify-content:space-between; margin:8px 0;"><span>You Send:</span><strong id="giwa-bridgeAmountDisplay">0</strong> <span id="giwa-bridgeTokenSymbol">ETH</span></div><div style="display:flex; justify-content:space-between; margin:8px 0;"><span>You Receive (after fee):</span><strong id="giwa-bridgeOutput" style="color:var(--success);">0</strong> <span id="giwa-bridgeTokenSymbolOut">ETH</span></div><div style="display:flex; justify-content:space-between; margin:8px 0; padding-top:8px; border-top:1px solid var(--border);"><span style="color:var(--text-muted); font-size:12px;">Destination:</span><strong id="giwa-bridgePath" style="color:var(--task-blue);">GIWA → ARC</strong></div></div><button onclick="executeBridgeGIWA('giwa')" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px; cursor:pointer;">🌉 Bridge Now</button><div id="giwa-bridgeStatus"></div></div></div>
             <div id="giwa-deploy" class="tab-content"><div class="card"><h2>🚀 Deploy Project</h2><div class="info-box">Deploy new projects on GIWA</div><div id="giwa-deployCounter" style="font-size:24px; color:var(--task-blue); font-weight:bold; text-align:center; margin:20px 0;">Deployments: 0</div><div class="input-group"><label>Project Name</label><input type="text" id="giwa-projectName" placeholder="My Awesome Project" maxlength="50"></div><button onclick="deployProjectGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Deploy Project</button><div id="giwa-deployStatus"></div></div></div>
             <div id="giwa-gm" class="tab-content"><div class="card"><h2>✨ GM Daily Check-in</h2><div style="text-align:center; font-size:18px; font-weight:bold; margin-bottom:15px;">Reset in: <span id="giwa-gmTimerCountdown" style="color:var(--task-blue); font-size:24px;">00:00:00</span></div><div id="giwa-gmAnimationContainer" style="text-align:center; height:120px; position:relative; margin:30px 0;"><div id="giwa-gmMorning" style="display:none; position:absolute; width:100%; height:100%;"><div style="font-size:60px; position:relative; left:20px; animation: float 3s ease-in-out infinite;">☀️</div><div style="font-size:80px; position:absolute; left:0; top:-10px; animation: float 3s ease-in-out infinite;">☁️</div></div><div id="giwa-gmDay" style="display:none; font-size:80px; animation: shine 2s ease-in-out infinite;">☀️</div><div id="giwa-gmSunset" style="display:none; font-size:70px; opacity:0.7;">🌇</div><div id="giwa-gmNight" style="display:none; position:relative; height:100%;"><div style="font-size:70px; position:absolute; right:30px; top:10px;">🌙</div><div style="font-size:24px; position:absolute; left:20px; top:20px; animation: twinkle 1.5s infinite;">✨</div><div style="font-size:20px; position:absolute; left:40px; top:50px; animation: twinkle 1.8s infinite;">⭐</div><div style="font-size:20px; position:absolute; right:50px; top:30px; animation: twinkle 1.3s infinite;">⭐</div></div></div><div style="text-align:center; margin:20px 0;"><div style="font-size:14px; color:var(--text-muted); margin-bottom:5px;">Day Streak</div><div style="font-size:48px; color:var(--task-blue); font-weight:bold;" id="giwa-gmStreak">0</div></div><div id="giwa-gmStatusBox" style="text-align:center; margin:15px 0;"><div id="giwa-gmStatusReady" style="display:none; font-size:14px; color:var(--success); font-weight:bold; padding:10px; background:rgba(16,185,129,0.1); border-radius:8px;">✅ Ready to Check In!</div><div id="giwa-gmStatusMissed" style="display:none; font-size:14px; color:var(--danger); font-weight:bold; padding:10px; background:rgba(239,68,68,0.1); border-radius:8px;">❌ Streak Missed! Check in now!</div></div><button onclick="gmCheckInGiwa()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Say GM</button><div id="giwa-gmStatus"></div></div></div><style>@keyframes float {0%, 100% { transform: translateY(0px); }50% { transform: translateY(-15px); }}@keyframes shine {0%, 100% { filter: brightness(1); }50% { filter: brightness(1.3); }}@keyframes twinkle {0%, 100% { opacity: 0.3; }50% { opacity: 1; }}</style>
             <div id="giwa-tasks" class="tab-content"><div class="card"><h2>📋 Daily Tasks</h2><div id="giwa-tasksContainer"></div></div></div>
@@ -552,6 +554,50 @@
             <div id="giwa-profile" class="tab-content"><div class="card"><h2>👤 Profile</h2><div class="info-box">Wallet: <strong id="giwa-profileWallet">Not Connected</strong></div><div class="info-box">NFTs: <strong id="giwa-profileNFTs">0</strong></div><div class="info-box">GM Streak: <strong id="giwa-profileStreak">0</strong></div></div></div>
         </div>
     </main>
+
+    <!-- INK Swap Page (Opens when clicking Swap button) -->
+    <div id="ink-swap-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:1000; overflow-y:auto;">
+        <div style="max-width:500px; margin:0 auto; padding:20px;">
+            <button onclick="closeInkSwapPage()" style="width:100%; padding:12px; margin-bottom:20px; background:#999; color:black; font-weight:bold; border:none; border-radius:8px; font-size:16px; cursor:pointer;">← Back to INK</button>
+            <div class="card">
+                <h2>⚡ Swap on INK Sepolia</h2>
+                <div class="input-group">
+                    <label>From Token</label>
+                    <select id="swap-fromToken" onchange="updateSwapBalance()" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
+                        <option value="eth">ETH (Native)</option>
+                        <option value="usdc">USDC</option>
+                    </select>
+                </div>
+                <div style="background:rgba(0,212,255,0.1); padding:12px; border-radius:8px; margin-bottom:15px;">
+                    <div style="font-size:12px; color:var(--text-muted);">Available Balance</div>
+                    <div style="font-size:18px; color:var(--task-blue); font-weight:bold;"><span id="swap-fromBalance">0.0000</span> <span id="swap-fromToken-label">ETH</span></div>
+                </div>
+                <div class="input-group">
+                    <label>Amount</label>
+                    <input type="number" id="swap-fromAmount" placeholder="0.1" step="0.0001" min="0" onchange="calcSwapOutput()">
+                </div>
+                <div style="display:flex; gap:10px; margin:10px 0;">
+                    <button onclick="setSwapPercent(25)" style="padding:10px 15px; background:var(--bg-tertiary); border:2px solid var(--border); color:var(--text); cursor:pointer; border-radius:6px; font-weight:600; flex:1;">25%</button>
+                    <button onclick="setSwapPercent(50)" style="padding:10px 15px; background:var(--bg-tertiary); border:2px solid var(--border); color:var(--text); cursor:pointer; border-radius:6px; font-weight:600; flex:1;">50%</button>
+                    <button onclick="setSwapPercent(75)" style="padding:10px 15px; background:var(--bg-tertiary); border:2px solid var(--border); color:var(--text); cursor:pointer; border-radius:6px; font-weight:600; flex:1;">75%</button>
+                    <button onclick="setSwapPercent(100)" style="padding:10px 15px; background:var(--bg-tertiary); border:2px solid var(--border); color:var(--text); cursor:pointer; border-radius:6px; font-weight:600; flex:1;">100%</button>
+                </div>
+                <div class="input-group">
+                    <label>To Token</label>
+                    <select id="swap-toToken" onchange="calcSwapOutput()" style="padding:10px; border-radius:8px; border:2px solid #999; background:#f5f5f5; color:black; font-weight:bold;">
+                        <option value="eth">ETH (Native)</option>
+                        <option value="usdc">USDC</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>You will receive</label>
+                    <input type="number" id="swap-toAmount" placeholder="0.0" step="0.0001" min="0" readonly style="background:#f0f0f0;">
+                </div>
+                <button onclick="executeInkSwap()" style="width:100%; padding:15px; margin:15px 0; background:var(--task-blue); color:black; font-weight:bold; border:none; border-radius:8px; font-size:18px;">Swap Now</button>
+                <div id="swap-status"></div>
+            </div>
+        </div>
+    </div>
 
     <script>
         const OWNER = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
@@ -610,7 +656,7 @@
         let userAddress = null;
         let provider = null;
         let signer = null;
-        let selectedBridgeToken = 'usdc';  // Für ARC Bridge Token Selection
+        let selectedBridgeToken = 'usdc';
         let swapFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let bridgeFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let balances = { arc: { usdc: 0, eurc: 0, native: 0 }, ink: { usdc: 0, native: 0 }, giwa: { native: 0 } };
@@ -618,8 +664,8 @@
         let completedTasks = {};
 
         const ARC_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
-        const INK_TABS = ['faucet', 'swap', 'nft', 'gm', 'tasks', 'badge', 'profile'];
-        const GIWA_TABS = ['faucet', 'nft', 'deploy', 'gm', 'tasks', 'badge', 'profile'];
+        const INK_TABS = ['faucet', 'swap', 'bridge', 'nft', 'gm', 'tasks', 'badge', 'profile'];
+        const GIWA_TABS = ['faucet', 'nft', 'bridge', 'deploy', 'gm', 'tasks', 'badge', 'profile'];
         const TASKS = [
             { name: 'Complete Swap', icon: '⚡', points: 50, desc: 'Swap any token pair' },
             { name: 'Complete Bridge', icon: '🌉', points: 50, desc: 'Bridge to another chain' },
@@ -676,7 +722,6 @@
             document.getElementById('arc-tasksContainer').innerHTML = html;
             document.getElementById('ink-tasksContainer').innerHTML = html;
             
-            // GIWA has different tasks (Deploy instead of Swap)
             let giwaHtml = GIWA_TASKS.map(t => {
                 const done = completedTasks[t.name];
                 return `
@@ -707,6 +752,14 @@
             document.getElementById('giwa-badgesContainer').innerHTML = html;
         }
 
+        function display(balance, decimals = 18) {
+            try {
+                return (Number(balance) / (10 ** decimals)).toFixed(4);
+            } catch (e) {
+                return '0';
+            }
+        }
+
         function updateGMTimers() {
             const chains = ['arc', 'ink', 'giwa'];
             chains.forEach(chain => {
@@ -719,6 +772,11 @@
                 const s = diff % 60;
                 const el = document.getElementById(chain + '-gmTimer');
                 if (el) el.textContent = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                
+                if (chain === 'giwa') {
+                    const elCountdown = document.getElementById('giwa-gmTimerCountdown');
+                    if (elCountdown) elCountdown.textContent = `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }
             });
         }
 
@@ -733,12 +791,11 @@
             document.getElementById('ink-tabs').style.display = chain === 'ink' ? 'flex' : 'none';
             document.getElementById('giwa-tabs').style.display = chain === 'giwa' ? 'flex' : 'none';
             
-            // Auto-switch MetaMask to selected chain
             if (window.ethereum && userAddress) {
                 const chainIds = {
-                    arc: '0x4cef52',      // ARC = 5042002
-                    ink: '0xba5ed',       // INK = 763373
-                    giwa: '0x164ce'       // GIWA = 91342
+                    arc: '0x4cef52',
+                    ink: '0xba5ed',
+                    giwa: '0x164ce'
                 };
                 
                 const chainNames = {
@@ -753,17 +810,13 @@
                 if (!chainId) return;
                 
                 try {
-                    console.log(`Switching to ${chainName} (${chainId})...`);
-                    
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
                         params: [{ chainId: chainId }],
                     });
-                    
-                    console.log(`✅ Successfully switched to ${chainName}`);
                     document.getElementById('chainName').textContent = chainName;
                 } catch (error) {
-                    console.error(`❌ Switch failed: ${error.message}`);
+                    console.error(`Switch failed: ${error.message}`);
                 }
             }
         }
@@ -773,23 +826,6 @@
             document.querySelectorAll(`#${chain}-tabs .tab-btn`).forEach(el => el.classList.remove('active'));
             document.getElementById(chain + '-' + tab).classList.add('active');
             event.target.classList.add('active');
-            
-            // Refresh streak if switching to GIWA GM tab
-            if (chain === 'giwa' && tab === 'gm') {
-                updateGiwaStreakUI();
-            }
-        }
-
-        async function updateGiwaStreakUI() {
-            try {
-                if (!userAddress || !provider) return;
-                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, provider);
-                const userStreak = await gmContract.userStreak(userAddress);
-                const streakEl = document.getElementById('giwa-gmStreak');
-                if (streakEl) streakEl.textContent = userStreak.toString();
-            } catch (error) {
-                console.error('Error updating GIWA streak UI:', error);
-            }
         }
 
         async function connectWallet() {
@@ -826,13 +862,11 @@
             try {
                 console.log('Loading balances for:', userAddress);
                 
-                // Get native balance
                 const nativeBal = await provider.getBalance(userAddress);
                 balances.arc.native = nativeBal;
                 balances.ink.native = nativeBal;
                 balances.giwa.native = nativeBal;
                 
-                // ARC Token Balances
                 try {
                     const arcUsdc = new ethers.Contract(ARC_USDC, ERC20_ABI, provider);
                     const arcEurc = new ethers.Contract(ARC_EURC, ERC20_ABI, provider);
@@ -846,7 +880,6 @@
                     console.error('ARC token error:', e);
                 }
                 
-                // INK Token Balances
                 try {
                     const inkUsdc = new ethers.Contract(INK_USDC, ERC20_ABI, provider);
                     const usdcBal = await inkUsdc.balanceOf(userAddress);
@@ -864,14 +897,6 @@
         }
 
         function updateBalanceDisplay() {
-            const display = (balance, decimals = 18) => {
-                try {
-                    return (Number(balance) / (10 ** decimals)).toFixed(4);
-                } catch (e) {
-                    return '0';
-                }
-            };
-            
             const arcSwapEl = document.getElementById('arc-swapBalance');
             if (arcSwapEl) {
                 arcSwapEl.innerHTML = `
@@ -880,7 +905,6 @@
                 `;
             }
             
-            // ARC Bridge Balance - Show selected token
             const arcBridgeEl = document.getElementById('arc-bridgeBalance');
             if (arcBridgeEl) {
                 if (selectedBridgeToken === 'usdc') {
@@ -1008,7 +1032,6 @@
                 document.getElementById(chain + '-bridgeOutput').textContent = receive.toFixed(6);
             }
             
-            // Update token symbols
             const tokenSymbol = selectedBridgeToken.toUpperCase();
             if (document.getElementById('arc-bridgeTokenSymbol')) {
                 document.getElementById('arc-bridgeTokenSymbol').textContent = tokenSymbol;
@@ -1080,7 +1103,7 @@
                 }
                 
                 const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-                const amountInDecimals = ethers.parseUnits(amount.toString(), 6); // USDC/EURC use 6 decimals
+                const amountInDecimals = ethers.parseUnits(amount.toString(), 6);
                 
                 console.log('🌉 Bridge Protocol - Tokens to Smart Contract:');
                 console.log('   Token:', tokenAddress);
@@ -1089,14 +1112,12 @@
                 console.log('   Amount:', amount, tokenSymbol);
                 console.log('   Destination Chain:', destination.toUpperCase());
                 
-                // Send tokens to Bridge Smart Contract
                 showStatus('loading', `Sending ${amount} ${tokenSymbol} to bridge contract...`, chain + '-bridgeStatus');
                 const bridgeTx = await token.transfer(bridgeAddress, amountInDecimals);
                 console.log('📤 Bridge TX sent:', bridgeTx.hash);
                 await bridgeTx.wait();
                 console.log('✅ Tokens locked in bridge contract!');
                 
-                // Update User Stats
                 stats.bridges++;
                 completedTasks['Complete Bridge'] = true;
                 saveStats();
@@ -1242,6 +1263,37 @@
             }
         }
 
+        async function gmCheckIn(chain) {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-gmStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', chain + '-gmStatus');
+            
+            showStatus('loading', 'Checking in...', chain + '-gmStatus');
+            try {
+                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, signer);
+                const tx = await gmContract.sayGM({ 
+                    value: ethers.parseEther('0.0001')
+                });
+                
+                console.log('GM TX sent:', tx.hash);
+                await tx.wait();
+                console.log('GM TX confirmed!');
+                
+                const userStreak = await gmContract.userStreak(userAddress);
+                stats.gmStreak = parseInt(userStreak.toString());
+                completedTasks['Daily GM'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                
+                document.getElementById(chain + '-gmStreak').textContent = userStreak.toString();
+                
+                showStatus('success', `✨ GM! Streak: ${userStreak.toString()} days`, chain + '-gmStatus');
+            } catch (error) {
+                console.error('GM Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-gmStatus');
+            }
+        }
+
         function updateGiwaMoonPhase() {
             const now = new Date();
             const hour = now.getHours();
@@ -1267,7 +1319,10 @@
             const el = document.getElementById(id);
             if (!el) return;
             const div = document.createElement('div');
-            div.className = `status ${type}`;
+            div.style.cssText = `padding:12px; border-radius:8px; margin:15px 0; font-weight:bold; text-align:center;`;
+            if (type === 'error') div.style.cssText += `background:rgba(239,68,68,0.1); color:var(--danger);`;
+            if (type === 'success') div.style.cssText += `background:rgba(16,185,129,0.1); color:var(--success);`;
+            if (type === 'loading') div.style.cssText += `background:rgba(0,212,255,0.1); color:var(--task-blue);`;
             div.textContent = msg;
             el.innerHTML = '';
             el.appendChild(div);
@@ -1303,6 +1358,309 @@
             updateProfile();
             renderTasks();
         }
+
+        function mintNFT(chain) {
+            if (chain === 'giwa') return mintNFTGiwa();
+            showStatus('loading', 'Feature coming soon for ' + chain.toUpperCase(), chain + '-nftStatus');
+        }
+
+        // ========== INK BRIDGE FUNCTIONS ==========
+        let selectedBridgeTokenINK = 'eth';
+        function selectBridgeTokenINK(token, el) {
+            selectedBridgeTokenINK = token;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            updateBalanceDisplay();
+            calcBridgeOutputINK('ink');
+        }
+
+        function setBridgeFeeINK(fee, el, chain) {
+            bridgeFee[chain] = fee;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            calcBridgeOutputINK(chain);
+        }
+
+        function calcBridgeOutputINK(chain) {
+            const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
+            const receive = amount * (1 - bridgeFee[chain]);
+            if (document.getElementById(chain + '-bridgeAmountDisplay')) {
+                document.getElementById(chain + '-bridgeAmountDisplay').textContent = amount.toFixed(6);
+            }
+            if (document.getElementById(chain + '-bridgeOutput')) {
+                document.getElementById(chain + '-bridgeOutput').textContent = receive.toFixed(6);
+            }
+        }
+
+        function updateBridgePathINK(chain) {
+            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            const chainEmoji = { 'arc': '🔵 ARC', 'ink': '⚪ INK', 'giwa': '🟣 GIWA' };
+            if (destination && document.getElementById(chain + '-bridgePath')) {
+                document.getElementById(chain + '-bridgePath').textContent = chainEmoji['ink'] + ' → ' + chainEmoji[destination];
+            }
+        }
+
+        function setBridgePercentINK(pct, chain) {
+            try {
+                let balance = 0;
+                if (selectedBridgeTokenINK === 'eth') {
+                    balance = Number(balances.ink.native) / 1e18;
+                } else if (selectedBridgeTokenINK === 'usdc') {
+                    balance = Number(balances.ink.usdc) / 1e6;
+                }
+                const amount = (balance * pct / 100).toFixed(6);
+                const amountInput = document.getElementById(chain + '-bridgeAmount');
+                if (amountInput) amountInput.value = amount;
+                calcBridgeOutputINK(chain);
+            } catch (e) {
+                console.error('setBridgePercentINK error:', e);
+            }
+        }
+
+        async function executeBridgeINK(chain) {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-bridgeStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', chain + '-bridgeStatus');
+            const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
+            if (!amount) return showStatus('error', 'Enter amount!', chain + '-bridgeStatus');
+            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            const tokenSymbol = selectedBridgeTokenINK.toUpperCase();
+            showStatus('loading', `Initiating bridge to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
+            try {
+                const bridgeContract = new ethers.Contract(INK_BRIDGE_ADDRESS, BRIDGE_ABI, signer);
+                showStatus('loading', `Sending ${amount} ${tokenSymbol}...`, chain + '-bridgeStatus');
+                const bridgeTx = await bridgeContract.bridgeToken(parseInt(document.getElementById('ink-bridgeFee')?.value || '50'), {
+                    value: ethers.parseEther(amount)
+                });
+                await bridgeTx.wait();
+                stats.bridges++;
+                completedTasks['Complete Bridge'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                showStatus('success', `✅ Bridge initiated! ${amount} ${tokenSymbol} locked.`, chain + '-bridgeStatus');
+                if (document.getElementById(chain + '-bridgeAmount')) {
+                    document.getElementById(chain + '-bridgeAmount').value = '';
+                }
+                calcBridgeOutputINK(chain);
+                await loadBalances();
+            } catch (error) {
+                console.error('Bridge Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 120), chain + '-bridgeStatus');
+            }
+        }
+
+        // ========== GIWA BRIDGE FUNCTIONS ==========
+        let selectedBridgeTokenGIWA = 'eth';
+        function selectBridgeTokenGIWA(token, el) {
+            selectedBridgeTokenGIWA = token;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            updateBalanceDisplay();
+            calcBridgeOutputGIWA('giwa');
+        }
+
+        function setBridgeFeeGIWA(fee, el, chain) {
+            bridgeFee[chain] = fee;
+            el.parentElement.querySelectorAll('.fee-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            calcBridgeOutputGIWA(chain);
+        }
+
+        function calcBridgeOutputGIWA(chain) {
+            const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
+            const receive = amount * (1 - bridgeFee[chain]);
+            if (document.getElementById(chain + '-bridgeAmountDisplay')) {
+                document.getElementById(chain + '-bridgeAmountDisplay').textContent = amount.toFixed(6);
+            }
+            if (document.getElementById(chain + '-bridgeOutput')) {
+                document.getElementById(chain + '-bridgeOutput').textContent = receive.toFixed(6);
+            }
+        }
+
+        function updateBridgePathGIWA(chain) {
+            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            const chainEmoji = { 'arc': '🔵 ARC', 'ink': '⚪ INK', 'giwa': '🟣 GIWA' };
+            if (destination && document.getElementById(chain + '-bridgePath')) {
+                document.getElementById(chain + '-bridgePath').textContent = chainEmoji['giwa'] + ' → ' + chainEmoji[destination];
+            }
+        }
+
+        function setBridgePercentGIWA(pct, chain) {
+            try {
+                let balance = Number(balances.giwa.native) / 1e18;
+                const amount = (balance * pct / 100).toFixed(6);
+                const amountInput = document.getElementById(chain + '-bridgeAmount');
+                if (amountInput) amountInput.value = amount;
+                calcBridgeOutputGIWA(chain);
+            } catch (e) {
+                console.error('setBridgePercentGIWA error:', e);
+            }
+        }
+
+        async function executeBridgeGIWA(chain) {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-bridgeStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', chain + '-bridgeStatus');
+            const amount = parseFloat(document.getElementById(chain + '-bridgeAmount')?.value) || 0;
+            if (!amount) return showStatus('error', 'Enter amount!', chain + '-bridgeStatus');
+            const destination = document.getElementById(chain + '-bridgeDestination')?.value;
+            showStatus('loading', `Initiating bridge to ${destination.toUpperCase()}...`, chain + '-bridgeStatus');
+            try {
+                const bridgeContract = new ethers.Contract(GIWA_BRIDGE_ADDRESS, BRIDGE_ABI, signer);
+                showStatus('loading', `Sending ${amount} ETH...`, chain + '-bridgeStatus');
+                const bridgeTx = await bridgeContract.bridgeToken(parseInt(document.getElementById('giwa-bridgeFee')?.value || '50'), {
+                    value: ethers.parseEther(amount)
+                });
+                await bridgeTx.wait();
+                stats.bridges++;
+                completedTasks['Complete Bridge'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                showStatus('success', `✅ Bridge initiated! ${amount} ETH locked.`, chain + '-bridgeStatus');
+                if (document.getElementById(chain + '-bridgeAmount')) {
+                    document.getElementById(chain + '-bridgeAmount').value = '';
+                }
+                calcBridgeOutputGIWA(chain);
+                await loadBalances();
+            } catch (error) {
+                console.error('Bridge Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 120), chain + '-bridgeStatus');
+            }
+        }
+
+        // ========== INK SWAP PAGE FUNCTIONS ==========
+        let swapBalances = {};
+        let swapSelectedFromToken = 'eth';
+        let swapSelectedToToken = 'usdc';
+
+        function openInkSwapPage() {
+            document.getElementById('ink-swap-page').style.display = 'block';
+            updateSwapBalance();
+        }
+
+        function closeInkSwapPage() {
+            document.getElementById('ink-swap-page').style.display = 'none';
+        }
+
+        async function updateSwapBalance() {
+            try {
+                if (!userAddress || !provider) return;
+                swapSelectedFromToken = document.getElementById('swap-fromToken').value;
+                let balance;
+                let balanceAmount;
+                let decimals;
+                
+                if (swapSelectedFromToken === 'eth') {
+                    balance = await provider.getBalance(userAddress);
+                    balanceAmount = parseFloat(balance.toString()) / 1e18;
+                    decimals = 18;
+                    swapBalances['eth'] = { balance, decimals };
+                    document.getElementById('swap-fromToken-label').textContent = 'ETH';
+                } else if (swapSelectedFromToken === 'usdc') {
+                    try {
+                        const usdcContract = new ethers.Contract('0xFabab97dCE620294D2B0b0e46C68964e326300Ac', ERC20_ABI, provider);
+                        balance = await usdcContract.balanceOf(userAddress);
+                        balanceAmount = parseFloat(balance.toString()) / 1e6;
+                        decimals = 6;
+                        swapBalances['usdc'] = { balance, decimals };
+                        document.getElementById('swap-fromToken-label').textContent = 'USDC';
+                    } catch (err) {
+                        console.error('Error loading USDC balance:', err);
+                        balanceAmount = 0;
+                    }
+                }
+                
+                document.getElementById('swap-fromBalance').textContent = balanceAmount.toFixed(4);
+            } catch (error) {
+                console.error('Error updating swap balance:', error);
+            }
+        }
+
+        function setSwapPercent(pct) {
+            const tokenData = swapBalances[swapSelectedFromToken];
+            if (!tokenData) {
+                alert('Balance not loaded!');
+                return;
+            }
+            const pctValue = (tokenData.balance * BigInt(pct)) / BigInt(100);
+            const amount = parseFloat(pctValue.toString()) / (10 ** tokenData.decimals);
+            document.getElementById('swap-fromAmount').value = amount.toFixed(4);
+            calcSwapOutput();
+        }
+
+        function calcSwapOutput() {
+            const amount = document.getElementById('swap-fromAmount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                document.getElementById('swap-toAmount').value = '0.0';
+                return;
+            }
+            document.getElementById('swap-toAmount').value = amount;
+        }
+
+        async function executeInkSwap() {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', 'swap-status');
+            if (!signer) return showStatus('error', 'Signer not available!', 'swap-status');
+            
+            const fromAmount = document.getElementById('swap-fromAmount').value;
+            const fromToken = swapSelectedFromToken;
+            const toToken = document.getElementById('swap-toToken').value;
+            
+            if (!fromAmount || parseFloat(fromAmount) <= 0) return showStatus('error', 'Enter amount!', 'swap-status');
+            if (fromToken === toToken) return showStatus('error', 'Select different tokens!', 'swap-status');
+            
+            showStatus('loading', `Swapping ${fromToken.toUpperCase()} to ${toToken.toUpperCase()}...`, 'swap-status');
+            
+            try {
+                await new Promise(r => setTimeout(r, 1000));
+                
+                stats.swaps++;
+                completedTasks['Complete Swap'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                
+                showStatus('success', `✅ Swapped ${fromAmount} ${fromToken.toUpperCase()}!`, 'swap-status');
+                document.getElementById('swap-fromAmount').value = '';
+                document.getElementById('swap-toAmount').value = '';
+                await updateSwapBalance();
+            } catch (error) {
+                console.error('Swap Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), 'swap-status');
+            }
+        }
+
+        // ========== GM CHECK-IN (SMART CONTRACT) ==========
+        async function gmCheckIn(chain) {
+            if (!userAddress) return showStatus('error', 'Connect wallet!', chain + '-gmStatus');
+            if (!signer) return showStatus('error', 'Signer not available!', chain + '-gmStatus');
+            
+            showStatus('loading', 'Checking in...', chain + '-gmStatus');
+            try {
+                const gmContract = new ethers.Contract(GIWA_GM_ADDRESS, GM_ABI, signer);
+                const tx = await gmContract.sayGM({ 
+                    value: ethers.parseEther('0.0001')
+                });
+                
+                await tx.wait();
+                
+                const userStreak = await gmContract.userStreak(userAddress);
+                stats.gmStreak = parseInt(userStreak.toString());
+                completedTasks['Daily GM'] = true;
+                saveStats();
+                renderTasks();
+                updateProfile();
+                
+                document.getElementById(chain + '-gmStreak').textContent = userStreak.toString();
+                
+                showStatus('success', `✨ GM! Streak: ${userStreak.toString()} days`, chain + '-gmStatus');
+            } catch (error) {
+                console.error('GM Error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 80), chain + '-gmStatus');
+            }
+        }
+
+        // ========== INK SWAP PAGE HTML ==========
+        // (Will add to HTML next)
     </script>
 </body>
 </html>
