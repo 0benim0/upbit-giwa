@@ -906,35 +906,12 @@
                 `;
             }
             
-            const arcBridgeEl = document.getElementById('arc-bridgeBalance');
-            if (arcBridgeEl) {
-                if (selectedBridgeToken === 'usdc') {
-                    arcBridgeEl.innerHTML = `<div class="balance-item"><span>💵 USDC Balance:</span> <strong>${display(balances.arc.usdc, 6)} USDC</strong></div>`;
-                } else {
-                    arcBridgeEl.innerHTML = `<div class="balance-item"><span>🪙 EURC Balance:</span> <strong>${display(balances.arc.eurc, 6)} EURC</strong></div>`;
-                }
-            }
-            
             const inkSwapEl = document.getElementById('ink-swapBalance');
             if (inkSwapEl) {
                 inkSwapEl.innerHTML = `<div class="balance-item"><span>USDC:</span> <strong>${display(balances.ink.usdc, 6)}</strong></div>`;
             }
             
-            const inkBridgeEl = document.getElementById('ink-bridgeBalance');
-            if (inkBridgeEl) {
-                if (selectedBridgeTokenINK === 'eth') {
-                    inkBridgeEl.innerHTML = `<div class="balance-item"><span>ETH Balance:</span> <strong>${display(balances.ink.native, 18)} ETH</strong></div>`;
-                } else if (selectedBridgeTokenINK === 'usdc') {
-                    inkBridgeEl.innerHTML = `<div class="balance-item"><span>USDC Balance:</span> <strong>${display(balances.ink.usdc, 6)} USDC</strong></div>`;
-                }
-            }
-            
-            const giwaBridgeEl = document.getElementById('giwa-bridgeBalance');
-            if (giwaBridgeEl) {
-                giwaBridgeEl.innerHTML = `<div class="balance-item"><span>ETH Balance:</span> <strong>${display(balances.giwa.native, 18)} ETH</strong></div>`;
-            }
-            
-            console.log('Balances updated on screen');
+            console.log('Swap balances updated on screen');
         }
 
         function setSwapFee(fee, el, chain) {
