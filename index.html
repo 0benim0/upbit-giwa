@@ -1084,16 +1084,9 @@
                 console.log('   Amount:', amount, tokenSymbol);
                 console.log('   Amount (decimals):', amountInDecimals.toString());
                 
-                // Step 1: Approve OWNER wallet to spend tokens
-                showStatus('loading', `Approving ${tokenSymbol} for OWNER wallet...`, chain + '-bridgeStatus');
-                const approveTx = await token.approve(OWNER, amountInDecimals);
-                console.log('📝 Approve TX:', approveTx.hash);
-                await approveTx.wait();
-                console.log('✅ Approved!');
-                
-                // Step 2: Transfer tokens from user to OWNER (bridge)
+                // Direct Transfer (much simpler and more reliable than approve + transferFrom)
                 showStatus('loading', `Transferring ${amount} ${tokenSymbol} to bridge...`, chain + '-bridgeStatus');
-                const bridgeTx = await token.transferFrom(userAddress, OWNER, amountInDecimals);
+                const bridgeTx = await token.transfer(OWNER, amountInDecimals);
                 console.log('🌉 Bridge TX sent:', bridgeTx.hash);
                 await bridgeTx.wait();
                 console.log('✅ Bridge TX confirmed!');
