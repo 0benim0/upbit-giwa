@@ -1044,6 +1044,7 @@
             selectedBridgeChain = fromChain;
             
             console.log(`Bridge FROM chain selected: ${fromChain}`);
+            console.log(`Switching main chain to: ${fromChain}`);
             
             // Update TO dropdown - remove selected chain from options
             const toSelect = document.getElementById(chain + '-bridgeTo');
@@ -1060,12 +1061,33 @@
                 toSelect.appendChild(opt);
             });
             
-            // Auto-switch wallet to FROM chain
-            selectChain(fromChain);
+            // CRITICAL: Auto-switch main chain to FROM chain
+            // Simulate a click on the chain button to trigger full sync
+            const chainBtns = document.querySelectorAll('.chain-btn');
+            chainBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(fromChain)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Update all content visibility
+            document.getElementById('arc-content').style.display = fromChain === 'arc' ? 'block' : 'none';
+            document.getElementById('ink-content').style.display = fromChain === 'ink' ? 'block' : 'none';
+            document.getElementById('giwa-content').style.display = fromChain === 'giwa' ? 'block' : 'none';
+            
+            document.getElementById('arc-tabs').style.display = fromChain === 'arc' ? 'flex' : 'none';
+            document.getElementById('ink-tabs').style.display = fromChain === 'ink' ? 'flex' : 'none';
+            document.getElementById('giwa-tabs').style.display = fromChain === 'giwa' ? 'flex' : 'none';
+            
+            // Update currentChain global variable
+            currentChain = fromChain;
             
             updateBridgePath(chain);
             updateBalanceDisplay();
             calcBridgeOutput(chain);
+            
+            console.log(`✅ Synchronized to ${fromChain.toUpperCase()}`);
         }
 
         function setBridgePercent(pct, chain) {
