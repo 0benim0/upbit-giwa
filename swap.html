@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swap - UPBIT DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #00d4ff; --bg: #0a0e27; --bg-secondary: #141b3a;
+            --bg-tertiary: #1a2847; --text: #e8e8e8; --text-muted: #a0a0a0;
+            --accent: #7c3aed; --success: #10b981; --danger: #ef4444;
+            --border: #2a3f5f;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #0f1535 100%);
+            color: var(--text); min-height: 100vh;
+        }
+        header {
+            background: linear-gradient(135deg, rgba(20, 27, 58, 0.9), rgba(26, 40, 71, 0.9));
+            border-bottom: 2px solid var(--primary);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-content {
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        select, button {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover:not(:disabled) {
+            background: var(--primary);
+            color: var(--bg);
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .wallet-btn {
+            background: var(--success);
+            border: 2px solid var(--success);
+            color: white;
+        }
+        .wallet-btn:hover { background: rgba(16, 185, 129, 0.8); }
+        main {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .info-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .fee-selector, .quick-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .fee-btn, .quick-btn {
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .fee-btn:hover, .quick-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .fee-btn.active {
+            background: var(--primary);
+            color: var(--bg);
+            border-color: var(--primary);
+        }
+        input[type="number"] {
+            background: var(--bg-tertiary);
+            color: var(--text);
+            border: 2px solid var(--primary);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+        }
+        .balance-display {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--primary);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        .status.loading {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        .back-btn {
+            background: #555;
+            border: 2px solid #555;
+            color: white;
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .back-btn:hover {
+            background: #777;
+            border-color: #777;
+        }
+        .swap-arrow {
+            text-align: center;
+            padding: 15px 0;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .swap-arrow:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">⚡ Swap</div>
+            <div class="header-controls">
+                <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Back Button -->
+        <a href="/index.html" class="back-btn">← Zurück zur Hauptseite</a>
+
+        <!-- Wallet Status -->
+        <div style="background: var(--bg-secondary); border: 2px solid var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Wallet Status</div>
+            <div style="font-size: 14px; color: var(--success); font-weight: bold; font-family: monospace; word-break: break-all;" id="walletStatus">
+                Not Connected
+            </div>
+        </div>
+
+        <!-- Swap Card -->
+        <div class="card">
+            <h2>⚡ Swap Tokens</h2>
+            
+            <!-- FROM Token Section -->
+            <div class="info-box"><strong>From Token:</strong></div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="fee-btn active" onclick="selectFromToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
+                <button class="fee-btn" onclick="selectFromToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
+            </div>
+            
+            <!-- FROM Balance Display -->
+            <div class="balance-display" id="fromBalanceDisplay"></div>
+            
+            <!-- FROM Amount -->
+            <div style="margin: 20px 0;">
+                <label style="display: block; font-weight: bold; color: var(--primary); margin-bottom: 8px; font-size: 14px;">💰 Amount to Swap</label>
+                <input type="number" id="fromAmount" placeholder="0.00" min="0" step="0.01" onchange="calcSwapOutput()" oninput="calcSwapOutput()">
+            </div>
+
+            <!-- Swap Arrow -->
+            <div class="swap-arrow" onclick="reverseTokens()">⇅</div>
+
+            <!-- TO Token Section -->
+            <div class="info-box"><strong>To Token:</strong></div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="fee-btn" onclick="selectToToken('eurc', this)" style="flex: 1; padding: 12px;">🪙 EURC</button>
+                <button class="fee-btn active" onclick="selectToToken('usdc', this)" style="flex: 1; padding: 12px;">💵 USDC</button>
+            </div>
+            
+            <!-- TO Balance Display -->
+            <div class="balance-display" id="toBalanceDisplay"></div>
+            
+            <!-- TO Amount (Output) -->
+            <div style="margin: 20px 0;">
+                <label style="display: block; font-weight: bold; color: var(--success); margin-bottom: 8px; font-size: 14px;">📊 You Receive</label>
+                <div style="padding: 12px; background: var(--bg-tertiary); border: 2px solid var(--primary); border-radius: 8px; color: var(--success); font-weight: bold; font-size: 18px;">
+                    <span id="toAmount">0.00</span> <span id="toTokenSymbol">USDC</span>
+                </div>
+            </div>
+
+            <!-- Swap Summary -->
+            <div class="info-box">
+                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>You Send:</span>
+                    <strong><span id="fromAmountDisplay">0</span> <span id="fromTokenSymbol">USDC</span></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Rate:</span>
+                    <strong style="color: var(--primary);">1 USDC = 1 EURC</strong>
+                </div>
+            </div>
+            
+            <!-- Swap Execute Button -->
+            <button onclick="executeSwap()" style="width: 100%; padding: 15px; margin: 15px 0; background: var(--primary); color: black; font-weight: bold; border: none; border-radius: 8px; font-size: 18px; cursor: pointer;">
+                ⚡ Swap Now
+            </button>
+            
+            <!-- Status Messages -->
+            <div id="status"></div>
+            
+            <!-- Info Box -->
+            <div class="info-box" style="background: rgba(0, 212, 255, 0.05); border: 1px solid var(--primary); margin-top: 20px;">
+                <div style="color: var(--primary); font-weight: bold; margin-bottom: 8px;">ℹ️ Swap Info</div>
+                <div style="font-size: 12px; line-height: 1.8;">
+                    • Swap USDC ↔ EURC<br>
+                    • 1:1 Exchange Rate<br>
+                    • Min amount: 0.01 tokens<br>
+                    • Instant Swap<br>
+                    <a href="https://testnet.arcscan.app/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: bold; margin-top: 10px; display: inline-block;">
+                        🔗 View on ARC Explorer →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============= GLOBAL STATE =============
+        let provider, signer, userAddress;
+        let fromToken = 'usdc';
+        let toToken = 'eurc';
+        let balances = { arc: { usdc: 0n, eurc: 0n } };
+
+        // Contract addresses
+        const ARC_USDC = '0x3600000000000000000000000000000000000000';
+        const ARC_EURC = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+        const OWNER = '0x784369FaB89a92F242b92452Cb19aAc0097ca4C3';
+
+        const ERC20_ABI = ['function transfer(address to, uint256 amount) returns (bool)', 'function balanceOf(address account) returns (uint256)'];
+
+        const RPC_URL = 'https://rpc.testnet.arc.network';
+
+        // ============= WALLET CONNECTION =============
+        async function connectWallet() {
+            try {
+                if (!window.ethereum) {
+                    alert('Please install MetaMask!');
+                    return;
+                }
+
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAddress = accounts[0];
+                
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+
+                updateWalletUI();
+                await loadBalances();
+                updateTokenSelections();
+
+                console.log('✅ Wallet connected:', userAddress);
+            } catch (error) {
+                console.error('Wallet connection error:', error);
+                alert('Failed to connect wallet: ' + error.message);
+            }
+        }
+
+        function updateWalletUI() {
+            const walletBtn = document.getElementById('walletBtn');
+            const walletStatus = document.getElementById('walletStatus');
+
+            if (userAddress) {
+                walletBtn.textContent = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
+                walletBtn.style.background = 'var(--success)';
+                walletStatus.textContent = userAddress;
+                walletStatus.style.color = 'var(--success)';
+            } else {
+                walletBtn.textContent = 'Connect Wallet';
+                walletBtn.style.background = 'var(--success)';
+                walletStatus.textContent = 'Not Connected';
+                walletStatus.style.color = '#ff0000';
+            }
+        }
+
+        // ============= BALANCE LOADING =============
+        async function loadBalances() {
+            if (!userAddress) return;
+
+            try {
+                console.log('Loading swap balances...');
+
+                const arcProvider = new ethers.JsonRpcProvider(RPC_URL);
+                const usdcContract = new ethers.Contract(ARC_USDC, ERC20_ABI, arcProvider);
+                const eurcContract = new ethers.Contract(ARC_EURC, ERC20_ABI, arcProvider);
+
+                balances.arc.usdc = await usdcContract.balanceOf(userAddress);
+                balances.arc.eurc = await eurcContract.balanceOf(userAddress);
+
+                console.log('✅ Balances loaded:', {
+                    'USDC': (Number(balances.arc.usdc) / 1e6).toFixed(4),
+                    'EURC': (Number(balances.arc.eurc) / 1e6).toFixed(4)
+                });
+
+                updateBalanceDisplays();
+            } catch (error) {
+                console.error('Error loading balances:', error);
+            }
+        }
+
+        function updateBalanceDisplays() {
+            const fromDisplay = document.getElementById('fromBalanceDisplay');
+            const toDisplay = document.getElementById('toBalanceDisplay');
+
+            const fromSymbol = fromToken === 'usdc' ? 'USDC' : 'EURC';
+            const toSymbol = toToken === 'usdc' ? 'USDC' : 'EURC';
+
+            const fromBalance = fromToken === 'usdc' 
+                ? (Number(balances.arc.usdc) / 1e6).toFixed(4)
+                : (Number(balances.arc.eurc) / 1e6).toFixed(4);
+
+            const toBalance = toToken === 'usdc'
+                ? (Number(balances.arc.usdc) / 1e6).toFixed(4)
+                : (Number(balances.arc.eurc) / 1e6).toFixed(4);
+
+            fromDisplay.innerHTML = `<div><span>💰 ${fromSymbol} Balance:</span> <strong>${fromBalance} ${fromSymbol}</strong></div>`;
+            toDisplay.innerHTML = `<div><span>💰 ${toSymbol} Balance:</span> <strong>${toBalance} ${toSymbol}</strong></div>`;
+        }
+
+        // ============= UI FUNCTIONS =============
+        function selectFromToken(token, el) {
+            fromToken = token;
+            el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            updateBalanceDisplays();
+            calcSwapOutput();
+        }
+
+        function selectToToken(token, el) {
+            toToken = token;
+            el.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            updateBalanceDisplays();
+            calcSwapOutput();
+        }
+
+        function reverseTokens() {
+            [fromToken, toToken] = [toToken, fromToken];
+            
+            // Update button states
+            document.querySelectorAll('[onclick*="selectFromToken"]').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('[onclick*="selectToToken"]').forEach(b => b.classList.remove('active'));
+            
+            document.querySelector(`[onclick="selectFromToken('${fromToken}', this)"]`)?.classList.add('active');
+            document.querySelector(`[onclick="selectToToken('${toToken}', this)"]`)?.classList.add('active');
+            
+            updateBalanceDisplays();
+            calcSwapOutput();
+        }
+
+        function calcSwapOutput() {
+            const amount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            const output = amount; // 1:1 swap
+            
+            document.getElementById('fromAmountDisplay').textContent = amount.toFixed(6);
+            document.getElementById('toAmount').textContent = output.toFixed(6);
+            
+            const fromSymbol = fromToken.toUpperCase();
+            const toSymbol = toToken.toUpperCase();
+            
+            document.getElementById('fromTokenSymbol').textContent = fromSymbol;
+            document.getElementById('toTokenSymbol').textContent = toSymbol;
+        }
+
+        function showStatus(type, msg) {
+            const statusEl = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = msg;
+            statusEl.innerHTML = '';
+            statusEl.appendChild(div);
+            if (type !== 'loading') setTimeout(() => div.remove(), 5000);
+        }
+
+        async function executeSwap() {
+            if (!userAddress) {
+                alert('Please connect wallet first!');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            if (!amount) {
+                showStatus('error', 'Enter amount!');
+                return;
+            }
+            if (amount < 0.01) {
+                showStatus('error', 'Min amount: 0.01 tokens');
+                return;
+            }
+
+            const fromSymbol = fromToken.toUpperCase();
+            const toSymbol = toToken.toUpperCase();
+
+            showStatus('loading', `Swapping ${amount} ${fromSymbol} to ${toSymbol}...`);
+
+            try {
+                const tokenAddress = fromToken === 'usdc' ? ARC_USDC : ARC_EURC;
+                const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                const amountInDecimals = ethers.parseUnits(amount.toString(), 6);
+
+                showStatus('loading', `Sending ${amount} ${fromSymbol} to swap contract...`);
+                const tx = await token.transfer(OWNER, amountInDecimals);
+                await tx.wait();
+
+                showStatus('success', `✅ Swap completed! ${amount} ${fromSymbol} swapped for ${amount} ${toSymbol}`);
+                document.getElementById('fromAmount').value = '';
+                calcSwapOutput();
+                await loadBalances();
+            } catch (error) {
+                console.error('Swap error:', error);
+                showStatus('error', 'Error: ' + error.message.substring(0, 100));
+            }
+        }
+
+        function updateTokenSelections() {
+            updateBalanceDisplays();
+            calcSwapOutput();
+        }
+
+        // ============= INITIALIZATION =============
+        window.addEventListener('load', () => {
+            updateWalletUI();
+        });
+
+        // Handle wallet connection changes
+        window.ethereum?.on('accountsChanged', (accounts) => {
+            if (accounts.length === 0) {
+                userAddress = null;
+            } else {
+                userAddress = accounts[0];
+                loadBalances();
+            }
+            updateWalletUI();
+        });
+    </script>
+</body>
+</html>
