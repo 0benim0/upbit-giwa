@@ -379,26 +379,43 @@
 
         // ============= BALANCE LOADING =============
         async function loadBalances() {
-            if (!userAddress) return;
+            if (!userAddress) {
+                console.error('❌ No userAddress');
+                return;
+            }
 
             try {
-                console.log('Loading balances...');
+                console.log('📊 Loading balances...');
+                console.log('   User:', userAddress);
+                console.log('   RPC URL:', RPC_URLS.arc);
 
                 // ARC USDC
+                console.log('📍 Connecting to ARC...');
                 const arcProvider = new ethers.JsonRpcProvider(RPC_URLS.arc);
+                console.log('   Provider created:', arcProvider);
+
                 const arcUsdcContract = new ethers.Contract(ARC_USDC, ERC20_ABI, arcProvider);
+                console.log('   USDC Contract:', ARC_USDC);
+
                 balances.arc.usdc = await arcUsdcContract.balanceOf(userAddress);
+                console.log('   ✅ USDC Balance fetched:', balances.arc.usdc.toString());
 
                 // ARC EURC
                 const arcEurcContract = new ethers.Contract(ARC_EURC, ERC20_ABI, arcProvider);
+                console.log('   EURC Contract:', ARC_EURC);
+
                 balances.arc.eurc = await arcEurcContract.balanceOf(userAddress);
+                console.log('   ✅ EURC Balance fetched:', balances.arc.eurc.toString());
 
                 // INK USDC
+                console.log('📍 Connecting to INK...');
                 const inkProvider = new ethers.JsonRpcProvider(RPC_URLS.ink);
                 const inkUsdcContract = new ethers.Contract(INK_USDC, ERC20_ABI, inkProvider);
                 balances.ink.usdc = await inkUsdcContract.balanceOf(userAddress);
+                console.log('   ✅ INK USDC Balance fetched:', balances.ink.usdc.toString());
 
-                console.log('✅ Balances loaded:', {
+                console.log('✅ ALL BALANCES LOADED:');
+                console.log({
                     'ARC USDC': (Number(balances.arc.usdc) / 1e6).toFixed(4),
                     'ARC EURC': (Number(balances.arc.eurc) / 1e6).toFixed(4),
                     'INK USDC': (Number(balances.ink.usdc) / 1e6).toFixed(4)
@@ -406,7 +423,9 @@
 
                 updateBalanceDisplay();
             } catch (error) {
-                console.error('Error loading balances:', error);
+                console.error('❌ ERROR loading balances:', error);
+                console.error('   Message:', error.message);
+                console.error('   Code:', error.code);
             }
         }
 
