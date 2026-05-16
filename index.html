@@ -619,7 +619,11 @@
         let swapFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let bridgeFee = { arc: 0.00025, ink: 0.00025, giwa: 0.00025 };
         let balances = { arc: { usdc: 0, eurc: 0, native: 0 }, ink: { usdc: 0, native: 0 }, giwa: { native: 0 } };
-        let stats = { swaps: 0, bridges: 0, nfts: 0, deploys: 0, gmStreak: 0, lastGM: null, nftMintToday: false };
+        let stats = { 
+            arc: { swaps: 0, bridges: 0, nfts: 0, deploys: 0, gmStreak: 0, lastGM: null, nftMintToday: false },
+            ink: { swaps: 0, bridges: 0, nfts: 0, deploys: 0, gmStreak: 0, lastGM: null, nftMintToday: false },
+            giwa: { swaps: 0, bridges: 0, nfts: 0, deploys: 0, gmStreak: 0, lastGM: null, nftMintToday: false }
+        };
         let completedTasks = {};
 
         const ARC_TABS = ['faucet', 'nft', 'gm', 'tasks', 'badge', 'profile'];
@@ -1209,7 +1213,7 @@
                 await tx.wait();
                 console.log('NFT TX confirmed!');
                 
-                stats.nfts++;
+                stats[currentChain].nfts++;
                 completedTasks['Mint NFT'] = true;
                 saveStats();
                 renderTasks();
@@ -1800,13 +1804,13 @@
                 if (wallet) wallet.textContent = userAddress ? userAddress.substring(0, 10) + '...' : 'Not Connected';
                 
                 const nfts = document.getElementById(chain + '-profileNFTs');
-                if (nfts) nfts.textContent = stats.nfts || 0;
+                if (nfts) nfts.textContent = (stats[chain] && stats[chain].nfts) || 0;
                 
                 const deploys = document.getElementById(chain + '-profileDeploys');
-                if (deploys) deploys.textContent = stats.deploys || 0;
+                if (deploys) deploys.textContent = (stats[chain] && stats[chain].deploys) || 0;
                 
                 const streak = document.getElementById(chain + '-profileStreak');
-                if (streak) streak.textContent = stats.gmStreak || 0;
+                if (streak) streak.textContent = (stats[chain] && stats[chain].gmStreak) || 0;
             });
         }
 
